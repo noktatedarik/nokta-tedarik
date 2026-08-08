@@ -87,6 +87,7 @@
   .magaza .son { font-size:.7rem; color:var(--soluk); opacity:.9; margin-top:2px; }
   .magaza .son b { color:var(--mor); }
   .magaza .son3 { font-size:.68rem; color:var(--soluk); margin-top:2px; }
+  .magaza .magaza-not { font-size:.72rem; color:#b35c00; background:var(--turuncu-acik); border:1px solid #f7d9a8; padding:3px 8px; border-radius:6px; margin-top:4px; display:inline-block; max-width:100%; }
   .btn-gecmis { background:none; border:1px solid var(--cizgi); color:var(--lacivert); border-radius:999px; padding:4px 10px; font-size:.68rem; cursor:pointer; font-weight:700; transition:.2s; }
   .btn-gecmis:hover { background:rgba(46,109,180,.08); }
   .rozet { border-radius:999px; padding:5px 12px; font-weight:800; font-size:.72rem; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
@@ -390,6 +391,8 @@
   var sonKonum = null;
   var magazaMarkers = [];
   var sonImza = '';
+  var magazaNotlar = {};
+  var gunDurum = {};
   var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
 
   function haritaKur() {
@@ -432,14 +435,19 @@
       .then(function (d) {
         if (!d || !d.lat || !d.lng) {
           document.getElementById('konum-metin').textContent = 'Araç henüz konum göndermiyor';
-          document.getElementById('ozet-durum').textContent = '—';
+          if (gunDurum.tamamlandi) document.getElementById('ozet-durum').textContent = '✓ Tamamlandı ' + gunDurum.tamamlandi;
+          else document.getElementById('ozet-durum').textContent = '—';
           return;
         }
         var nokta = [d.lat, d.lng];
         var m = mesafe(sonKonum, { lat: d.lat, lng: d.lng });
         sonKonum = { lat: d.lat, lng: d.lng };
         document.getElementById('konum-metin').textContent = 'Son konum: ' + (d.saat || '—') + ' · ' + (d.sehir || '');
-        document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
+        if (gunDurum.tamamlandi) {
+          document.getElementById('ozet-durum').textContent = '✓ Tamamlandı ' + gunDurum.tamamlandi;
+        } else {
+          document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
+        }
         if (harita) {
           if (!aracMarker) {
             aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—'));
@@ -453,8 +461,29 @@
         }
       }).catch(function () {
         document.getElementById('konum-metin').textContent = 'Bağlantı hatası — 5 sn içinde tekrar deniyor';
-        document.getElementById('ozet-durum').textContent = '—';
+        if (gunDurum.tamamlandi) document.getElementById('ozet-durum').textContent = '✓ Tamamlandı ' + gunDurum.tamamlandi;
+        else document.getElementById('ozet-durum').textContent = '—';
       });
+  }
+
+  function yukleGunDurumu() {
+    fetch(FIREBASE_URL + '/durum/' + secilenTarih + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.tamamlandi) gunDurum = d;
+        else gunDurum = {};
+        yukleKonum();
+      }).catch(function () { });
+  }
+
+  function magazaNotGetir() {
+    fetch(FIREBASE_URL + '/magazanot.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d) magazaNotlar = d;
+        else magazaNotlar = {};
+        yukle();
+      }).catch(function () { });
   }
 
   function yukleRota() {
@@ -641,13 +670,14 @@
     }
 
     for (var i = 0; i < magazalar.length; i++) {
-      var m = magazalar[i].m;
-      var anahtar = normalize(magazalar[i].sehir) + '-' + magazalar[i].sira;
-      var d = durumlar[anahtar] || null;
-      var ad = m.m ? m.m : 'Mağaza ' + magazalar[i].sira;
-      var alt = m.i || '';
-      var mTip = m.t || 'S';
-      var marka = markaAdi(mTip);
+    var m = magazalar[i].m;
+    var anahtar = normalize(magazalar[i].sehir) + '-' + magazalar[i].sira;
+    var d = durumlar[anahtar] || null;
+    var ad = m.m ? m.m : 'Mağaza ' + magazalar[i].sira;
+    var alt = m.i || '';
+    var mTip = m.t || 'S';
+    var marka = markaAdi(mTip);
+    var notBilgi = magazaNotlar && magazaNotlar[m.k] && magazaNotlar[m.k].not ? magazaNotlar[m.k].not : null;
       if (araQ && (normalize(ad).indexOf(araQ) === -1) && (normalize(alt).indexOf(araQ) === -1)) continue;
       markaSay[marka]++;
       var markaRozet = '<span class="marka-' + (mTip === 'T' ? 'baget' : 'tamkoy') + '">' + (mTip === 'T' ? 'BAĞETTA' : 'TAMKÖY') + '</span>';
@@ -702,8 +732,9 @@
         }
         son3Yazi = '<div class="son3">SON 3: ' + parcalar.join(' · ') + '</div>';
       }
+      var notYazi = notBilgi ? '<div class="magaza-not" title="Şoför notu">📝 ' + notBilgi + '</div>' : '';
       html += '<div class="magaza" data-gecmis="' + anahtar + '">' +
-        '<div><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + sonYazi + son3Yazi + '</div>' +
+        '<div><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + '</div>' +
         '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">' + rozet +
         '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
         '</div>';
@@ -717,7 +748,7 @@
           weight: 2,
           fillColor: renk,
           fillOpacity: .95
-        }).addTo(harita).bindPopup('<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')));
+        }).addTo(harita).bindPopup('<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : ''));
         magazaMarkers.push(cember);
       }
     }
@@ -878,10 +909,13 @@
     aramaEl = document.getElementById('arama');
     aramaEl.addEventListener('input', function () { yukle(); });
     sonZiyaretGetir().then(function () { yukle(); });
+    magazaNotGetir();
     yukle();
+    yukleGunDurumu();
     yukleKonum();
     yukleRota();
-    setInterval(function () { yukle(); yukleKonum(); yukleRota(); }, 5000);
+    setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
+    setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
   }
 

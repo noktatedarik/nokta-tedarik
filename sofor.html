@@ -201,6 +201,7 @@
       <button class="btn teslim" id="donus-btn" style="text-decoration:none; padding:9px 14px; font-size:.78rem; flex:1;">🔄 DÖNÜŞE GEÇ</button>
       <a class="btn teslim" id="depo-btn" href="tel:+905375966856" style="text-decoration:none; padding:9px 14px; font-size:.78rem;">📞 BÜYÜK PATRONU ARA</a>
     </div>
+    <button class="btn tamam" id="bitis-btn" style="width:100%; padding:12px; font-size:.8rem;">🏁 SEVKİYAT TAMAMLANDI</button>
   </div>
   <div class="liste" id="liste"></div>
   <div style="padding:0 16px 8px;"><button class="btn teslim" id="test-btn" style="width:100%;">TEST BİLDİRİMİ GÖNDER</button></div>
@@ -816,11 +817,12 @@
 
   var yuklemeBtn = document.getElementById('yukleme-btn');
   var baslamaBtn = document.getElementById('baslama-btn');
+  var bitisBtn = document.getElementById('bitis-btn');
   function durumOku() {
     fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        if (d && (d.yukleme || d.baslama)) gunDurum = d;
+        if (d && (d.yukleme || d.baslama || d.tamamlandi)) gunDurum = d;
         else gunDurum = {};
         durumButonYansit();
       }).catch(function () { gunDurum = {}; });
@@ -839,6 +841,13 @@
     } else {
       baslamaBtn.textContent = '🚚 İŞE BAŞLA';
       baslamaBtn.classList.remove('tamam');
+    }
+    if (gunDurum.tamamlandi) {
+      bitisBtn.textContent = '✓ SEVKİYAT TAMAMLANDI ' + gunDurum.tamamlandi;
+      bitisBtn.classList.add('tamam');
+    } else {
+      bitisBtn.textContent = '🏁 SEVKİYAT TAMAMLANDI';
+      bitisBtn.classList.remove('tamam');
     }
   }
   function durumDamga(yuklemeMi) {
@@ -860,8 +869,22 @@
       .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
     durumButonYansit();
   }
+  function durumBitis() {
+    var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    var adres = FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json';
+    gunDurum.tamamlandi = saat;
+    gunDurum.asama = 'tamamlandi';
+    fetch(adres, { method: 'PATCH', body: JSON.stringify({ tamamlandi: saat, asama: 'tamamlandi' }) })
+      .then(function () { durumButonYansit(); baglanti.textContent = 'Sevkiyat tamamlandı — ' + saat; toast('Sevkiyat tamamlandı · ' + saat, 'ok'); })
+      .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
+    durumButonYansit();
+  }
   if (yuklemeBtn) yuklemeBtn.addEventListener('click', function () { durumDamga(true); });
   if (baslamaBtn) baslamaBtn.addEventListener('click', function () { durumDamga(false); });
+  if (bitisBtn) bitisBtn.addEventListener('click', function () {
+    if (!gunDurum.tamamlandi && confirm('Sevkiyat tamamlandı olarak işaretlensin mi?')) durumBitis();
+    else if (gunDurum.tamamlandi) durumBitis();
+  });
 
   var donusBtn = document.getElementById('donus-btn');
   var donusYapildi = false;
