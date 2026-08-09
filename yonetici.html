@@ -68,13 +68,7 @@
   .filtre select, .filtre input { padding:8px 12px; border:2px solid var(--cizgi); border-radius:10px; font-size:.85rem; font-weight:700; color:var(--metin); outline:none; background:var(--kart); transition:border-color .2s, box-shadow .2s; }
   .filtre select:focus, .filtre input:focus { border-color:var(--turuncu); box-shadow:0 0 0 3px rgba(245,158,11,.12); }
   .ozet { display:grid; grid-template-columns:repeat(auto-fit,minmax(96px,1fr)); gap:10px; padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
-  .ozet .kup { background:var(--bg); border:1px solid var(--cizgi); border-radius:16px; padding:12px 6px; text-align:center; box-shadow:var(--golge); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; animation:gir .4s ease backwards; }
-  .ozet .kup:nth-child(2) { animation-delay:.05s; }
-  .ozet .kup:nth-child(3) { animation-delay:.1s; }
-  .ozet .kup:nth-child(4) { animation-delay:.15s; }
-  .ozet .kup:nth-child(5) { animation-delay:.2s; }
-  .ozet .kup:nth-child(6) { animation-delay:.25s; }
-  @keyframes gir { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .ozet .kup { background:var(--bg); border:1px solid var(--cizgi); border-radius:16px; padding:12px 6px; text-align:center; box-shadow:var(--golge); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; }
   .ozet .kup:hover { transform:translateY(-2px); box-shadow:var(--golge2); }
   .ozet .kup .ikon { font-size:1.1rem; display:block; margin-bottom:5px; }
   .ozet b { color:var(--turuncu-koyu); font-size:1.3rem; display:block; line-height:1.2; font-family:'Sora',sans-serif; }
@@ -108,12 +102,6 @@
   .icerik { padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
   .liste { padding:12px 16px; display:grid; gap:10px; background:var(--bg); }
   .magaza { background:var(--kart); border-radius:16px; padding:13px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--cizgi); box-shadow:var(--golge); transition:transform .15s, box-shadow .2s, border-color .2s; }
-  .liste .magaza:nth-child(1) { animation:gir .3s ease backwards; }
-  .liste .magaza:nth-child(2) { animation:gir .3s ease .04s backwards; }
-  .liste .magaza:nth-child(3) { animation:gir .3s ease .08s backwards; }
-  .liste .magaza:nth-child(4) { animation:gir .3s ease .12s backwards; }
-  .liste .magaza:nth-child(5) { animation:gir .3s ease .16s backwards; }
-  .liste .magaza:nth-child(n+6) { animation:gir .3s ease .2s backwards; }
   .magaza:hover { transform:translateY(-2px); box-shadow:var(--golge2); border-color:var(--turuncu-acik); }
   .magaza .ad { font-family:'Sora',sans-serif; font-weight:700; font-size:.88rem; color:var(--metin); }
   .magaza .saat { font-size:.74rem; color:var(--soluk); margin-top:3px; }
@@ -224,7 +212,7 @@
 <div class="ust">
   <button class="ust-btn" id="tema-btn" title="Tema değiştir">🌙</button>
   <button class="ust-btn" id="cikis-btn" style="display:none;">Çıkış</button>
-  <div class="ust-logo" onclick="window.location.reload();"><img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><h1>NOKTA TEDARİK</h1></div>
+  <div class="ust-logo"><img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><h1>NOKTA TEDARİK</h1></div>
   <div class="alt">YÖNETİCİ PANELİ · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span></div>
 </div>
 
