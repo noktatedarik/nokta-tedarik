@@ -494,15 +494,27 @@
     sesBtn.textContent = sesAcik ? '🔊' : '🔇';
   });
 
-  function soruGel(metin) {
+  function soruGel(metin, sesliKaynak) {
     metin = String(metin || '').trim();
     if (!metin) return;
     giris.value = '';
-    mesajEkle('siz', metin);
-    var dusunuyor = mesajEkle('ben', 'Dur... biraz düşünüyorum ⏳', true);
-    dusunuyor.classList.add('dusunuyor');
-    veriTazele().then(function () {
-      var yanit = mudurYanitla(metin);
+    if (!sesliKaynak) {
+      mesajEkle('siz', metin);
+      var dusunuyor = mesajEkle('ben', 'Dur... biraz düşünüyorum ⏳', true);
+      dusunuyor.classList.add('dusunuyor');
+    }
+    var isleyen = veriTazele().then(function () {
+      return mudurYanitla(metin);
+    });
+    if (sesliKaynak) {
+      isleyen.then(function (yanit) {
+        konus(yanit);
+      }).catch(function () {
+        konus('Verilere ulaşamadım. İnternet bağlantısını kontrol edin.');
+      });
+      return;
+    }
+    isleyen.then(function (yanit) {
       dusunuyor.classList.remove('dusunuyor');
       mesajKutusuGuncelle(dusunuyor, yanit);
       konus(yanit);
@@ -575,7 +587,7 @@
       }
       var k = sadelestir(soru);
       if (md < 0 && !OTO_KELIME.test(k) && son.trim().length < 5) return;
-      soruGel(soru);
+      soruGel(soru, true);
     };
     dinleme.onerror = function (e) {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
