@@ -1018,6 +1018,8 @@
           if (!enYeni || anahtar > (enYeni.tarih + '|' + enYeni.saat)) { enYeni = k; enId = id; }
         }
         if (!enId) { ekran.style.display = 'none'; return; }
+        var okundular = enYeni.okundu || {};
+        if (okundular[cihazKimligi()]) { ekran.style.display = 'none'; return; }
         if (localStorage.getItem('duyuru-kapat') === enId) { ekran.style.display = 'none'; return; }
         ekran.dataset.anahtar = enId;
         document.getElementById('duyuru-metin').textContent = enYeni.metin;
@@ -1123,7 +1125,9 @@
       var c = cihazKimligi();
       var kayit = {};
       kayit['/duyurular/' + id + '/okundu/' + c] = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      fetch(FIREBASE_URL + '.json', { method: 'PATCH', body: JSON.stringify(kayit) }).catch(function () { });
+      fetch(FIREBASE_URL + '.json', { method: 'PATCH', body: JSON.stringify(kayit) })
+        .then(function () { toast('✓ Duyuru okundu olarak kaydedildi', 'ok'); })
+        .catch(function () { toast('Okundu kaydedilemedi — bağlantı hatası', 'hata'); });
     }
   });
 </script>
