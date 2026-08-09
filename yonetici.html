@@ -1827,28 +1827,30 @@
     var yuklemeSaat = yukleme;
     var cikisSaat = baslama;
     var ilkTeslim = ilk;
-    var yolda = !!baslama && !ilk;
-    var dagitim = !!ilk && !donusAktif && !tamam;
     var donusAktif = !!donus || (gunDurum && gunDurum.asama === 'donus');
     var tamam = !!tamamlandi;
+    var gunBasladi = !!yuklemeSaat || !!cikisSaat;
     var adimlar = [
-      { ad: 'Yükleme', saat: yuklemeSaat, ok: !!yuklemeSaat, suanki: !yuklemeSaat && !cikisSaat },
-      { ad: 'Çıkış', saat: cikisSaat, ok: !!cikisSaat, suanki: !!yuklemeSaat && !cikisSaat },
-      { ad: 'Yolda', saat: null, ok: !!ilk, suanki: yolda },
-      { ad: 'Dağıtım', saat: ilkTeslim, ok: !!ilk, suanki: dagitim },
-      { ad: 'Dönüş', saat: donusAktif ? (donus || 'Yolda') : null, ok: tamam || !!donus, suanki: donusAktif && !tamam }
+      { ad: 'Yükleme', saat: yuklemeSaat, ok: !!yuklemeSaat },
+      { ad: 'Çıkış', saat: cikisSaat, ok: !!cikisSaat },
+      { ad: 'Yolda', saat: null, ok: !!ilk },
+      { ad: 'Dağıtım', saat: ilkTeslim, ok: !!ilk && (donusAktif || tamam) },
+      { ad: 'Dönüş', saat: donusAktif ? (donus || 'Yolda') : null, ok: tamam || !!donus }
     ];
-    var aktifYok = true;
+    var suankiIslendi = false;
     for (var a = 0; a < adimlar.length; a++) {
       var adim = adimlar[a];
+      var suankiMi = gunBasladi && !adim.ok && !suankiIslendi;
+      if (suankiMi) suankiIslendi = true;
       var cls = '';
       if (adim.ok) cls += ' dolu';
-      if (adim.suanki) { cls += ' suanki'; aktifYok = false; }
-      var saatGoster = adim.saat ? adim.saat : (adim.suanki ? 'AKTİF' : (adim.ok ? '✓' : '—'));
+      if (suankiMi) cls += ' suanki';
+      var saatGoster = adim.saat ? adim.saat : (suankiMi ? 'AKTİF' : (adim.ok ? '✓' : '—'));
       h += '<div class="tl-adim' + cls + '"><div class="tl-saat">' + saatGoster + '</div><div class="tl-ad">' + adim.ad + '</div></div>';
       if (a < adimlar.length - 1) h += '<span class="tl-ok">›</span>';
     }
-    if (aktifYok && !tamam) h += '<div class="tl-uyari">Gün hâlâ devam ediyor</div>';
+    if (!gunBasladi) h += '<div class="tl-uyari">Gün henüz başlamadı — şoför butonlardan birine basmadı</div>';
+    else if (!suankiIslendi && !tamam) h += '<div class="tl-uyari">Gün hâlâ devam ediyor</div>';
     h += '</div>';
 
     h += '<div class="rota-bilgi">';
