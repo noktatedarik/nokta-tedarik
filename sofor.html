@@ -285,6 +285,7 @@
   <div class="modal" style="border-top:6px solid #dc2626;">
     <h3 style="color:#dc2626;">🆘 ACİL DURUM</h3>
     <p style="font-size:.85rem; color:var(--muted); line-height:1.6; margin:8px 0 16px;">Butona basınca yönetici panelinde <b>kırmızı alarm</b> yanar. Gerçek bir acil durumda kullanın.</p>
+    <button class="btn" id="sos-ses-test" style="width:100%; background:var(--card-2); color:var(--muted); box-shadow:none; margin-bottom:8px;">🔔 Alarm sesini test et</button>
     <button class="btn acil" id="sos-onay" style="width:100%; padding:13px;">🆘 EVET, SOS GÖNDER</button>
     <button class="btn vazgec" id="sos-vazgec">Vazgeç</button>
   </div>
@@ -292,7 +293,7 @@
 
 <div class="chat-cap" id="chat-cap">
   <div class="chat-panel">
-    <div class="chat-baslik">💬 YÖNETİCİ İLE YAZIŞMA<button class="chat-kapat" id="chat-kapat">✕</button></div>
+    <div class="chat-baslik">💬 YÖNETİCİ İLE YAZIŞMA<span style="display:flex; gap:8px;"><button class="chat-kapat" id="chat-ses-test" title="Ses testi">🔔</button><button class="chat-kapat" id="chat-kapat">✕</button></span></div>
     <div class="chat-icerik" id="chat-icerik"></div>
     <div class="chat-alt">
       <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." maxlength="500">
@@ -1067,6 +1068,8 @@
   }
   document.getElementById('mesaj-btn').addEventListener('click', chatAc);
   document.getElementById('chat-kapat').addEventListener('click', chatKapat);
+  document.getElementById('chat-ses-test').addEventListener('click', function () { sesCal(MESAJ_SESI); toast('🔔 Ses testi çalınıyor', 'ok'); });
+  document.getElementById('sos-ses-test').addEventListener('click', function () { sesCal(SOS_SESI); toast('🔔 Alarm sesi çalınıyor', 'hata'); });
   chatCap.addEventListener('click', function (e) { if (e.target === chatCap) chatKapat(); });
   function mesajGonder() {
     var metin = chatInput.value.trim();
@@ -1088,6 +1091,7 @@
   document.getElementById('chat-gonder').addEventListener('click', mesajGonder);
   chatInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') mesajGonder(); });
   var sesCtx = null;
+  var SES_ACIK = true;
   function sesHazirla() {
     try {
       if (!sesCtx) sesCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1097,33 +1101,44 @@
   ['touchstart', 'touchend', 'mousedown', 'mouseup', 'click', 'keydown', 'scroll', 'wheel'].forEach(function (ev) {
     document.addEventListener(ev, sesHazirla, { passive: true, capture: true });
   });
-  function cal() {
+  function sesCal(desen) {
+    if (!SES_ACIK) return;
     sesHazirla();
-    if (!sesCtx || sesCtx.state !== 'running') {
-      try { if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 400]); } catch (e) { }
-      setTimeout(function () { sesHazirla(); }, 150);
-      return;
+    var ctx = sesCtx;
+    if (!ctx) return;
+    var denendi = 0;
+    function oyna() {
+      if (!ctx || ctx.state !== 'running') return false;
+      try {
+        for (var i = 0; i < desen.length; i++) {
+          (function (adim) {
+            var o = ctx.createOscillator();
+            var g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.type = adim.tip || 'sine';
+            o.frequency.value = adim.f;
+            var t = ctx.currentTime + adim.basla;
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.exponentialRampToValueAtTime(0.34, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, t + adim.sure);
+            o.start(t);
+            o.stop(t + adim.sure + 0.03);
+          })(desen[i]);
+        }
+        return true;
+      } catch (e) { return false; }
     }
-    try {
-      var ctx = sesCtx;
-      function bip(frekans, basla, sure) {
-        var o = ctx.createOscillator();
-        var g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'sine';
-        o.frequency.value = frekans;
-        var t = ctx.currentTime + basla;
-        g.gain.setValueAtTime(0.001, t);
-        g.gain.exponentialRampToValueAtTime(0.32, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + sure);
-        o.start(t);
-        o.stop(t + sure + 0.02);
-      }
-      bip(880, 0, 0.16);
-      bip(880, 0.2, 0.16);
-      bip(1318, 0.4, 0.35);
-    } catch (e) { }
+    if (!oyna()) {
+      try { if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 400]); } catch (e) { }
+      var tekrar = setInterval(function () {
+        denendi++;
+        if (oyna() || denendi > 10) clearInterval(tekrar);
+      }, 250);
+      setTimeout(function () { clearInterval(tekrar); }, 3500);
+    }
   }
+  var MESAJ_SESI = [{ f: 880, basla: 0, sure: 0.16 }, { f: 880, basla: 0.2, sure: 0.16 }, { f: 1318, basla: 0.4, sure: 0.35 }];
+  var SOS_SESI = [{ f: 980, tip: 'square', basla: 0, sure: 0.4 }, { f: 980, tip: 'square', basla: 0.5, sure: 0.4 }, { f: 980, tip: 'square', basla: 1.0, sure: 0.4 }, { f: 740, tip: 'square', basla: 1.5, sure: 0.4 }];
   var bilinenSonMesajId = null;
   var ilkMesajYukleme = true;
   function mesajlariYukle() {
@@ -1144,7 +1159,7 @@
           var gelen = mesajlar[mesajlar.length - 1].v;
           bilinenSonMesajId = enSon;
           if (gelen.g === 'yonetici') {
-            cal();
+            sesCal(MESAJ_SESI);
             if (!chatAcik) chatAc();
             toast('💬 Yönetici mesaj gönderdi: ' + gelen.m, 'ok');
           }
@@ -1186,6 +1201,7 @@
       .then(function () {
         sosAktif = aktif;
         sosDurumYansit();
+        if (aktif) sesCal(SOS_SESI);
         toast(aktif ? '🆘 SOS yöneticiye gönderildi' : 'SOS kapatıldı', aktif ? 'hata' : 'ok');
       })
       .catch(function () { toast('SOS gönderilemedi — bağlantı hatası', 'hata'); });
