@@ -1287,6 +1287,10 @@
     document.getElementById('pin').value = PIN;
     baslat();
   }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () { });
+  }
 </script>
 </body>
 </html>
