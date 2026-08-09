@@ -46,6 +46,18 @@
   .ust-logo img { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.35); box-shadow:0 2px 10px rgba(0,0,0,.3); }
   .ust-logo h1 { font-family:'Sora','Manrope',sans-serif; font-size:.98rem; letter-spacing:3px; font-weight:800; text-transform:uppercase; }
   .ust .alt { font-size:.72rem; opacity:.85; margin-top:6px; font-weight:600; letter-spacing:.5px; }
+  .canli-badge { display:inline-block; margin-left:8px; padding:2px 10px; border-radius:999px; font-size:.6rem; font-weight:800; letter-spacing:1px; color:#fff; background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 0 12px rgba(16,185,129,.6); animation:canlipar 1.6s ease infinite; vertical-align:middle; }
+  @keyframes canlipar { 0%,100% { box-shadow:0 0 4px rgba(16,185,129,.4); } 50% { box-shadow:0 0 16px rgba(16,185,129,.9); } }
+  @keyframes panelgiris { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+  @keyframes kupgiris { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:none; } }
+  #panel.giris-anim { animation:panelgiris .5s ease; }
+  #panel.giris-anim .ozet .kup { animation:kupgiris .45s ease backwards; }
+  #panel.giris-anim .ozet .kup:nth-child(1) { animation-delay:.1s; }
+  #panel.giris-anim .ozet .kup:nth-child(2) { animation-delay:.18s; }
+  #panel.giris-anim .ozet .kup:nth-child(3) { animation-delay:.26s; }
+  #panel.giris-anim .ozet .kup:nth-child(4) { animation-delay:.34s; }
+  #panel.giris-anim .ozet .kup:nth-child(5) { animation-delay:.42s; }
+  #panel.giris-anim .ozet .kup:nth-child(6) { animation-delay:.5s; }
   .ust .sehir { color:var(--turuncu-acik); font-weight:800; font-size:.9rem; }
   .ust-btn { position:absolute; top:14px; border:1px solid var(--beyaz-cizgi); color:#fff; background:rgba(255,255,255,.08); border-radius:999px; padding:6px 12px; font-size:.72rem; cursor:pointer; transition:.2s; backdrop-filter:blur(6px); }
   .ust-btn:hover { background:rgba(255,255,255,.22); transform:translateY(-1px); }
@@ -213,7 +225,7 @@
   <button class="ust-btn" id="tema-btn" title="Tema değiştir">🌙</button>
   <button class="ust-btn" id="cikis-btn" style="display:none;">Çıkış</button>
   <div class="ust-logo"><img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><h1>NOKTA TEDARİK</h1></div>
-  <div class="alt">YÖNETİCİ PANELİ · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span></div>
+  <div class="alt">YÖNETİCİ PANELİ · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> <span class="canli-badge" id="canli-badge">● CANLI</span></div>
 </div>
 
 <div class="giris" id="giris-kap">
@@ -445,12 +457,21 @@
       girisKap.style.display = 'none';
       panel.style.display = '';
       cikisBtn.style.display = '';
+      girisAnimasyonu();
       baslat();
     } else {
       hata.textContent = 'Yanlış şifre';
       pinEl.value = '';
       pinEl.focus();
     }
+  }
+
+  function girisAnimasyonu() {
+    var p = document.getElementById('panel');
+    p.classList.remove('giris-anim');
+    void p.offsetWidth;
+    p.classList.add('giris-anim');
+    setTimeout(function () { p.classList.remove('giris-anim'); }, 1200);
   }
   document.getElementById('giris-btn').addEventListener('click', girisYap);
   pinEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') girisYap(); });
@@ -1279,6 +1300,7 @@
     panel.style.display = '';
     cikisBtn.style.display = '';
     document.getElementById('pin').value = PIN;
+    girisAnimasyonu();
     baslat();
   }
 
