@@ -1061,7 +1061,7 @@
           return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
         }));
         adim = 'zam-sayfa';
-        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam-Fiyat Kaydı');
         adim = 'indir';
         excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
