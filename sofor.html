@@ -279,6 +279,7 @@
 </script>
 <script src="magazalar.js"></script>
 <script src="koordinatlar.js"></script>
+<script src="magaza_konum.js"></script>
 <script>
 
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
@@ -583,6 +584,7 @@
       var tk = tamKonumlar[kod];
       if (tk.lat && tk.lng) return [tk.lat, tk.lng];
     }
+    if (kod && MAGAZA_KONUM && MAGAZA_KONUM[kod]) return MAGAZA_KONUM[kod];
     var s = KOORDINATLAR[sehir];
     if (!s) return null;
     var k = s[ilce] || s['_merkez'];

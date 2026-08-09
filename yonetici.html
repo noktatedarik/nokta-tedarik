@@ -503,6 +503,7 @@
 </script>
 <script src="magazalar.js"></script>
 <script src="koordinatlar.js"></script>
+<script src="magaza_konum.js"></script>
 <script src="fiyatlar.js"></script>
 <script>
   function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
@@ -723,7 +724,8 @@
     } catch (e) { setTimeout(haritaKur, 2000); }
   }
 
-  function magazaKoordinat(sehir, ilce) {
+  function magazaKoordinat(sehir, ilce, kod) {
+    if (kod && MAGAZA_KONUM && MAGAZA_KONUM[kod]) return MAGAZA_KONUM[kod];
     var s = KOORDINATLAR[sehir];
     if (!s) return null;
     var k = s[ilce] || s['_merkez'];
@@ -1382,7 +1384,7 @@
         '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
         '</div>';
 
-      var koord = magazaKoordinat(magazalar[i].sehir, m.i);
+      var koord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
       if (koord && harita && haritaDegisti) {
         var renk = durumTipi === 'teslim' ? '#1faa4c' : (durumTipi === 'red' ? '#c0392b' : '#c7d3e0');
         var cember = L.circleMarker(koord, {
@@ -1472,7 +1474,7 @@
       var anahtar = normalize(mg.sehir) + '-' + mg.sira;
       var d = durumlar[anahtar];
       if (d && (d.red || d.saat)) continue;
-      var koord = magazaKoordinat(mg.sehir, mg.m.i);
+      var koord = magazaKoordinat(mg.sehir, mg.m.i, mg.m.k);
       if (!koord) continue;
       adaylar.push({ ad: mg.m.m ? mg.m.m : 'Mağaza ' + mg.sira, ilce: mg.m.i || '', sehir: mg.sehir, anahtar: anahtar, koord: koord });
     }
@@ -1552,7 +1554,7 @@
       var mk = null;
       for (var j = 0; j < magazalar.length; j++) {
         if (normalize(magazalar[j].sehir) + '-' + magazalar[j].sira === kayitlar[i].anahtar) {
-          mk = magazaKoordinat(magazalar[j].sehir, magazalar[j].m.i);
+          mk = magazaKoordinat(magazalar[j].sehir, magazalar[j].m.i, magazalar[j].m.k);
           break;
         }
       }
