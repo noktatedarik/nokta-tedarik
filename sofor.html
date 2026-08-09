@@ -1087,10 +1087,25 @@
   }
   document.getElementById('chat-gonder').addEventListener('click', mesajGonder);
   chatInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') mesajGonder(); });
-  function cal() {
+  var sesCtx = null;
+  function sesHazirla() {
     try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      if (ctx.state === 'suspended') ctx.resume();
+      if (!sesCtx) sesCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (sesCtx.state === 'suspended' && sesCtx.resume) sesCtx.resume();
+    } catch (e) { }
+  }
+  ['touchstart', 'touchend', 'mousedown', 'mouseup', 'click', 'keydown', 'scroll', 'wheel'].forEach(function (ev) {
+    document.addEventListener(ev, sesHazirla, { passive: true, capture: true });
+  });
+  function cal() {
+    sesHazirla();
+    if (!sesCtx || sesCtx.state !== 'running') {
+      try { if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 400]); } catch (e) { }
+      setTimeout(function () { sesHazirla(); }, 150);
+      return;
+    }
+    try {
+      var ctx = sesCtx;
       function bip(frekans, basla, sure) {
         var o = ctx.createOscillator();
         var g = ctx.createGain();
@@ -1099,14 +1114,14 @@
         o.frequency.value = frekans;
         var t = ctx.currentTime + basla;
         g.gain.setValueAtTime(0.001, t);
-        g.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.32, t + 0.02);
         g.gain.exponentialRampToValueAtTime(0.001, t + sure);
         o.start(t);
         o.stop(t + sure + 0.02);
       }
       bip(880, 0, 0.16);
       bip(880, 0.2, 0.16);
-      bip(1244, 0.4, 0.3);
+      bip(1318, 0.4, 0.35);
     } catch (e) { }
   }
   var bilinenSonMesajId = null;
