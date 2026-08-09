@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>MÜDÜR — Yapay Zeka Asistanı</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg:#0b1220;
+    --kart:#131c2e;
+    --kart2:#1a2538;
+    --cizgi:#26354c;
+    --metin:#e8eef6;
+    --soluk:#93a5bb;
+    --turuncu:#f59e0b;
+    --yesil:#22c55e;
+    --kirmizi:#ef4444;
+    --mavi:#38bdf8;
+  }
+  html,body { height:100%; }
+  body {
+    background:radial-gradient(120% 90% at 20% 0%, #16233b 0%, var(--bg) 55%);
+    color:var(--metin);
+    font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  header {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px;
+    background:rgba(10,18,30,.72);
+    border-bottom:1px solid var(--cizgi);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    position:relative; z-index:5;
+  }
+  header .logo {
+    width:46px; height:46px; border-radius:14px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    box-shadow:0 6px 18px rgba(245,158,11,.4);
+    animation:nabiz 2.4s ease infinite;
+  }
+  @keyframes nabiz { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.06);} }
+  header .baslik { flex:1; min-width:0; }
+  header h1 { font-size:1.15rem; letter-spacing:2px; font-weight:800; }
+  header .baslik span { display:block; font-size:.62rem; color:var(--soluk); letter-spacing:.6px; margin-top:2px; }
+  header .sag { display:flex; align-items:center; gap:8px; }
+  header .btn-ust {
+    background:var(--kart2); border:1px solid var(--cizgi); color:var(--metin);
+    width:38px; height:38px; border-radius:12px; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  header .btn-ust:active { transform:scale(.92); }
+  .nokta { width:10px; height:10px; border-radius:50%; background:#64748b; transition:.3s; }
+  .nokta.on { background:var(--yesil); box-shadow:0 0 8px var(--yesil); }
+  .nokta.off { background:var(--kirmizi); }
+
+  .sohbet {
+    flex:1; overflow-y:auto; padding:16px 14px;
+    display:flex; flex-direction:column; gap:10px;
+    scroll-behavior:smooth;
+  }
+  .balon { display:flex; max-width:88%; }
+  .balon.siz { align-self:flex-end; }
+  .balon.ben { align-self:flex-start; }
+  .balon .kutu {
+    padding:11px 14px; border-radius:18px; font-size:.95rem; line-height:1.55; word-break:break-word; white-space:pre-line;
+  }
+  .balon.siz .kutu {
+    background:linear-gradient(135deg,#f59e0b,#d97706); color:#241404;
+    border-bottom-right-radius:5px; font-weight:600;
+    box-shadow:0 4px 14px rgba(245,158,11,.25);
+  }
+  .balon.ben .kutu {
+    background:var(--kart); border:1px solid var(--cizgi); color:var(--metin);
+    border-bottom-left-radius:5px;
+  }
+  .balon.ben .kutu .kimlik {
+    font-size:.58rem; letter-spacing:1.5px; color:var(--turuncu); font-weight:800; margin-bottom:4px; display:block;
+  }
+  .balon.dusunuyor .kutu { color:var(--soluk); font-style:italic; }
+
+  .alt-bar {
+    display:flex; align-items:center; gap:8px; padding:10px 12px calc(12px + env(safe-area-inset-bottom));
+    background:rgba(10,18,30,.82);
+    border-top:1px solid var(--cizgi);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  }
+  .alt-bar .mik {
+    width:48px; height:48px; border-radius:50%; border:none; flex-shrink:0; cursor:pointer;
+    background:linear-gradient(135deg,#38bdf8,#0284c7); color:#fff; font-size:1.3rem;
+    box-shadow:0 4px 14px rgba(56,189,248,.35);
+    transition:transform .15s;
+  }
+  .alt-bar .mik:active { transform:scale(.9); }
+  .alt-bar .mik.dinliyor { animation:mikNabiz 1s ease infinite; }
+  .alt-bar .mik.yok { filter:grayscale(1) opacity(.5); }
+  @keyframes mikNabiz { 0%,100%{ box-shadow:0 0 0 0 rgba(56,189,248,.5);} 50%{ box-shadow:0 0 0 12px rgba(56,189,248,0);} }
+  .alt-bar input {
+    flex:1; height:46px; padding:0 16px; border-radius:999px;
+    border:1px solid var(--cizgi); background:var(--kart2); color:var(--metin);
+    font-size:.95rem; outline:none; min-width:0;
+  }
+  .alt-bar input:focus { border-color:var(--turuncu); }
+  .alt-bar button:disabled { opacity:.4; }
+
+  .ipucu { font-size:.62rem; color:var(--soluk); text-align:center; padding:4px 12px 0; letter-spacing:.3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🤖</div>
+  <div class="baslik">
+    <h1>MÜDÜR</h1>
+    <span>NOKTA TEDARİK · yapay zeka asistanı · canlı veri</span>
+  </div>
+  <div class="sag">
+    <button class="btn-ust" id="ses-btn" title="Ses açık/kapalı">🔊</button>
+    <span class="nokta" id="baglanti-nokta"></span>
+  </div>
+</header>
+
+<div class="sohbet" id="sohbet"></div>
+
+<div class="alt-bar">
+  <button class="mik" id="mik-btn" title="Mikrofonla sor">🎤</button>
+  <input id="giris" placeholder="MÜDÜR'e sorun yazın ya da 🎤 ile konuşun..." maxlength="300" autocomplete="off">
+  <button class="btn-ust" id="gonder-btn" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#241404;font-size:1.1rem;">➤</button>
+</div>
+<div class="ipucu">Örn: "bugünkü özet", "red var mı", "ciro", "kalan mağaza", "şoför nerede", "SOS", "Samsun", bir mağaza adı</div>
+
+<script src="magazalar.js"></script>
+<script src="fiyatlar.js"></script>
+<script>
+  var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
+  var URUNLER = [
+    { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
+    { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
+    { ad: 'KANDİL SİMİTİ', sutun: 'F' },
+    { ad: 'KONYA GEVREĞİ', sutun: 'G' },
+    { ad: 'SUSAMLI ÇÖREK', sutun: 'H' },
+    { ad: 'LAVAŞ', sutun: 'I' },
+    { ad: 'GALETA', sutun: 'J' },
+    { ad: 'TAM BUĞDAY LAVAŞ', sutun: 'K' }
+  ];
+  var BAGETTA_URUNLER = [
+    { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
+    { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
+    { ad: 'KANDİL SİMİTİ', sutun: 'F' },
+    { ad: 'KONYA GEVREĞİ', sutun: 'G' },
+    { ad: 'SUSAMLI ÇÖREK', sutun: 'H' },
+    { ad: 'SAC EKMEĞİ', sutun: 'I' },
+    { ad: 'GALETA', sutun: 'J' }
+  ];
+
+  function tarihYaz(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function normalize(s) { return String(s || '').toUpperCase().replace('İ', 'I').trim(); }
+  function sadelestir(s) {
+    return String(s || '').toUpperCase()
+      .replace(/Ç/g, 'C').replace(/Ğ/g, 'G').replace(/Ö/g, 'O').replace(/Ş/g, 'S').replace(/Ü/g, 'U');
+  }
+  function fmt(n) { return (n || 0).toLocaleString('tr-TR'); }
+
+  var BUGUN = tarihYaz(new Date());
+  var gunluk = {};
+  var gunDurum = {};
+  var mesajlar = [];
+  var sos = { aktif: false };
+  var konum = null;
+  var notlar = {};
+  var MAGAZA_LISTESI = [];
+  var veriHazir = false;
+
+  function flatListe() {
+    MAGAZA_LISTESI = [];
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      var il = MAGAZALAR[l].sehir;
+      var arr = MAGAZALAR[l].magazalar;
+      for (var m = 0; m < arr.length; m++) {
+        MAGAZA_LISTESI.push({ il: il, sira: m + 1, m: arr[m], anahtar: normalize(il) + '-' + (m + 1) });
+      }
+    }
+  }
+
+  function gunlukYukle() {
+    var istekler = [];
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      (function (ilAd) {
+        istekler.push(
+          fetch(FIREBASE_URL + '/gunluk/' + BUGUN + '/' + normalize(ilAd) + '.json')
+            .then(function (r) { return r.json(); })
+            .then(function (d) { gunluk[ilAd] = d || {}; })
+            .catch(function () { gunluk[ilAd] = {}; })
+        );
+      })(MAGAZALAR[l].sehir);
+    }
+    return Promise.all(istekler);
+  }
+  function durumYukle() {
+    return fetch(FIREBASE_URL + '/durum/' + BUGUN + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { gunDurum = (d && (d.yukleme || d.baslama || d.tamamlandi || d.asama)) ? d : {}; })
+      .catch(function () { gunDurum = {}; });
+  }
+  function mesajYukle() {
+    return fetch(FIREBASE_URL + '/mesajlar.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        mesajlar = [];
+        for (var id in (d || {})) if (d[id] && d[id].m) mesajlar.push({ id: id, v: d[id] });
+      })
+      .catch(function () { mesajlar = []; });
+  }
+  function sosYukle() {
+    return fetch(FIREBASE_URL + '/sos.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { sos = d || { aktif: false }; })
+      .catch(function () { sos = { aktif: false }; });
+  }
+  function konumYukle() {
+    return fetch(FIREBASE_URL + '/konum/guncel.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { konum = d || null; })
+      .catch(function () { konum = null; });
+  }
+  function notYukle() {
+    return fetch(FIREBASE_URL + '/magazanot.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { notlar = d || {}; })
+      .catch(function () { notlar = {}; });
+  }
+
+  function veriTazele() {
+    return Promise.all([gunlukYukle(), durumYukle(), mesajYukle(), sosYukle(), konumYukle(), notYukle()])
+      .then(function () {
+        veriHazir = true;
+        document.getElementById('baglanti-nokta').classList.add('on');
+        document.getElementById('baglanti-nokta').classList.remove('off');
+      })
+      .catch(function () {
+        document.getElementById('baglanti-nokta').classList.add('off');
+      });
+  }
+
+  function durumHesapla() {
+    var teslim = 0, red = 0;
+    var redler = [];
+    var bekleyen = [];
+    for (var i = 0; i < MAGAZA_LISTESI.length; i++) {
+      var it = MAGAZA_LISTESI[i];
+      var kayit = gunluk[it.il] ? gunluk[it.il][it.sira] : null;
+      if (!kayit) { bekleyen.push(it); continue; }
+      if (kayit.red) { red++; redler.push({ it: it, neden: kayit.red, saat: kayit.saat || '' }); }
+      else { teslim++; }
+    }
+    return { teslim: teslim, red: red, redler: redler, bekleyen: bekleyen };
+  }
+
+  function urunHesapla() {
+    var urun = {};
+    var ciro = 0;
+    var ft = (typeof FIYATLAR !== 'undefined' && FIYATLAR.TAMKOY) || {};
+    var fb = (typeof FIYATLAR !== 'undefined' && FIYATLAR.BAGETTA) || {};
+    for (var i = 0; i < MAGAZA_LISTESI.length; i++) {
+      var it = MAGAZA_LISTESI[i];
+      var kayit = gunluk[it.il] ? gunluk[it.il][it.sira] : null;
+      if (!kayit || kayit.red || !kayit.urunler) continue;
+      var marka = kayit.marka || (it.m.t === 'T' ? 'BAGETTA' : 'TAMKOY');
+      var fs = marka === 'BAGETTA' ? fb : ft;
+      var liste = marka === 'BAGETTA' ? BAGETTA_URUNLER : URUNLER;
+      for (var u = 0; u < liste.length; u++) {
+        var adet = kayit.urunler[liste[u].sutun];
+        if (!adet) continue;
+        var ad = liste[u].ad;
+        urun[ad] = (urun[ad] || 0) + adet;
+        ciro += adet * (fs[liste[u].sutun] || 0);
+      }
+    }
+    return { urun: urun, ciro: ciro };
+  }
+
+  function kayitBilgi(it) {
+    var kayit = gunluk[it.il] ? gunluk[it.il][it.sira] : null;
+    if (!kayit) return 'şu an bekliyor';
+    if (kayit.red) return 'red, neden ' + kayit.red + (kayit.saat ? ', saat ' + kayit.saat : '');
+    return 'teslim edildi' + (kayit.saat ? ', saat ' + kayit.saat : '');
+  }
+
+  function magazaKart(it) {
+    var kayit = gunluk[it.il] ? gunluk[it.il][it.sira] : null;
+    var durum;
+    if (!kayit) durum = '⏳ Bekliyor';
+    else if (kayit.red) durum = '🚫 Red · ' + kayit.red + ' · ' + (kayit.saat || '');
+    else durum = '✅ Teslim edildi · ' + (kayit.saat || '') + (kayit.urunler ? ' · ürün kayıtlı' : '');
+    var marka = it.m.t === 'T' ? 'BAĞETTA' : (it.m.t === 'D' ? 'DİĞER' : 'TAMKÖY');
+    var notYazi = (notlar[it.m.k] && notlar[it.m.k].not) ? '\n📝 Not: ' + notlar[it.m.k].not : '';
+    return it.m.m + ' (' + it.il + ' / ' + (it.m.i || '') + ' / ' + marka + ')\nDurum: ' + durum + notYazi;
+  }
+
+  function mudurYanitla(soru) {
+    var s = ' ' + normalize(soru) + ' ';
+    var q = ' ' + sadelestir(soru) + ' ';
+    var h = durumHesapla();
+    var toplam = MAGAZA_LISTESI.length;
+
+    function ozetMetni() {
+      var oran = toplam ? Math.round(((h.teslim + h.red) / toplam) * 100) : 0;
+      var t = 'Bugünkü durum: ' + h.teslim + ' teslim, ' + h.red + ' red, ' + h.bekleyen.length + ' bekleyen. ' +
+        'Toplam ' + toplam + ' mağazanın %' + oran + ' işlendi.';
+      if (sos.aktif) t += ' Ayrıca aktif bir SOS alarmı var!';
+      return t;
+    }
+
+    if (/(MERHABA|SELAM|GUN AYDIN|IYI GUNLER|NABER|HELLO|SELAMLAR)/.test(q) && q.split(' ').length <= 4) {
+      return 'Merhaba sayın yönetici! Ben MÜDÜR. ' + ozetMetni() + ' Dilerseniz: red raporu, ciro, kalan mağazalar, şoför konumu, SOS durumu ya da bir il/mağaza adı sorabilirsiniz.';
+    }
+
+    if (/(YARDIM|NE YAPABILIRSIN|NELER BILIRSIN|KOMUTLAR|HANGI SORULAR|YETENEKLERIN|YAPABILIR MISIN)/.test(q)) {
+      return 'Bana sorabilecekleriniz:\n• Bugünkü özet ve ilerleme\n• Red raporu ve nedenleri\n• Ciro ve ürün miktarları\n• Kalan / bekleyen mağazalar\n• Günlük süreç: yükleme, çıkış, dönüş\n• Şoför nerede / konum\n• SOS / acil alarm durumu\n• Son mesajlar\n• Bir il, ilçe veya mağaza hakkında soru';
+    }
+
+    if (/(SOFOR|ARAC|KONUM)/.test(s)) {
+      if (konum && konum.lat) {
+        return 'Şoför konum paylaşıyor. Son güncelleme: ' + (konum.saat || 'bilinmiyor') +
+          (konum.sehir ? ', ' + konum.sehir + ' bölgesinde' : '') + '.';
+      }
+      return 'Araç şu an konum göndermiyor. Şoför paneli açıkken ve konum izni verilmişken takip aktif olur.';
+    }
+
+    if (/(SOS|ALARM|ACIL DURUM)/.test(s)) {
+      if (sos.aktif) return '🆘 SOS ALARMI AKTİF! Şoför acil durum bildirdi' + (sos.s ? (', ' + sos.s + ' saatinde') : '') + '. En kısa sürede yönetici paneline bakın.';
+      return 'Şu an aktif SOS alarmı yok.';
+    }
+
+    if (/(MESAJ|YAZISMA|SON MESAJLAR)/.test(s)) {
+      if (!mesajlar.length) return 'Henüz hiç mesaj yok.';
+      var son = mesajlar.slice(-3).map(function (m) {
+        return (m.v.g === 'yonetici' ? 'Yönetici' : 'Şoför') + ': ' + m.v.m + ' (' + (m.v.t || '') + ' ' + (m.v.s || '') + ')';
+      }).join('\n');
+      return 'Toplam ' + mesajlar.length + ' mesaj var. Son mesajlar:\n' + son;
+    }
+
+    if (/(RED|IPTA|GERI CEVIR|YAPILAMAYAN|ALINAMAYAN)/.test(s)) {
+      if (!h.red) return 'Bugün hiç red yok, teslimatlar temiz.';
+      var nedenSay = {};
+      for (var r1 = 0; r1 < h.redler.length; r1++) {
+        var n = h.redler[r1].neden;
+        nedenSay[n] = (nedenSay[n] || 0) + 1;
+      }
+      var anahtarlar = Object.keys(nedenSay).sort(function (a, b) { return nedenSay[b] - nedenSay[a]; });
+      var top = anahtarlar.slice(0, 3).map(function (x) { return x + ' (' + nedenSay[x] + ')'; }).join(', ');
+      return h.red + ' mağazada red var. En sık nedenler: ' + top + '. Son redler: ' +
+        h.redler.slice(-4).map(function (r) { return r.it.m.m + ' - ' + r.neden; }).join(', ');
+    }
+
+    if (/(CIRO|PARA|KAZAN|GELIR|SATIS|KAC TL|NE KADAR PARA)/.test(s)) {
+      var u = urunHesapla();
+      return 'Bugünkü toplam ciro yaklaşık ' + fmt(u.ciro) + ' TL.';
+    }
+
+    if (/(KALAN|BEKLEYEN|EKSIK|BITMEDI|YAPILMADI|HENUZ|TAMAMLANMAYAN|NOKSANI)/.test(s)) {
+      if (!h.bekleyen.length) return 'Harika! Bugün tüm mağazalar teslim edildi, hiç bekleyen kalmadı.';
+      return 'Bekleyen ' + h.bekleyen.length + ' mağaza var. Bazıları: ' +
+        h.bekleyen.slice(0, 6).map(function (it) { return it.m.m; }).join(', ') +
+        (h.bekleyen.length > 6 ? ' ve diğerleri.' : '.');
+    }
+
+    if (/(ASAMA|SUREC|YUKLEME|BASLAMA|DONUS|CIKIS|DEVAM|HANGI ASAMADA|NEREYE KADAR)/.test(s)) {
+      if (!gunDurum || (!gunDurum.yukleme && !gunDurum.baslama && !gunDurum.tamamlandi)) {
+        return 'Gün henüz başlamadı. Şoför panelinden Yükleme veya İşe Başla butonuna basılmadı.';
+      }
+      var satir = [];
+      satir.push('Günlük süreç: Yükleme ' + (gunDurum.yukleme || '—'));
+      if (gunDurum.baslama) satir.push('Çıkış ' + gunDurum.baslama);
+      if (gunDurum.donus || gunDurum.asama === 'donus') satir.push('Dönüş ' + (gunDurum.donus || 'yolda'));
+      if (gunDurum.tamamlandi) satir.push('Sevkiyat tamamlandı: ' + gunDurum.tamamlandi);
+      satir.push('Şu ana kadar ' + h.teslim + ' teslim, ' + h.red + ' red, ' + h.bekleyen.length + ' bekleyen.');
+      return satir.join('\n');
+    }
+
+    for (var ci = 0; ci < MAGAZALAR.length; ci++) {
+      var ilAd = MAGAZALAR[ci].sehir;
+      if (q.indexOf(' ' + sadelestir(ilAd) + ' ') !== -1 || q === ' ' + sadelestir(ilAd)) {
+        var cdur = gunluk[ilAd] || {};
+        var ct = 0, cr = 0;
+        for (var kk in cdur) { if (cdur[kk] && cdur[kk].red) cr++; else ct++; }
+        var ctop = MAGAZALAR[ci].magazalar.length;
+        return ilAd + ' için bugün: ' + ct + ' teslim, ' + cr + ' red, ' + (ctop - ct - cr) + ' bekleyen. Toplam ' + ctop + ' mağaza.';
+      }
+    }
+
+    var u2 = urunHesapla();
+    var urunAd = '';
+    var tumAdlar = [];
+    for (var ti = 0; ti < URUNLER.length; ti++) tumAdlar.push(URUNLER[ti].ad);
+    for (var tj = 0; tj < BAGETTA_URUNLER.length; tj++) if (tumAdlar.indexOf(BAGETTA_URUNLER[tj].ad) === -1) tumAdlar.push(BAGETTA_URUNLER[tj].ad);
+    for (var ta = 0; ta < tumAdlar.length; ta++) {
+      if (q.indexOf(' ' + sadelestir(tumAdlar[ta])) !== -1) { urunAd = tumAdlar[ta]; break; }
+    }
+    if (urunAd) {
+      return 'Bugün ' + urunAd + ' toplam ' + fmt(u2.urun[urunAd] || 0) + ' adet teslim edildi.';
+    }
+    if (/(URUN|MIKTAR|ADET|YUKLENEN|TOP.AM)/.test(s)) {
+      if (!Object.keys(u2.urun).length) return 'Bugün henüz ürün kaydı yok.';
+      var sat = [];
+      for (var ui = 0; ui < tumAdlar.length; ui++) {
+        if (u2.urun[tumAdlar[ui]]) sat.push('- ' + tumAdlar[ui] + ': ' + fmt(u2.urun[tumAdlar[ui]]) + ' adet');
+      }
+      return 'Bugünkü ürün dağılımı:\n' + sat.join('\n');
+    }
+
+    var qa = q.trim();
+    if (qa.length >= 3) {
+      var esme = [];
+      for (var ei = 0; ei < MAGAZA_LISTESI.length && esme.length < 8; ei++) {
+        var it2 = MAGAZA_LISTESI[ei];
+        var hak = sadelestir((it2.m.m || '') + ' ' + (it2.m.i || '') + ' ' + (it2.m.k || ''));
+        if (hak.indexOf(qa) !== -1) esme.push(it2);
+      }
+      if (esme.length === 1) return magazaKart(esme[0]);
+      if (esme.length > 1) {
+        return 'Aradığınıza ' + esme.length + ' mağaza uydu:\n' +
+          esme.slice(0, 5).map(function (it) { return '- ' + it.m.m + ': ' + kayitBilgi(it); }).join('\n') +
+          (esme.length > 5 ? '\n…' : '');
+      }
+    }
+
+    if (/(OZET|DURUM|GENEL|BUGUN|NASIL|ILERLEME|TABLO|GUNLUK)/.test(s)) {
+      return ozetMetni();
+    }
+
+    return 'Bu soruyu tam anlayamadım. Şunları sorabilirsiniz: "bugünkü özet", "red raporu", "ciro", "kalan mağaza", "süreç ne durumda", "şoför nerede", "SOS var mı", "son mesajlar" ya da bir il / ilçe / mağaza adı.';
+  }
+
+  var sohbet = document.getElementById('sohbet');
+  var giris = document.getElementById('giris');
+  function mesajEkle(kim, metin, dusunuyor) {
+    var balon = document.createElement('div');
+    balon.className = 'balon ' + kim;
+    var kutu = document.createElement('div');
+    kutu.className = 'kutu';
+    if (kim === 'ben') {
+      var kimlik = document.createElement('span');
+      kimlik.className = 'kimlik';
+      kimlik.textContent = 'MÜDÜR 🤖';
+      kutu.appendChild(kimlik);
+    }
+    var metinEl = document.createElement('div');
+    metinEl.textContent = metin;
+    kutu.appendChild(metinEl);
+    balon.appendChild(kutu);
+    sohbet.appendChild(balon);
+    sohbet.scrollTop = sohbet.scrollHeight;
+    return balon;
+  }
+  function mesajKutusuGuncelle(balon, metin) {
+    var metinEl = balon.querySelector('div:last-child');
+    if (metinEl) metinEl.textContent = metin;
+    sohbet.scrollTop = sohbet.scrollHeight;
+  }
+
+  var sesAcik = true;
+  var sesBtn = document.getElementById('ses-btn');
+  function konus(metin) {
+    if (!sesAcik) return;
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        var temiz = metin.replace(/[\n•✓✅🚫🆘⏳💰📝]/g, ' ').replace(/[#*_`]/g, ' ').replace(/\s+/g, ' ').trim();
+        var u = new SpeechSynthesisUtterance(temiz);
+        u.lang = 'tr-TR';
+        u.rate = 1;
+        u.pitch = 1;
+        window.speechSynthesis.speak(u);
+      }
+    } catch (e) { }
+  }
+  sesBtn.addEventListener('click', function () {
+    sesAcik = !sesAcik;
+    sesBtn.textContent = sesAcik ? '🔊' : '🔇';
+  });
+
+  function soruGel(metin) {
+    metin = String(metin || '').trim();
+    if (!metin) return;
+    giris.value = '';
+    mesajEkle('siz', metin);
+    var dusunuyor = mesajEkle('ben', 'Dur... biraz düşünüyorum ⏳', true);
+    dusunuyor.classList.add('dusunuyor');
+    veriTazele().then(function () {
+      var yanit = mudurYanitla(metin);
+      dusunuyor.classList.remove('dusunuyor');
+      mesajKutusuGuncelle(dusunuyor, yanit);
+      konus(yanit);
+    }).catch(function () {
+      dusunuyor.classList.remove('dusunuyor');
+      var y = 'Verilere ulaşamadım. İnternet bağlantısını kontrol edip tekrar sorun.';
+      mesajKutusuGuncelle(dusunuyor, y);
+      konus(y);
+    });
+  }
+
+  var DinlemeVar = ('SpeechRecognition' in window) || ('webkitSpeechRecognition' in window);
+  var mikBtn = document.getElementById('mik-btn');
+  if (!DinlemeVar) mikBtn.classList.add('yok');
+  var dinleniyor = false;
+  var dinleme = null;
+  function sesDinle() {
+    if (!DinlemeVar) {
+      mesajEkle('ben', 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome veya Android Chrome kullanın. Sorunuzu yazabilirsiniz.');
+      return;
+    }
+    if (dinleniyor) { try { dinleme.stop(); } catch (e) { } return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    dinleme = new SR();
+    dinleme.lang = 'tr-TR';
+    dinleme.interimResults = false;
+    dinleme.maxAlternatives = 1;
+    dinleme.onstart = function () { dinleniyor = true; mikBtn.classList.add('dinliyor'); mikBtn.textContent = '⏺'; };
+    dinleme.onresult = function (e) {
+      var t = e.results[0][0].transcript;
+      soruGel(t);
+    };
+    dinleme.onerror = function (e) {
+      dinleniyor = false;
+      mikBtn.classList.remove('dinliyor');
+      mikBtn.textContent = '🎤';
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        mesajEkle('ben', 'Mikrofon izni yok. Adres çubuğundaki mikrofon simgesinden izin verip tekrar deneyin.');
+      } else if (e.error === 'no-speech') {
+        mesajEkle('ben', 'Ses algılayamadım. Tekrar konuşmayı dener misiniz?');
+      }
+    };
+    dinleme.onend = function () {
+      dinleniyor = false;
+      mikBtn.classList.remove('dinliyor');
+      mikBtn.textContent = '🎤';
+    };
+    try { dinleme.start(); } catch (e) { dinleniyor = false; }
+  }
+  mikBtn.addEventListener('click', sesDinle);
+
+  document.getElementById('gonder-btn').addEventListener('click', function () { soruGel(giris.value); });
+  giris.addEventListener('keydown', function (e) { if (e.key === 'Enter') soruGel(giris.value); });
+
+  flatListe();
+  veriTazele();
+  setInterval(veriTazele, 15000);
+
+  setTimeout(function () {
+    mesajEkle('ben', 'Merhaba, ben MÜDÜR! 👋 Bugünkü dağıtım için canlı verilerden cevap verebilirim. Konuşarak ya da yazarak sorabilirsiniz.');
+  }, 600);
+</script>
+</body>
+</html>
