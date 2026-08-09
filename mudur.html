@@ -115,6 +115,19 @@
     animation:dinleNabiz 1.6s ease infinite;
   }
   @keyframes dinleNabiz { 0%,100%{opacity:1;} 50%{opacity:.55;} }
+
+  #ses-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(5,12,20,.7); z-index:200; padding:16px; }
+  #ses-modal.acik { display:flex; }
+  .ses-kutu { width:100%; max-width:420px; max-height:85vh; overflow:auto; background:var(--kart2); border:1px solid var(--cizgi); border-radius:18px; padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .ses-baslik { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-weight:800; font-size:1rem; }
+  .ses-baslik button { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--soluk); padding:4px 8px; border-radius:8px; }
+  .ses-baslik button:hover { background:var(--cizgi); color:var(--kirmizi); }
+  .hiz-liste { display:flex; gap:8px; margin:10px 0 14px; }
+  .hiz-btn { flex:1; padding:9px; border-radius:10px; border:1px solid var(--cizgi); background:var(--kart1); color:var(--metin); cursor:pointer; font-size:.78rem; font-weight:700; }
+  .hiz-btn.secili { border-color:var(--turuncu); color:var(--turuncu); }
+  .ses-satir { display:block; width:100%; text-align:left; padding:10px 12px; margin:4px 0; border:1px solid var(--cizgi); border-radius:10px; background:var(--kart1); color:var(--metin); font-size:.78rem; cursor:pointer; line-height:1.4; }
+  .ses-satir.secili { border-color:var(--turuncu); background:rgba(245,158,11,.08); }
+  .ses-not { font-size:.66rem; color:var(--soluk); margin-top:12px; line-height:1.55; }
 </style>
 </head>
 <body>
@@ -127,6 +140,7 @@
   </div>
   <div class="sag">
     <button class="btn-ust" id="ses-test-btn" title="Sesi test et">📣</button>
+    <button class="btn-ust" id="ses-ayar-btn" title="Ses ayarları">🎚</button>
     <button class="btn-ust" id="ses-btn" title="Ses açık/kapalı">🔊</button>
     <span class="nokta" id="baglanti-nokta"></span>
   </div>
@@ -141,6 +155,19 @@
 </div>
 <div class="dinleme" id="dinleme-durum">🎙️ Dinliyorum — "MÜDÜR" deyin</div>
 <div class="ipucu">Dur, dinle, çalış. "MÜDÜR" deyip sorunuzu söyleyin; yanıt sesli okunur. Örn: "MÜDÜR bugünkü özet", "red var mı", "ciro ne kadar", "şoför nerede", "SOS var mı"</div>
+
+<div id="ses-modal">
+  <div class="ses-kutu">
+    <div class="ses-baslik"><b>🎙 Ses Ayarları</b><button id="ses-modal-kapat">✕</button></div>
+    <div class="hiz-liste">
+      <button class="hiz-btn" data-hiz="0.85">🐢 Yavaş</button>
+      <button class="hiz-btn" data-hiz="0.95">😊 Normal</button>
+      <button class="hiz-btn" data-hiz="1.05">⚡ Akıcı</button>
+    </div>
+    <div id="ses-liste"></div>
+    <div class="ses-not">💡 Beğendiğiniz sesin üzerine dokunun, anında dinleyin; seçim otomatik kaydedilir. iPhone'da en gerçekçi ses için Ayarlar → Erişilebilirlik → Sesli İçerik → Sesler → Türkçe menüsünden "Yelda" / "Aylin (Geliştirilmiş)" gibi bir sesi etkinleştirin. Cihazda yüklü olmayan sesler bu listede çıkmaz ya da bozuk konuşabilir.</div>
+  </div>
+</div>
 
 <script src="magazalar.js"></script>
 <script src="fiyatlar.js"></script>
@@ -629,20 +656,42 @@
 
   var kayitSes = null;
   var sesBekleyen = [];
+  var seciliSesAd = '';
+  var seciliSesDil = '';
+  var konusmaHizi = 0.95;
+
+  try {
+    if (window.localStorage) {
+      seciliSesAd = localStorage.getItem('mudur-ses-ad') || '';
+      seciliSesDil = localStorage.getItem('mudur-ses-dil') || '';
+      var hz = parseFloat(localStorage.getItem('mudur-hiz'));
+      if (hz >= 0.4 && hz <= 2) konusmaHizi = hz;
+    }
+  } catch (e) { }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function tumSesler() {
+    try { return window.speechSynthesis.getVoices() || []; } catch (e) { return []; }
+  }
 
   function sesPuan(s) {
     var n = (s.name || '').toLowerCase();
     var p = 0;
     if (/neural|natural|enhanced|premium|online|google/.test(n)) p += 30;
     if (/aylin|yelda|tolga|siri|türkçe|turkish|tr-tr/.test(n)) p += 10;
-    if (/compact|derin|legacy|old/.test(n)) p -= 10;
+    if (/compact|derin|legacy|old|internal/.test(n)) p -= 10;
     return p;
   }
 
   function turkceSesSec() {
     try {
-      var sesler = window.speechSynthesis.getVoices();
       var tr = [];
+      var sesler = tumSesler();
       for (var i = 0; i < sesler.length; i++) {
         if (/tr/i.test(sesler[i].lang) || /turk/i.test(sesler[i].name)) tr.push(sesler[i]);
       }
@@ -652,6 +701,22 @@
     } catch (e) { return null; }
   }
 
+  function seciliSesBul() {
+    if (!seciliSesAd) return null;
+    var sesler = tumSesler();
+    for (var i = 0; i < sesler.length; i++) {
+      if (sesler[i].name === seciliSesAd && (!seciliSesDil || sesler[i].lang === seciliSesDil)) return sesler[i];
+    }
+    for (var j = 0; j < sesler.length; j++) {
+      if (sesler[j].name === seciliSesAd) return sesler[j];
+    }
+    return null;
+  }
+
+  function konusIcinSes() {
+    return seciliSesBul() || kayitSes || turkceSesSec();
+  }
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = function () {
       kayitSes = turkceSesSec();
@@ -659,6 +724,7 @@
         var m = sesBekleyen.shift();
         konus(m);
       }
+      if (document.getElementById('ses-modal').classList.contains('acik')) sesListesiDoldur();
     };
     window.speechSynthesis.getVoices();
   }
@@ -677,13 +743,13 @@
     try {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        var temiz = metin.replace(/[\n•✓✅🚫🆘⏳💰📝]/g, ' ').replace(/[#*_`]/g, ' ').replace(/\s+/g, ' ').trim();
-        var v = kayitSes || turkceSesSec();
+        var temiz = metin.replace(/[\n•✓✅🚫🆘⏳💰📝]/g, ', ').replace(/[#*_`]/g, ' ').replace(/\s+,/g, ',').replace(/[ ]+/g, ' ').trim();
+        var v = konusIcinSes();
         if (!v) { sesBekleyen.push(metin); return; }
         var u = new SpeechSynthesisUtterance(temiz);
         u.lang = v.lang;
         u.voice = v;
-        u.rate = 0.95;
+        u.rate = konusmaHizi;
         u.pitch = 1;
         u.onerror = function (e) {
           try {
@@ -710,16 +776,78 @@
     try {
       window.speechSynthesis.cancel();
       window.speechSynthesis.getVoices();
-      var v = kayitSes || turkceSesSec();
+      var v = konusIcinSes();
       var u = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
       u.lang = v ? v.lang : 'tr-TR';
       if (v) u.voice = v;
-      u.rate = 0.95;
+      u.rate = konusmaHizi;
       u.pitch = 1;
       window.speechSynthesis.speak(u);
       dinlemeDurum.textContent = '🔊 Ses hazır';
       dinlemeDurum.style.display = 'block';
     } catch (e) { }
+  }
+
+  function sesOnizle() {
+    sesAcik = true;
+    sesBtn.textContent = '🔊';
+    konus('Merhaba, ben MÜDÜR. Bu sesi seçtiniz, beğendiyseniz artık hep böyle konuşurum.');
+  }
+
+  function hizVurgula() {
+    var hb = document.querySelectorAll('.hiz-btn');
+    for (var i = 0; i < hb.length; i++) {
+      hb[i].classList.toggle('secili', parseFloat(hb[i].getAttribute('data-hiz')) === konusmaHizi);
+    }
+  }
+
+  function sesListesiDoldur() {
+    var kap = document.getElementById('ses-liste');
+    if (!kap) return;
+    var sesler = tumSesler();
+    var html = '<button class="ses-satir' + (seciliSesAd ? '' : ' secili') + '" data-ad="" data-dil="">✨ Otomatik — en iyi Türkçe sesi seç</button>';
+    for (var i = 0; i < sesler.length; i++) {
+      var ks = sesler[i];
+      var sec = ks.name === seciliSesAd;
+      html += '<button class="ses-satir' + (sec ? ' secili' : '') + '" data-ad="' + esc(ks.name) + '" data-dil="' + esc(ks.lang) + '">' +
+        esc(ks.name) + ' · <span style="opacity:.6">' + esc(ks.lang) + '</span>' + (sec ? ' ✓' : '') + '</button>';
+    }
+    kap.innerHTML = html;
+    var satir = kap.querySelectorAll('.ses-satir');
+    for (var b = 0; b < satir.length; b++) {
+      satir[b].addEventListener('click', function () {
+        seciliSesAd = this.getAttribute('data-ad');
+        seciliSesDil = this.getAttribute('data-dil');
+        try {
+          localStorage.setItem('mudur-ses-ad', seciliSesAd);
+          localStorage.setItem('mudur-ses-dil', seciliSesDil);
+        } catch (e) { }
+        sesListesiDoldur();
+        hizVurgula();
+        sesOnizle();
+      });
+    }
+  }
+
+  document.getElementById('ses-ayar-btn').addEventListener('click', function () {
+    var m = document.getElementById('ses-modal');
+    m.classList.toggle('acik');
+    if (m.classList.contains('acik')) {
+      sesListesiDoldur();
+      hizVurgula();
+    }
+  });
+  document.getElementById('ses-modal-kapat').addEventListener('click', function () {
+    document.getElementById('ses-modal').classList.remove('acik');
+  });
+  var hizBtns = document.querySelectorAll('.hiz-btn');
+  for (var hb2 = 0; hb2 < hizBtns.length; hb2++) {
+    hizBtns[hb2].addEventListener('click', function () {
+      konusmaHizi = parseFloat(this.getAttribute('data-hiz'));
+      try { localStorage.setItem('mudur-hiz', String(konusmaHizi)); } catch (e) { }
+      hizVurgula();
+      sesOnizle();
+    });
   }
 
   document.getElementById('ses-test-btn').addEventListener('click', function () {
