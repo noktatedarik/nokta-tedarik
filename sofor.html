@@ -98,11 +98,15 @@
   .btn.not-btn { background:var(--card-2); color:var(--muted); padding:11px 12px; }
   .btn.not-btn.dolu { background:var(--turuncu-acik); color:#b35c00; }
   .giris { max-width:340px; margin:80px auto; background:var(--card); border-radius:18px; padding:28px 22px; text-align:center; box-shadow:var(--golge-2); }
-  .duyuru-bant { display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; padding:11px 14px; font-size:.8rem; font-weight:700; box-shadow:0 3px 12px rgba(245,158,11,.4); position:sticky; top:76px; z-index:5; }
-  .duyuru-simge { font-size:1rem; }
-  .duyuru-metin { flex:1; line-height:1.4; }
-  .duyuru-kapat { background:rgba(255,255,255,.25); border:none; color:#fff; width:24px; height:24px; border-radius:50%; font-size:.75rem; cursor:pointer; flex-shrink:0; }
-  .duyuru-kapat:hover { background:rgba(255,255,255,.4); }
+  .duyuru-ekran { position:fixed; inset:0; z-index:99; background:rgba(10,18,30,.88); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .duyuru-kart { background:var(--card); border-radius:22px; max-width:420px; width:100%; padding:30px 24px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.45); animation:duyuruGir .35s cubic-bezier(.2,.8,.3,1); border-top:6px solid #f59e0b; }
+  .duyuru-simge { font-size:2.4rem; margin-bottom:10px; animation:duyuruNabz 1.4s ease infinite; }
+  @keyframes duyuruNabz { 0%,100% { transform:scale(1); } 50% { transform:scale(1.18); } }
+  .duyuru-baslik { font-size:.9rem; font-weight:800; color:#b45309; letter-spacing:2px; text-transform:uppercase; margin-bottom:14px; }
+  .duyuru-metin { font-size:1.08rem; color:var(--text); line-height:1.65; margin-bottom:22px; white-space:pre-wrap; word-break:break-word; font-weight:600; }
+  .duyuru-tamam { width:100%; background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; border:none; border-radius:999px; padding:14px; font-size:.9rem; font-weight:800; cursor:pointer; box-shadow:0 6px 16px rgba(247,127,0,.4); transition:.2s; }
+  .duyuru-tamam:active { transform:scale(.95); }
+  @keyframes duyuruGir { from { opacity:0; transform:scale(.88) translateY(14px); } to { opacity:1; transform:none; } }
   .giris h2 { color:var(--text); font-size:1.1rem; letter-spacing:1px; }
   .giris p { font-size:.8rem; color:var(--muted); margin-top:6px; }
   .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid var(--border); border-radius:12px; margin:16px 0 8px; outline:none; background:var(--card-2); color:var(--text); }
@@ -180,7 +184,14 @@
 </div>
 
 <div style="display:none;" id="panel">
-  <div class="duyuru-bant" id="duyuru-bant" style="display:none;"><span class="duyuru-simge">📢</span><span class="duyuru-metin" id="duyuru-metin"></span><button class="duyuru-kapat" id="duyuru-kapat">✕</button></div>
+  <div class="duyuru-ekran" id="duyuru-ekran" style="display:none;">
+    <div class="duyuru-kart">
+      <div class="duyuru-simge">📢</div>
+      <div class="duyuru-baslik">YÖNETİCİ DUYURUSU</div>
+      <div class="duyuru-metin" id="duyuru-metin"></div>
+      <button class="duyuru-tamam" id="duyuru-kapat">DUYURUYU GÖRDÜM</button>
+    </div>
+  </div>
   <div class="karsilama" id="karsilama">MERHABA OSMAN 👋 <span>İyi çalışmalar!</span></div>
   <div class="secici-kap">
     <select id="il-sec"><option value="">İL SEÇİN...</option></select>
@@ -983,25 +994,26 @@
     yukle();
     setInterval(yukle, 2000);
     duyuruOku();
-    setInterval(duyuruOku, 30000);
+    setInterval(duyuruOku, 10000);
   }
 
   function duyuruOku() {
-    var bant = document.getElementById('duyuru-bant');
-    if (!bant) return;
+    var ekran = document.getElementById('duyuru-ekran');
+    if (!ekran) return;
     fetch(FIREBASE_URL + '/duyuru.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d && d.aktif && d.metin) {
-          bant.dataset.anahtar = (d.tarih || '') + '|' + (d.saat || '');
-          if (localStorage.getItem('duyuru-kapat') !== bant.dataset.anahtar) {
+          var anahtar = (d.tarih || '') + '|' + (d.saat || '');
+          ekran.dataset.anahtar = anahtar;
+          if (localStorage.getItem('duyuru-kapat') !== anahtar) {
             document.getElementById('duyuru-metin').textContent = d.metin;
-            bant.style.display = 'flex';
+            ekran.style.display = 'flex';
           } else {
-            bant.style.display = 'none';
+            ekran.style.display = 'none';
           }
         } else {
-          bant.style.display = 'none';
+          ekran.style.display = 'none';
         }
       })
       .catch(function () { });
@@ -1096,9 +1108,9 @@
   }
 
   document.getElementById('duyuru-kapat').addEventListener('click', function () {
-    var bant = document.getElementById('duyuru-bant');
-    bant.style.display = 'none';
-    if (bant.dataset.anahtar) localStorage.setItem('duyuru-kapat', bant.dataset.anahtar);
+    var ekran = document.getElementById('duyuru-ekran');
+    ekran.style.display = 'none';
+    if (ekran.dataset.anahtar) localStorage.setItem('duyuru-kapat', ekran.dataset.anahtar);
   });
 </script>
 </body>
