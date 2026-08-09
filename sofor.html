@@ -98,6 +98,11 @@
   .btn.not-btn { background:var(--card-2); color:var(--muted); padding:11px 12px; }
   .btn.not-btn.dolu { background:var(--turuncu-acik); color:#b35c00; }
   .giris { max-width:340px; margin:80px auto; background:var(--card); border-radius:18px; padding:28px 22px; text-align:center; box-shadow:var(--golge-2); }
+  .duyuru-bant { display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; padding:11px 14px; font-size:.8rem; font-weight:700; box-shadow:0 3px 12px rgba(245,158,11,.4); position:sticky; top:76px; z-index:5; }
+  .duyuru-simge { font-size:1rem; }
+  .duyuru-metin { flex:1; line-height:1.4; }
+  .duyuru-kapat { background:rgba(255,255,255,.25); border:none; color:#fff; width:24px; height:24px; border-radius:50%; font-size:.75rem; cursor:pointer; flex-shrink:0; }
+  .duyuru-kapat:hover { background:rgba(255,255,255,.4); }
   .giris h2 { color:var(--text); font-size:1.1rem; letter-spacing:1px; }
   .giris p { font-size:.8rem; color:var(--muted); margin-top:6px; }
   .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid var(--border); border-radius:12px; margin:16px 0 8px; outline:none; background:var(--card-2); color:var(--text); }
@@ -175,6 +180,7 @@
 </div>
 
 <div style="display:none;" id="panel">
+  <div class="duyuru-bant" id="duyuru-bant" style="display:none;"><span class="duyuru-simge">📢</span><span class="duyuru-metin" id="duyuru-metin"></span><button class="duyuru-kapat" id="duyuru-kapat">✕</button></div>
   <div class="karsilama" id="karsilama">MERHABA OSMAN 👋 <span>İyi çalışmalar!</span></div>
   <div class="secici-kap">
     <select id="il-sec"><option value="">İL SEÇİN...</option></select>
@@ -976,6 +982,29 @@
     iskeletGoster();
     yukle();
     setInterval(yukle, 2000);
+    duyuruOku();
+    setInterval(duyuruOku, 30000);
+  }
+
+  function duyuruOku() {
+    var bant = document.getElementById('duyuru-bant');
+    if (!bant) return;
+    fetch(FIREBASE_URL + '/duyuru.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.aktif && d.metin) {
+          bant.dataset.anahtar = (d.tarih || '') + '|' + (d.saat || '');
+          if (localStorage.getItem('duyuru-kapat') !== bant.dataset.anahtar) {
+            document.getElementById('duyuru-metin').textContent = d.metin;
+            bant.style.display = 'flex';
+          } else {
+            bant.style.display = 'none';
+          }
+        } else {
+          bant.style.display = 'none';
+        }
+      })
+      .catch(function () { });
   }
 
   var bildirimIsmi = 'NOKTA TEDARİK';
@@ -1065,6 +1094,12 @@
     baslat();
     konumBaslat();
   }
+
+  document.getElementById('duyuru-kapat').addEventListener('click', function () {
+    var bant = document.getElementById('duyuru-bant');
+    bant.style.display = 'none';
+    if (bant.dataset.anahtar) localStorage.setItem('duyuru-kapat', bant.dataset.anahtar);
+  });
 </script>
 </body>
 </html>

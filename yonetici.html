@@ -14,6 +14,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -187,8 +190,13 @@
   .bos-kap { text-align:center; padding:40px 20px; color:var(--soluk); }
   .bos-kap .ikon { font-size:2.2rem; margin-bottom:8px; opacity:.55; }
   .bos-kap .acik { font-size:.7rem; opacity:.8; margin-top:4px; }
-  .uyari { background:rgba(239,68,68,.08); color:var(--kirmizi); border:1px solid rgba(239,68,68,.28); border-radius:14px; padding:13px 16px; font-size:.8rem; font-weight:700; margin:12px 16px 0; display:flex; align-items:center; gap:8px; }
+  .uyari { background:rgba(239,68,68,.08); color:var(--kirmizi); border:1px solid rgba(239,68,68,.28); border-radius:14px; padding:13px 16px; font-size:.8rem; font-weight:700; margin:12px 16px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .uyari.ok { background:rgba(16,185,129,.08); color:var(--yesil); border-color:rgba(16,185,129,.3); }
+  .uyari.acil { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5); animation:uyaricil 1.1s ease infinite; }
+  @keyframes uyaricil { 0%,100% { box-shadow:0 0 0 rgba(239,68,68,0); } 50% { box-shadow:0 0 16px rgba(239,68,68,.6); } }
+  .ses-btn { margin-left:auto; background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; border-radius:999px; padding:8px 14px; font-size:.72rem; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(239,68,68,.4); transition:.2s; }
+  .ses-btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(239,68,68,.5); }
+  .ses-btn:active { transform:scale(.95); }
   .tablo-sar { overflow:auto; max-height:420px; border:1px solid var(--cizgi); border-radius:14px; box-shadow:var(--golge); }
   table { width:100%; border-collapse:collapse; font-size:.78rem; }
   thead th { position:sticky; top:0; z-index:2; background:linear-gradient(180deg,var(--mavi),var(--mavi-2),#1b3a6b); background-size:100% 300%; color:#dbeafe; box-shadow:0 1px 0 rgba(0,0,0,.2); animation:theadp 5s ease infinite; }
@@ -287,6 +295,13 @@
   .altnav-sek:active { transform:scale(.94); }
   .bolum { scroll-margin-top:110px; }
   .icerik, .liste { scroll-margin-top:110px; }
+  .fiyat-grup { margin-bottom:14px; }
+  .fiyat-grup > b { font-size:.7rem; color:var(--turuncu-koyu); letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:6px; }
+  .fiyat-satir { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 2px; border-bottom:1px solid var(--cizgi2); font-size:.8rem; font-weight:600; color:var(--metin); }
+  .fiyat-satir span { flex:1; }
+  .fiyat-satir input { width:74px; padding:7px 9px; border:2px solid var(--cizgi); border-radius:9px; font-size:.85rem; font-weight:800; text-align:right; color:var(--metin); background:var(--kart); outline:none; transition:border-color .2s; }
+  .fiyat-satir input:focus { border-color:var(--turuncu); }
+  .fiyat-satir .tl { color:var(--soluk); font-size:.8rem; }
 </style>
 </head>
 <body>
@@ -301,10 +316,12 @@
     <div class="rapor-drop">
       <button class="ust-btn rapor-btn" id="rapor-btn" title="Rapor indir">📥</button>
       <div class="rapor-menu" id="rapor-menu">
+        <button data-rd="excel">📊 Excel Raporu (.xlsx)</button>
+        <button data-rd="pdf">📄 PDF Rapor</button>
         <button data-rd="magaza">🏬 Mağaza Durumu (CSV)</button>
         <button data-rd="red">🚫 Red Raporu (CSV)</button>
         <button data-rd="ciro">💰 Ciro Raporu (CSV)</button>
-        <button data-rd="yazdir">🖨 Yazdır / PDF</button>
+        <button data-rd="yazdir">🖨 Yazdır</button>
       </div>
     </div>
     <button class="ust-btn" id="tema-btn" title="Tema değiştir">🌙</button>
@@ -372,6 +389,9 @@
   <div class="bolum" id="baslik-istatistik"><span class="ad"><span class="ikon">📊</span>ÜRÜN İSTATİSTİK &amp; DEPO ÇIKIŞI</span><span class="ok">▾</span></div>
   <div class="icerik" id="istatistik-panel" style="display:none;"></div>
 
+  <div class="bolum" id="baslik-depo"><span class="ad"><span class="ikon">🏭</span>SEVKİYAT &amp; KOLİ HESABI</span><span class="ok">▾</span></div>
+  <div class="icerik" id="depo-panel" style="display:none;"></div>
+
   <div class="bolum" id="baslik-ciro"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="ciro-panel" style="display:none;"></div>
 
@@ -389,7 +409,9 @@
 
   <div style="padding:0 16px 14px; text-align:center; font-size:.7rem; color:#9fb0c3;">Canlı takip 5 saniyede bir yenilenir · Konum şoför paneli açıkken gelir · "Tümü" seçimi tüm illeri toplar</div>
 
-  <div style="padding:0 16px 16px; text-align:center;">
+  <div style="padding:0 16px 16px; text-align:center; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+    <button class="btn" id="duyuru-gonder-btn" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9); font-size:.75rem; padding:9px 16px; box-shadow:0 6px 16px rgba(139,92,246,.35);">📢 DUYURU GÖNDER</button>
+    <button class="btn" id="fiyat-btn" style="background:linear-gradient(135deg,#059669,#10b981); font-size:.75rem; padding:9px 16px; box-shadow:0 6px 16px rgba(16,185,129,.35);">💶 FİYAT GÜNCELLE</button>
     <button class="btn" id="pin-degistir" style="background:linear-gradient(135deg,#2e6db4,#1b4d86); font-size:.75rem; padding:9px 16px;">🔒 ŞOFÖR PIN DEĞİŞTİR</button>
   </div>
 </div>
@@ -417,6 +439,31 @@
       <input type="password" id="pin-yeni" inputmode="numeric" maxlength="6" placeholder="Yeni PIN (6 haneli)" style="width:100%; padding:11px; border:2px solid var(--cizgi); background:var(--kart); color:var(--metin); border-radius:10px; font-size:1rem; letter-spacing:6px; text-align:center; outline:none; margin-bottom:10px;">
       <button class="btn" id="pin-kaydet" style="width:100%;">KAYDET</button>
       <div class="hata" id="pin-hata" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="duyuru-modal" style="display:none;">
+  <div class="modal-kap">
+    <div class="modal-baslik"><b>📢 DUYURU GÖNDER</b><button class="modal-kapat" id="duyuru-kapat">✕</button></div>
+    <div class="modal-icerik">
+      <div style="font-size:.78rem; color:#6b7f94; margin-bottom:10px;">Şoför paneline anlık duyuru gönderilir</div>
+      <textarea id="duyuru-metin" rows="3" placeholder="Duyuru metni..." style="width:100%; padding:11px; border:2px solid var(--cizgi); background:var(--kart); color:var(--metin); border-radius:10px; font-size:.9rem; outline:none; margin-bottom:10px; resize:vertical; font-family:inherit;"></textarea>
+      <button class="btn" id="duyuru-gonder" style="width:100%; background:linear-gradient(135deg,#8b5cf6,#6d28d9); box-shadow:0 6px 16px rgba(139,92,246,.35);">📢 GÖNDER</button>
+      <div class="hata" id="duyuru-hata" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="fiyat-modal" style="display:none;">
+  <div class="modal-kap">
+    <div class="modal-baslik"><b>💶 FİYAT GÜNCELLE</b><button class="modal-kapat" id="fiyat-kapat">✕</button></div>
+    <div class="modal-icerik">
+      <div style="font-size:.78rem; color:#6b7f94; margin-bottom:12px;">Fiyatları düzenleyin — ciro hesabı ve raporlar anında yeni fiyatlarla çalışır. Firestore yerine gerçek zamanlı veritabanına kaydedilir.</div>
+      <div class="fiyat-grup"><b>TAMKÖY</b><div id="fiyat-tamkoy"></div></div>
+      <div class="fiyat-grup"><b>BAĞETTA</b><div id="fiyat-baget"></div></div>
+      <button class="btn" id="fiyat-kaydet" style="width:100%;">💾 KAYDET</button>
+      <div class="hata" id="fiyat-hata" style="margin-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -874,6 +921,109 @@
     setTimeout(function () { window.print(); }, 400);
   }
 
+  function urunKolonAdi() {
+    var k = {};
+    for (var y = 0; y < URUNLER.length; y++) if (!k[URUNLER[y].sutun]) k[URUNLER[y].sutun] = URUNLER[y].ad;
+    for (var z = 0; z < BAGETTA_URUNLER.length; z++) if (!k[BAGETTA_URUNLER[z].sutun]) k[BAGETTA_URUNLER[z].sutun] = BAGETTA_URUNLER[z].ad;
+    return k;
+  }
+
+  function magazaSatirlari() {
+    var satirlar = [];
+    for (var i = 0; i < exportVeri.magazalar.length; i++) {
+      var m = exportVeri.magazalar[i];
+      var anahtar = normalize(m.sehir) + '-' + m.sira;
+      var d = exportVeri.durumlar[anahtar] || null;
+      var ad = m.m.m ? m.m.m : 'Mağaza ' + m.sira;
+      var durum = d ? (d.red ? 'RED' : 'TESLİM') : 'BEKLİYOR';
+      var sonZ = sonZiyaretler && sonZiyaretler[anahtar] ? sonZiyaretler[anahtar] : '';
+      satirlar.push([m.sehir, m.m.i || '', ad, m.m.t === 'T' ? 'BAĞETTA' : 'TAMKÖY', durum, d ? (d.red ? d.red : (d.saat || '')) : '', sonZ]);
+    }
+    return satirlar;
+  }
+
+  function ciroSatirlari() {
+    var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
+    var kolonAd = urunKolonAdi();
+    var satirlar = [];
+    var toplam = 0;
+    for (var s in kolonAd) {
+      var fiyatT = ft[s] || 0, fiyatB = fb[s] || 0;
+      var adetT = exportVeri.tamkoySutun[s] || 0, adetB = exportVeri.bagetSutun[s] || 0;
+      if (!adetT && !adetB) continue;
+      var ciro = adetT * fiyatT + adetB * fiyatB;
+      toplam += ciro;
+      satirlar.push([kolonAd[s], (fiyatT || fiyatB) + ' ₺', adetT + adetB, ciro.toLocaleString('tr-TR') + ' ₺']);
+    }
+    satirlar.push(['GENEL TOPLAM', '', '', toplam.toLocaleString('tr-TR') + ' ₺']);
+    return satirlar;
+  }
+
+  function excelRapor() {
+    if (typeof XLSX === 'undefined') { toast('Excel kütüphanesi yüklenemedi', 'hata'); return; }
+    if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
+    try {
+      var kitap = XLSX.utils.book_new();
+      var durum = [['İl', 'İlçe', 'Mağaza', 'Marka', 'Durum', 'Saat/Red', 'Son Ziyaret']].concat(magazaSatirlari());
+      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(durum), 'Mağaza Durumu');
+      var red = [['Marka', 'Mağaza', 'İlçe', 'Red Nedeni', 'Saat']].concat(exportVeri.redler.map(function (r) { return [r.marka, r.ad, r.ilce, r.neden, r.saat]; }));
+      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(red), 'Red Raporu');
+      var ciro = [['Ürün', 'Fiyat', 'Adet', 'Ciro']].concat(ciroSatirlari());
+      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(ciro), 'Ciro Raporu');
+      XLSX.utils.writeFile(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
+      toast('✓ Excel raporu indirildi', 'ok');
+    } catch (e) { toast('Excel oluşturulamadı: ' + e.message, 'hata'); }
+  }
+
+  function pdfRapor() {
+    if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF) { toast('PDF kütüphanesi yüklenemedi', 'hata'); return; }
+    if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
+    try {
+      var doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+      doc.setFillColor(13, 27, 51);
+      doc.rect(0, 0, 210, 32, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('NOKTA TEDARİK', 105, 14, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text('MAĞAZA DURUM RAPORU', 105, 21, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(exportVeri.tarih + '  ·  ' + exportVeri.il + '  ·  ' + new Date().toLocaleTimeString('tr-TR'), 105, 28, { align: 'center' });
+      var y = 38;
+      function baslikTablosu(ad, satirlar, kolonlar) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(13, 27, 51);
+        doc.text(ad, 14, y);
+        y += 2;
+        doc.autoTable({
+          startY: y,
+          head: [kolonlar],
+          body: satirlar,
+          margin: { left: 14, right: 14 },
+          styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5, textColor: [51, 65, 92] },
+          headStyles: { fillColor: [46, 109, 180], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [243, 246, 250] }
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+      baslikTablosu('MAĞAZA DURUMU', magazaSatirlari(), ['İl', 'İlçe', 'Mağaza', 'Marka', 'Durum', 'Saat/Red', 'Son Ziyaret']);
+      if (exportVeri.redler.length) {
+        if (y > 250) { doc.addPage(); y = 20; }
+        baslikTablosu('RED RAPORU', exportVeri.redler.map(function (r) { return [r.marka, r.ad, r.ilce, r.neden, r.saat]; }), ['Marka', 'Mağaza', 'İlçe', 'Red Nedeni', 'Saat']);
+      }
+      if (y > 250) { doc.addPage(); y = 20; }
+      baslikTablosu('CİRO RAPORU', ciroSatirlari(), ['Ürün', 'Fiyat', 'Adet', 'Ciro']);
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text('NOKTA TEDARİK  ·  Yönetici Paneli Raporu  ·  ' + exportVeri.tarih, 105, 290, { align: 'center' });
+      doc.save('nokta-tedarik-rapor-' + exportVeri.tarih + '.pdf');
+      toast('✓ PDF raporu indirildi', 'ok');
+    } catch (e) { toast('PDF oluşturulamadı: ' + e.message, 'hata'); }
+  }
+
   function raporMenusu(acik) {
     var drop = document.querySelector('.rapor-drop');
     if (!drop) return;
@@ -890,7 +1040,9 @@
   document.querySelectorAll('#rapor-menu button').forEach(function (b) {
     b.addEventListener('click', function () {
       var tip = b.getAttribute('data-rd');
-      if (tip === 'magaza') magazaCsv();
+      if (tip === 'excel') excelRapor();
+      else if (tip === 'pdf') pdfRapor();
+      else if (tip === 'magaza') magazaCsv();
       else if (tip === 'red') redCsv();
       else if (tip === 'ciro') ciroCsv();
       else if (tip === 'yazdir') yazdir();
@@ -977,6 +1129,7 @@
     var ciroGenel = 0;
     var ilCiro = {};
     var ilTeslim = {};
+    var ilUrun = {};
     for (var p = 0; p < BAGETTA_URUNLER.length; p++) bagetToplam[BAGETTA_URUNLER[p].ad] = 0;
     for (var p2 = 0; p2 < URUNLER.length; p2++) tamkoyToplam[URUNLER[p2].ad] = 0;
     var markaSay = { BAGETTA: 0, TAMKOY: 0 };
@@ -1035,6 +1188,9 @@
               if (kayitMarka === 'BAGETTA') bagetSutunToplam[urunListesi[u].sutun] = (bagetSutunToplam[urunListesi[u].sutun] || 0) + deger;
               else tamkoySutunToplam[urunListesi[u].sutun] = (tamkoySutunToplam[urunListesi[u].sutun] || 0) + deger;
               ciroGenel += deger * (fiyatSet[urunListesi[u].sutun] || 0);
+              var ilAdU = magazalar[i].sehir;
+              if (!ilUrun[ilAdU]) ilUrun[ilAdU] = {};
+              ilUrun[ilAdU][urunListesi[u].sutun] = (ilUrun[ilAdU][urunListesi[u].sutun] || 0) + deger;
             }
           }
           if (urunYazi.length) altSaat += ' — ' + urunYazi.join(', ');
@@ -1103,12 +1259,15 @@
     var uyari = document.getElementById('eksik-uyari');
     if (eksikler.length) {
       uyari.style.display = '';
-      uyari.className = 'uyari';
-      uyari.textContent = '⚠ ' + eksikler.length + ' mağaza henüz teslim edilmedi: ' + eksikler.slice(0, 12).map(function (x) { return x.ad; }).join(', ') + (eksikler.length > 12 ? ' …' : '');
+      var gecSaat = new Date().getHours();
+      var acil = gecSaat >= 17;
+      uyari.className = acil ? 'uyari acil' : 'uyari';
+      var adlar = eksikler.slice(0, 12).map(function (x) { return escapeHtml(x.ad); }).join(', ');
+      uyari.innerHTML = '⚠ <b>' + eksikler.length + '</b> mağaza henüz teslim edilmedi' + (acil ? ' — <b>GÜN SONU UYARISI!</b>' : '') + ': ' + adlar + (eksikler.length > 12 ? ' …' : '') + (acil ? '<button class="ses-btn" id="ses-alarm-btn" onclick="alarmCal()">🔊 SESLİ ALARM</button>' : '');
     } else {
       uyari.style.display = '';
       uyari.className = 'uyari ok';
-      uyari.textContent = '✓ Bugün tüm mağazalar tamam';
+      uyari.innerHTML = '✓ Bugün tüm mağazalar tamam';
     }
 
     canliPanel(canliKayitlar);
@@ -1116,6 +1275,7 @@
     redPanel(redler);
     istatistikPanel(bagetToplam, tamkoyToplam, magazalar.length, tamam, red, markaSay);
     ciroPanel(ciroGenel, bagetSutunToplam, tamkoySutunToplam);
+    depoPanel(ilUrun, bagetSutunToplam, tamkoySutunToplam);
     grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar);
     surePanel(canliKayitlar, gunDurum);
     gecmisButonlar();
@@ -1129,6 +1289,7 @@
       eksikler: eksikler,
       ciroGenel: ciroGenel,
       ilTeslim: ilTeslim,
+      ilUrun: ilUrun,
       bagetSutun: bagetSutunToplam,
       tamkoySutun: tamkoySutunToplam
     };
@@ -1259,6 +1420,32 @@
 
   var ciroFmt = function (n) { return (n || 0).toLocaleString('tr-TR') + ' ₺'; };
 
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  var sesAcik = localStorage.getItem('yonetici-ses') !== '0';
+  function alarmCal() {
+    if (!sesAcik) { toast('Ses kapalı — üst bar yok', 'hata'); return; }
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      var ctx = new Ctx();
+      for (var i = 0; i < 3; i++) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.value = 880;
+        o.type = 'sine';
+        var t = ctx.currentTime + i * 0.4;
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.exponentialRampToValueAtTime(0.5, t + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        o.start(t);
+        o.stop(t + 0.34);
+      }
+      setTimeout(function () { ctx.close(); }, 1500);
+    } catch (e) { toast('Ses çalınamadı', 'hata'); }
+  }
+
   function ciroSayacAnim(el, hedef) {
     if (!el) return;
     var mevcut = parseFloat(el.getAttribute('data-ciro') || '0') || 0;
@@ -1278,6 +1465,61 @@
       else el.setAttribute('data-ciro', String(hedef));
     }
     requestAnimationFrame(adim);
+  }
+
+  function depoPanel(ilUrun, bagetSutun, tamkoySutun) {
+    var k = document.getElementById('depo-panel');
+    if (!k) return;
+    var iller = Object.keys(ilUrun || {}).sort();
+    var kolonAd = urunKolonAdi();
+    var sutunlar = Object.keys(kolonAd);
+    if (!iller.length) {
+      k.innerHTML = '<div class="bos-kap" style="padding:18px;"><div class="ikon">🏭</div>Sevkiyat verisi yok<div class="acik">Teslim edilen ürünler burada listelenir</div></div>';
+      return;
+    }
+    var h = '<div class="tablo-sar"><table><thead><tr><th>ÜRÜN</th>';
+    for (var i = 0; i < iller.length; i++) h += '<th class="say">' + iller[i] + '</th>';
+    h += '<th class="say">TOPLAM</th></tr></thead><tbody>';
+    var genelTop = 0;
+    for (var s = 0; s < sutunlar.length; s++) {
+      var sutun = sutunlar[s];
+      var satirTop = 0;
+      var satir = '<tr><td>' + kolonAd[sutun] + '</td>';
+      for (var i2 = 0; i2 < iller.length; i2++) {
+        var adet = (ilUrun[iller[i2]] && ilUrun[iller[i2]][sutun]) || 0;
+        satirTop += adet;
+        satir += '<td class="say">' + (adet || '—') + '</td>';
+      }
+      satir += '<td class="say-b">' + satirTop + '</td></tr>';
+      genelTop += satirTop;
+      h += satir;
+    }
+    h += '<tr class="toplam"><td>GENEL TOPLAM</td>';
+    for (var i3 = 0; i3 < iller.length; i3++) {
+      var ilTop = 0;
+      for (var s3 = 0; s3 < sutunlar.length; s3++) ilTop += (ilUrun[iller[i3]] && ilUrun[iller[i3]][sutunlar[s3]]) || 0;
+      h += '<td class="say">' + ilTop + '</td>';
+    }
+    h += '<td class="say-b">' + genelTop + '</td></tr>';
+    h += '</tbody></table></div>';
+
+    var koliH = '<div class="tablo-sar" style="margin-top:10px;"><table><thead><tr><th>ÜRÜN</th><th class="say">ADET</th><th class="say">BAĞETTA (12\'li)</th><th class="say">TAMKÖY (20\'li)</th><th class="say">TOPLAM KOLİ</th></tr></thead><tbody>';
+    var genelKoli = 0;
+    for (var s4 = 0; s4 < sutunlar.length; s4++) {
+      var sut2 = sutunlar[s4];
+      var adetB = bagetSutun[sut2] || 0;
+      var adetT = tamkoySutun[sut2] || 0;
+      if (!adetB && !adetT) continue;
+      var koliB = Math.ceil(adetB / 12);
+      var koliT = Math.ceil(adetT / 20);
+      var koliTop = koliB + koliT;
+      genelKoli += koliTop;
+      koliH += '<tr><td>' + kolonAd[sut2] + '</td><td class="say">' + (adetB + adetT) + '</td><td class="say">' + (adetB || '—') + ' → ' + koliB + '</td><td class="say">' + (adetT || '—') + ' → ' + koliT + '</td><td class="say-b">' + koliTop + '</td></tr>';
+    }
+    koliH += '<tr class="toplam"><td>GENEL</td><td class="say">' + genelTop + '</td><td class="say"></td><td class="say"></td><td class="say-b">' + genelKoli + ' koli</td></tr>';
+    koliH += '</tbody></table></div>';
+    koliH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Koli hesabı: Bağetta 12\'li, Tamköy 20\'li koli varsayımıyla üstten yuvarlanır.</div>';
+    k.innerHTML = h + koliH;
   }
 
   function ciroPanel(ciroGenel, bagetSutun, tamkoySutun) {
@@ -1538,6 +1780,7 @@
     canliSaatBaslat();
     baglantiDurum();
     altnavKur();
+    fiyatYukle();
     setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
     setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
@@ -1553,6 +1796,7 @@
   }
   document.getElementById('baslik-red').addEventListener('click', function () { bolumAc('baslik-red', 'red-panel'); });
   document.getElementById('baslik-istatistik').addEventListener('click', function () { bolumAc('baslik-istatistik', 'istatistik-panel'); });
+  document.getElementById('baslik-depo').addEventListener('click', function () { bolumAc('baslik-depo', 'depo-panel'); });
   document.getElementById('baslik-canli').addEventListener('click', function () { bolumAc('baslik-canli', 'canli-panel'); });
   document.getElementById('baslik-liste').addEventListener('click', function () { bolumAc('baslik-liste', 'liste'); });
   document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
@@ -1586,6 +1830,95 @@
     }).catch(function () {
       hataEl.textContent = 'Kayıt hatası — interneti kontrol edin';
       toast('PIN kaydedilemedi — interneti kontrol edin', 'hata');
+    });
+  });
+
+  function fiyatYukle() {
+    fetch(FIREBASE_URL + '/ayar/fiyatlar.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.TAMKOY && d.BAGETTA) {
+          FIYATLAR.TAMKOY = d.TAMKOY;
+          FIYATLAR.BAGETTA = d.BAGETTA;
+          FIYATLAR.guncelleme = d.guncelleme || FIYATLAR.guncelleme;
+        }
+      }).catch(function () { });
+  }
+
+  function fiyatModalAc() {
+    var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
+    var kolonAd = urunKolonAdi();
+    var hT = '', hB = '';
+    for (var s in kolonAd) {
+      hT += '<div class="fiyat-satir"><span>' + kolonAd[s] + '</span><input type="number" min="0" step="0.5" data-marka="TAMKOY" data-sutun="' + s + '" value="' + (ft[s] || 0) + '"><span class="tl">₺</span></div>';
+      hB += '<div class="fiyat-satir"><span>' + kolonAd[s] + '</span><input type="number" min="0" step="0.5" data-marka="BAGETTA" data-sutun="' + s + '" value="' + (fb[s] || 0) + '"><span class="tl">₺</span></div>';
+    }
+    document.getElementById('fiyat-tamkoy').innerHTML = hT;
+    document.getElementById('fiyat-baget').innerHTML = hB;
+    var hataEl = document.getElementById('fiyat-hata');
+    hataEl.textContent = '';
+    hataEl.style.color = '';
+    document.getElementById('fiyat-modal').style.display = 'flex';
+  }
+
+  document.getElementById('fiyat-btn').addEventListener('click', fiyatModalAc);
+  document.getElementById('fiyat-kapat').addEventListener('click', function () { modalKapat('fiyat-modal'); });
+  document.getElementById('fiyat-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('fiyat-modal'); });
+  document.getElementById('fiyat-kaydet').addEventListener('click', function () {
+    var ft = {}, fb = {};
+    document.querySelectorAll('#fiyat-modal input[data-marka]').forEach(function (inp) {
+      var val = Math.max(0, parseFloat(inp.value) || 0);
+      if (inp.getAttribute('data-marka') === 'TAMKOY') ft[inp.getAttribute('data-sutun')] = val;
+      else fb[inp.getAttribute('data-sutun')] = val;
+    });
+    var yeni = { TAMKOY: ft, BAGETTA: fb, guncelleme: new Date().toLocaleDateString('tr-TR') };
+    fetch(FIREBASE_URL + '/ayar/fiyatlar.json', {
+      method: 'PUT',
+      body: JSON.stringify(yeni)
+    }).then(function () {
+      FIYATLAR.TAMKOY = ft;
+      FIYATLAR.BAGETTA = fb;
+      FIYATLAR.guncelleme = yeni.guncelleme;
+      var hataEl = document.getElementById('fiyat-hata');
+      hataEl.style.color = '#1faa4c';
+      hataEl.textContent = '✓ Fiyatlar güncellendi';
+      toast('💶 Fiyatlar kaydedildi', 'ok');
+      yukle();
+      setTimeout(function () { modalKapat('fiyat-modal'); }, 1300);
+    }).catch(function () {
+      document.getElementById('fiyat-hata').textContent = 'Kaydedilemedi — interneti kontrol edin';
+      toast('Fiyatlar kaydedilemedi', 'hata');
+    });
+  });
+
+  document.getElementById('duyuru-gonder-btn').addEventListener('click', function () {
+    document.getElementById('duyuru-hata').textContent = '';
+    document.getElementById('duyuru-hata').style.color = '';
+    document.getElementById('duyuru-metin').value = '';
+    document.getElementById('duyuru-modal').style.display = 'flex';
+  });
+  document.getElementById('duyuru-kapat').addEventListener('click', function () { modalKapat('duyuru-modal'); });
+  document.getElementById('duyuru-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('duyuru-modal'); });
+  document.getElementById('duyuru-gonder').addEventListener('click', function () {
+    var metin = document.getElementById('duyuru-metin').value.trim();
+    var hataEl = document.getElementById('duyuru-hata');
+    if (!metin) { hataEl.textContent = 'Duyuru metni boş olamaz'; return; }
+    fetch(FIREBASE_URL + '/duyuru.json', {
+      method: 'PUT',
+      body: JSON.stringify({
+        metin: metin,
+        saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        tarih: tarihYaz(new Date()),
+        aktif: true
+      })
+    }).then(function () {
+      hataEl.style.color = '#1faa4c';
+      hataEl.textContent = '✓ Duyuru şoför paneline gönderildi';
+      toast('📢 Duyuru gönderildi', 'ok');
+      setTimeout(function () { modalKapat('duyuru-modal'); }, 1200);
+    }).catch(function () {
+      hataEl.textContent = 'Gönderilemedi — interneti kontrol edin';
+      toast('Duyuru gönderilemedi', 'hata');
     });
   });
 
