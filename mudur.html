@@ -105,6 +105,16 @@
   .alt-bar button:disabled { opacity:.4; }
 
   .ipucu { font-size:.62rem; color:var(--soluk); text-align:center; padding:4px 12px 0; letter-spacing:.3px; }
+
+  .dinleme {
+    font-size:.7rem; text-align:center; color:var(--soluk); letter-spacing:.3px;
+    padding:6px 12px 0; display:none;
+  }
+  .dinleme.acik {
+    display:block; color:#38bdf8; font-weight:700;
+    animation:dinleNabiz 1.6s ease infinite;
+  }
+  @keyframes dinleNabiz { 0%,100%{opacity:1;} 50%{opacity:.55;} }
 </style>
 </head>
 <body>
@@ -128,7 +138,8 @@
   <input id="giris" placeholder="MÜDÜR'e sorun yazın ya da 🎤 ile konuşun..." maxlength="300" autocomplete="off">
   <button class="btn-ust" id="gonder-btn" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#241404;font-size:1.1rem;">➤</button>
 </div>
-<div class="ipucu">Örn: "bugünkü özet", "red var mı", "ciro", "kalan mağaza", "şoför nerede", "SOS", "Samsun", bir mağaza adı</div>
+<div class="dinleme" id="dinleme-durum">🎙️ Dinliyorum — "MÜDÜR" deyin</div>
+<div class="ipucu">Dur, dinle, çalış. "MÜDÜR" deyip sorunuzu söyleyin; yanıt sesli okunur. Örn: "MÜDÜR bugünkü özet", "red var mı", "ciro ne kadar", "şoför nerede", "SOS var mı"</div>
 
 <script src="magazalar.js"></script>
 <script src="fiyatlar.js"></script>
@@ -505,43 +516,111 @@
 
   var DinlemeVar = ('SpeechRecognition' in window) || ('webkitSpeechRecognition' in window);
   var mikBtn = document.getElementById('mik-btn');
-  if (!DinlemeVar) mikBtn.classList.add('yok');
-  var dinleniyor = false;
+  var dinlemeDurum = document.getElementById('dinleme-durum');
   var dinleme = null;
-  function sesDinle() {
+  var dinleniyor = false;
+  var otoDinle = true;
+  var konusmaYasak = false;
+  var OTO_KELIME = /(OZET|RED|CIRO|KALAN|SUREC|SOFOR|KONUM|SOS|MESAJ|DURUM|NEDIR|NERDE|NEREDE|KAC |KAC|KIM|IL |ILCE|MAGAZA|YOL|BUGUN|YKLEME|CIS|DONUS|TAMAMLANDI|ADET|URUN|ISIM|YARDIM|BEKL|CEVREK|SIMIT|GALETA|LAVAS|EKMEK|FIRMA)/;
+
+  function dinlemeGoster(goster, yazi) {
+    if (dinlemeDurum) {
+      dinlemeDurum.textContent = yazi || '';
+      dinlemeDurum.classList.toggle('acik', !!goster);
+      dinlemeDurum.style.display = goster ? 'block' : 'none';
+    }
+    if (goster) { mikBtn.classList.add('dinliyor'); mikBtn.textContent = '⏺'; }
+    else { mikBtn.classList.remove('dinliyor'); mikBtn.textContent = '🎤'; }
+  }
+
+  function dinlemeKapat() {
+    otoDinle = false;
+    if (dinleme) { try { dinleme.abort(); } catch (e) { } }
+    dinleniyor = false;
+    dinlemeGoster(false);
+  }
+
+  function dinleyiciKur() {
     if (!DinlemeVar) {
-      mesajEkle('ben', 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome veya Android Chrome kullanın. Sorunuzu yazabilirsiniz.');
+      if (!konusmaYasak) {
+        konusmaYasak = true;
+        mesajEkle('ben', 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome (bilgisayar veya Android Chrome) kullanın ve sayfayı https ile (GitHub Pages) açın.');
+      }
+      dinlemeGoster(false);
       return;
     }
-    if (dinleniyor) { try { dinleme.stop(); } catch (e) { } return; }
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (dinleme) { try { dinleme.abort(); } catch (e) { } }
     dinleme = new SR();
     dinleme.lang = 'tr-TR';
+    dinleme.continuous = true;
     dinleme.interimResults = false;
     dinleme.maxAlternatives = 1;
-    dinleme.onstart = function () { dinleniyor = true; mikBtn.classList.add('dinliyor'); mikBtn.textContent = '⏺'; };
+    dinleme.onstart = function () {
+      dinleniyor = true;
+      dinlemeGoster(true, '🎙️ Dinliyorum — "MÜDÜR" deyin');
+    };
     dinleme.onresult = function (e) {
-      var t = e.results[0][0].transcript;
-      soruGel(t);
+      var son = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) son = (e.results[i][0].transcript || '').trim();
+      }
+      if (!son) return;
+      var ust = son.toUpperCase().replace('İ', 'I');
+      var md = ust.indexOf('MUDUR');
+      var soru = son;
+      if (md >= 0) {
+        var geri = son.slice(md + 5).replace(/^[.,:;!\s'’"“]+/, '');
+        if (geri && geri.trim()) soru = geri;
+      }
+      var k = sadelestir(soru);
+      if (md < 0 && !OTO_KELIME.test(k) && son.trim().length < 5) return;
+      soruGel(soru);
     };
     dinleme.onerror = function (e) {
-      dinleniyor = false;
-      mikBtn.classList.remove('dinliyor');
-      mikBtn.textContent = '🎤';
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-        mesajEkle('ben', 'Mikrofon izni yok. Adres çubuğundaki mikrofon simgesinden izin verip tekrar deneyin.');
-      } else if (e.error === 'no-speech') {
-        mesajEkle('ben', 'Ses algılayamadım. Tekrar konuşmayı dener misiniz?');
+        dinlemeKapat();
+        mesajEkle('ben', '🔒 Mikrofon izni yok. Adres çubuğundaki 🎤 simgesinden "İzin ver" deyin, sonra 🎤 butonuna dokunun. Not: dosyayı file:// değil https ile açın.');
+        return;
       }
+      if (e.error === 'audio-capture') {
+        setTimeout(function () { if (otoDinle) dinleyiciKur(); }, 1300);
+        return;
+      }
+      setTimeout(function () { if (otoDinle && !dinleniyor) { try { dinleme.start(); } catch (x) { } } }, 700);
     };
     dinleme.onend = function () {
       dinleniyor = false;
-      mikBtn.classList.remove('dinliyor');
-      mikBtn.textContent = '🎤';
+      if (otoDinle) {
+        setTimeout(function () { if (otoDinle) { try { dinleme.start(); } catch (x) { } } }, 400);
+      } else {
+        dinlemeGoster(false);
+      }
     };
     try { dinleme.start(); } catch (e) { dinleniyor = false; }
   }
-  mikBtn.addEventListener('click', sesDinle);
+
+  mikBtn.addEventListener('click', function () {
+    if (!DinlemeVar) {
+      mesajEkle('ben', 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome veya Android Chrome kullanın.');
+      return;
+    }
+    otoDinle = !otoDinle;
+    if (otoDinle) {
+      if (!dinleniyor) dinleyiciKur();
+    } else {
+      dinlemeKapat();
+      mesajEkle('ben', 'Dinleme kapatıldı. Tekrar açmak için 🎤 butonuna basın.');
+    }
+  });
+
+  if (location.protocol === 'file:') {
+    setTimeout(function () {
+      mesajEkle('ben', '⚠️ Bu sayfayı bilgisayarınızdan (file://) açtınız. Mikrofon ve sesli yanıt için sayfayı https ile açmanız gerekir (GitHub Pages adresi).');
+    }, 900);
+  }
+
+  dinleyiciKur();
 
   document.getElementById('gonder-btn').addEventListener('click', function () { soruGel(giris.value); });
   giris.addEventListener('keydown', function (e) { if (e.key === 'Enter') soruGel(giris.value); });
@@ -551,8 +630,9 @@
   setInterval(veriTazele, 15000);
 
   setTimeout(function () {
-    mesajEkle('ben', 'Merhaba, ben MÜDÜR! 👋 Bugünkü dağıtım için canlı verilerden cevap verebilirim. Konuşarak ya da yazarak sorabilirsiniz.');
-  }, 600);
+    mesajEkle('ben', 'Merhaba, ben MÜDÜR! 👋 Hiçbir yere dokunmayın; "MÜDÜR" deyip sorunuzu söylemeniz yeterli. Yanıtınızı sesli olarak okuyacağım.');
+    konus('Merhaba, ben MÜDÜR. Hiç bir yere dokunmanıza gerek yok. MÜDÜR deyip sorunuzu söylemeniz yeterli, yanıtınızı sesli okuyacağım.');
+  }, 800);
 </script>
 </body>
 </html>
