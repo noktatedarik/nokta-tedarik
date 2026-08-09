@@ -123,6 +123,9 @@
   .ses-baslik button { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--soluk); padding:4px 8px; border-radius:8px; }
   .ses-baslik button:hover { background:var(--cizgi); color:var(--kirmizi); }
   .hiz-liste { display:flex; gap:8px; margin:10px 0 14px; }
+  .kaynak-liste { display:flex; gap:8px; margin:0 0 8px; }
+  .kaynak-btn { flex:1; padding:10px; border-radius:10px; border:1px solid var(--cizgi); background:var(--kart1); color:var(--metin); cursor:pointer; font-size:.78rem; font-weight:800; line-height:1.35; }
+  .kaynak-btn.secili { border-color:#4ade80; color:#4ade80; background:rgba(74,222,128,.08); }
   .hiz-btn { flex:1; padding:9px; border-radius:10px; border:1px solid var(--cizgi); background:var(--kart1); color:var(--metin); cursor:pointer; font-size:.78rem; font-weight:700; }
   .hiz-btn.secili { border-color:var(--turuncu); color:var(--turuncu); }
   .ses-satir { display:block; width:100%; text-align:left; padding:10px 12px; margin:4px 0; border:1px solid var(--cizgi); border-radius:10px; background:var(--kart1); color:var(--metin); font-size:.78rem; cursor:pointer; line-height:1.4; }
@@ -159,13 +162,17 @@
 <div id="ses-modal">
   <div class="ses-kutu">
     <div class="ses-baslik"><b>🎙 Ses Ayarları</b><button id="ses-modal-kapat">✕</button></div>
+    <div class="kaynak-liste">
+      <button class="kaynak-btn" data-kaynak="google">☁️ Google — doğal ses</button>
+      <button class="kaynak-btn" data-kaynak="cihaz">📱 Cihaz sesi</button>
+    </div>
     <div class="hiz-liste">
       <button class="hiz-btn" data-hiz="0.85">🐢 Yavaş</button>
       <button class="hiz-btn" data-hiz="0.95">😊 Normal</button>
       <button class="hiz-btn" data-hiz="1.05">⚡ Akıcı</button>
     </div>
     <div id="ses-liste"></div>
-    <div class="ses-not">💡 Beğendiğiniz sesin üzerine dokunun, anında dinleyin; seçim otomatik kaydedilir. iPhone'da en gerçekçi ses için Ayarlar → Erişilebilirlik → Sesli İçerik → Sesler → Türkçe menüsünden "Yelda" / "Aylin (Geliştirilmiş)" gibi bir sesi etkinleştirin. Cihazda yüklü olmayan sesler bu listede çıkmaz ya da bozuk konuşabilir.</div>
+    <div class="ses-not">💡 "Google — doğal ses" en gerçekçi seçenektir; MÜDÜR'ün yanıtları Google'ın Türkçe sesiyle seslendirilir (internet gerektirir). Cihaz sese geçerseniz üstteki listeyle iPhone/bilgisayar seslerini seçebilirsiniz. Ses cihazda duruyorsa ses açık olduğundan emin olun.</div>
   </div>
 </div>
 
@@ -659,6 +666,7 @@
   var seciliSesAd = '';
   var seciliSesDil = '';
   var konusmaHizi = 0.95;
+  var kaynak = 'google';
 
   try {
     if (window.localStorage) {
@@ -666,6 +674,8 @@
       seciliSesDil = localStorage.getItem('mudur-ses-dil') || '';
       var hz = parseFloat(localStorage.getItem('mudur-hiz'));
       if (hz >= 0.4 && hz <= 2) konusmaHizi = hz;
+      var kr = localStorage.getItem('mudur-kaynak');
+      if (kr === 'google' || kr === 'cihaz') kaynak = kr;
     }
   } catch (e) { }
 
@@ -738,7 +748,7 @@
     } catch (e) { }
   }
 
-  function konus(metin) {
+  function konusCihaz(metin) {
     if (!sesAcik) return;
     try {
       if ('speechSynthesis' in window) {
@@ -770,19 +780,81 @@
     } catch (e) { }
   }
 
+  var googleParcalar = [];
+  var googleIndex = 0;
+  var googleAp = null;
+  var googleDurdur = true;
+
+  function gDurdur() {
+    googleDurdur = true;
+    if (googleAp) { try { googleAp.pause(); } catch (e) { } googleAp = null; }
+    googleIndex = 0;
+    googleParcalar = [];
+  }
+
+  function metinParcala(metin, cap) {
+    var temiz = metin.replace(/[\n•✓✅🚫🆘⏳💰📝]/g, ', ').replace(/[#*_`]/g, ' ').replace(/[ ]{2,}/g, ' ').trim();
+    var kelimeler = temiz.split(' ');
+    var parcalar = [];
+    var buf = '';
+    for (var i = 0; i < kelimeler.length; i++) {
+      var k = kelimeler[i];
+      if (!k) continue;
+      if (buf && (buf + ' ' + k).length > cap) { parcalar.push(buf); buf = ''; }
+      buf = buf ? buf + ' ' + k : k;
+    }
+    if (buf) parcalar.push(buf);
+    return parcalar;
+  }
+
+  function gOynat() {
+    if (googleDurdur) return;
+    if (googleIndex >= googleParcalar.length) { googleParcalar = []; return; }
+    var metin = googleParcalar[googleIndex]; googleIndex++;
+    try {
+      var url = 'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=' + encodeURIComponent(metin);
+      var a = new Audio(url);
+      a.onended = function () {
+        setTimeout(function () { if (!googleDurdur) gOynat(); }, 140);
+      };
+      a.onerror = function () {
+        gDurdur();
+        konusCihaz(googleParcalar.join(', '));
+      };
+      var p = a.play();
+      if (p && p.catch) p.catch(function () {
+        gDurdur();
+        konusCihaz(googleParcalar.join(', '));
+      });
+      googleAp = a;
+    } catch (e) {
+      gDurdur();
+      konusCihaz(googleParcalar.join(', '));
+    }
+  }
+
+  function gKonus(metin) {
+    if (!metin) return;
+    gDurdur();
+    try { if (typeof Audio === 'undefined') { konusCihaz(metin); return; } } catch (e) { konusCihaz(metin); return; }
+    googleParcalar = metinParcala(metin, 150);
+    if (!googleParcalar.length) return;
+    googleDurdur = false;
+    gOynat();
+  }
+
+  function konus(metin) {
+    if (!sesAcik) return;
+    if (kaynak === 'google') { gKonus(metin); return; }
+    konusCihaz(metin);
+  }
+
   function sesKilit() {
     if (sesKilitAcildi) return;
     sesKilitAcildi = true;
     try {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.getVoices();
-      var v = konusIcinSes();
-      var u = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
-      u.lang = v ? v.lang : 'tr-TR';
-      if (v) u.voice = v;
-      u.rate = konusmaHizi;
-      u.pitch = 1;
-      window.speechSynthesis.speak(u);
+      sesAcik = true;
+      konus('Merhaba, ben MÜDÜR.');
       dinlemeDurum.textContent = '🔊 Ses hazır';
       dinlemeDurum.style.display = 'block';
     } catch (e) { }
@@ -829,17 +901,34 @@
     }
   }
 
+  function kaynakVurgula() {
+    var kb = document.querySelectorAll('.kaynak-btn');
+    for (var i = 0; i < kb.length; i++) {
+      kb[i].classList.toggle('secili', kb[i].getAttribute('data-kaynak') === kaynak);
+    }
+  }
+
   document.getElementById('ses-ayar-btn').addEventListener('click', function () {
     var m = document.getElementById('ses-modal');
     m.classList.toggle('acik');
     if (m.classList.contains('acik')) {
       sesListesiDoldur();
       hizVurgula();
+      kaynakVurgula();
     }
   });
   document.getElementById('ses-modal-kapat').addEventListener('click', function () {
     document.getElementById('ses-modal').classList.remove('acik');
   });
+  var kaynakBtns = document.querySelectorAll('.kaynak-btn');
+  for (var kb2 = 0; kb2 < kaynakBtns.length; kb2++) {
+    kaynakBtns[kb2].addEventListener('click', function () {
+      kaynak = this.getAttribute('data-kaynak') === 'cihaz' ? 'cihaz' : 'google';
+      try { localStorage.setItem('mudur-kaynak', kaynak); } catch (e) { }
+      kaynakVurgula();
+      sesOnizle();
+    });
+  }
   var hizBtns = document.querySelectorAll('.hiz-btn');
   for (var hb2 = 0; hb2 < hizBtns.length; hb2++) {
     hizBtns[hb2].addEventListener('click', function () {
