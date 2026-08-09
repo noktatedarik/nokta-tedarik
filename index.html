@@ -1192,7 +1192,7 @@
 </footer>
 
 <script src="magazalar.js"></script>
-<script src="koordinatlar.js"></script>
+<script src="magaza_konum.js"></script>
 <script>
   var URUNLER = [
     { ad: 'Bagetta Sac Ekmeği', aciklama: '300 gr — günlük taze üretim', detay: 'Baget formunda, özel fırınlama tekniğiyle üretilen sac ekmeği. Mağaza rafları için idealdir.', foto: 'gorseller/sacekmegi.jpg', ikon: '🥖' },
@@ -1784,11 +1784,25 @@
   function gosterTamam(sayi) {
     return firebaseTamam >= 0 ? firebaseTamam : sayi;
   }
+  function ilMerkezleri() {
+    var m = {};
+    if (typeof MAGAZA_KONUM === 'undefined' || typeof MAGAZALAR === 'undefined') return m;
+    for (var z = 0; z < MAGAZALAR.length; z++) {
+      var il = MAGAZALAR[z];
+      var t = 0, s = 0, n = 0;
+      for (var q = 0; q < il.magazalar.length; q++) {
+        var c = MAGAZA_KONUM[il.magazalar[q].k];
+        if (c) { t += c[0]; s += c[1]; n++; }
+      }
+      if (n) m[il.sehir] = [t / n, s / n];
+    }
+    return m;
+  }
   function geoToSvg(lat, lng) {
-    if (typeof KOORDINATLAR === 'undefined') return null;
+    var ILMERKEZ = ilMerkezleri();
     var enIyi = null, enD = Infinity;
-    for (var ilAd in KOORDINATLAR) {
-      var mk = KOORDINATLAR[ilAd]._merkez;
+    for (var ilAd in ILMERKEZ) {
+      var mk = ILMERKEZ[ilAd];
       if (!mk) continue;
       var dy = lat - mk[0], dx = lng - mk[1];
       var dd = dy * dy + dx * dx;

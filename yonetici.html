@@ -221,17 +221,6 @@
   .lejant i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
   .lejant .ara-nokta { display:inline-block; width:8px; height:8px; background:var(--turuncu); border:2px solid #fff; transform:rotate(45deg); margin-right:5px; vertical-align:middle; box-shadow:0 1px 4px rgba(0,0,0,.3); }
   .lejant b { color:var(--metin); }
-  .rota-panel { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
-  .rota-panel .rota-baslik { display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--metin); font-weight:800; margin-bottom:8px; }
-  .rota-panel .rota-baslik .rota-kapat { margin-left:auto; border:none; background:rgba(139,92,246,.12); color:var(--mor); width:26px; height:26px; border-radius:50%; font-size:.8rem; cursor:pointer; font-weight:800; }
-  .rota-panel .rota-liste { display:flex; flex-direction:column; gap:6px; max-height:220px; overflow:auto; }
-  .rota-panel .rota-satir { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border:1px solid var(--cizgi); border-radius:10px; font-size:.78rem; }
-  .rota-panel .rota-no { width:24px; height:24px; min-width:24px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; font-size:.7rem; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(139,92,246,.4); }
-  .rota-panel .rota-satir .rota-ad { font-weight:700; color:var(--metin); }
-  .rota-panel .rota-satir .rota-ilce { font-size:.68rem; color:var(--soluk); font-weight:600; }
-  .rota-panel .rota-satir .rota-km { margin-left:auto; font-size:.7rem; color:var(--soluk); font-weight:700; white-space:nowrap; }
-  .rota-panel .rota-satir .rota-nav { text-decoration:none; font-size:.68rem; font-weight:800; color:var(--mor); background:rgba(139,92,246,.12); padding:4px 9px; border-radius:999px; white-space:nowrap; }
-  .rota-sira { background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; font-size:.72rem; font-weight:800; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 3px 10px rgba(139,92,246,.5); }
   .satir-red { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:11px 6px; border-bottom:1px solid var(--cizgi2); font-size:.8rem; }
   .satir-red:last-child { border-bottom:none; }
   .red-ad { font-family:'Sora',sans-serif; font-weight:700; }
@@ -393,13 +382,10 @@
   <div class="konum-bar">
     <span><span class="canli-nokta"></span><span id="konum-metin">Araç konumu bekleniyor...</span></span>
     <div style="display:flex; gap:6px; flex-shrink:0;">
-      <button class="btn" id="rota-oner-btn" onclick="rotaOner()" style="padding:8px 12px; font-size:.72rem; background:linear-gradient(135deg,#8b5cf6,#6d28d9); box-shadow:0 4px 12px rgba(139,92,246,.35);">🧭 ROTA ÖNER</button>
       <a class="btn" id="nav-btn" href="#" target="_blank" rel="noopener" style="text-decoration:none; padding:8px 12px; font-size:.72rem; background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 4px 12px rgba(16,185,129,.35);">🧭 ROTA</a>
       <a class="btn" id="ara-btn" href="tel:+905467606608" style="text-decoration:none; padding:8px 12px; font-size:.72rem;">📞 ARA</a>
     </div>
   </div>
-
-  <div class="rota-panel" id="rota-panel" style="display:none;"></div>
 
   <div class="uyari ok" id="eksik-uyari" style="display:none;"></div>
 
@@ -502,7 +488,6 @@
   var HAFTA = ['', 'Samsun', 'Sinop', 'Amasya', 'Çorum', 'Sivas', 'Tokat'];
 </script>
 <script src="magazalar.js"></script>
-<script src="koordinatlar.js"></script>
 <script src="magaza_konum.js"></script>
 <script src="fiyatlar.js"></script>
 <script>
@@ -726,10 +711,7 @@
 
   function magazaKoordinat(sehir, ilce, kod) {
     if (kod && MAGAZA_KONUM && MAGAZA_KONUM[kod]) return MAGAZA_KONUM[kod];
-    var s = KOORDINATLAR[sehir];
-    if (!s) return null;
-    var k = s[ilce] || s['_merkez'];
-    return k || null;
+    return null;
   }
 
   function mesafe(a, b) {
@@ -1449,98 +1431,6 @@
       bagetSutun: bagetSutunToplam,
       tamkoySutun: tamkoySutunToplam
     };
-  }
-
-  var rotaOnerCizgi = null;
-  var rotaOnerMarkers = [];
-
-  function rotaSiraIkon(n) {
-    return L.divIcon({ className: '', html: '<div class="rota-sira">' + n + '</div>', iconSize: [22, 22], iconAnchor: [11, 22] });
-  }
-
-  function rotaOner() {
-    if (!exportVeri || !exportVeri.magazalar || !exportVeri.magazalar.length) {
-      toast('Mağaza verisi henüz yüklenmedi', 'hata');
-      return;
-    }
-    if (!harita) {
-      toast('Harita yüklenmedi', 'hata');
-      return;
-    }
-    var durumlar = exportVeri.durumlar || {};
-    var adaylar = [];
-    for (var i = 0; i < exportVeri.magazalar.length; i++) {
-      var mg = exportVeri.magazalar[i];
-      var anahtar = normalize(mg.sehir) + '-' + mg.sira;
-      var d = durumlar[anahtar];
-      if (d && (d.red || d.saat)) continue;
-      var koord = magazaKoordinat(mg.sehir, mg.m.i, mg.m.k);
-      if (!koord) continue;
-      adaylar.push({ ad: mg.m.m ? mg.m.m : 'Mağaza ' + mg.sira, ilce: mg.m.i || '', sehir: mg.sehir, anahtar: anahtar, koord: koord });
-    }
-    if (!adaylar.length) {
-      toast('Bekleyen mağaza yok — rota önerilecek bir şey bulunamadı', 'hata');
-      return;
-    }
-    var baslangic = null;
-    if (sonKonum && sonKonum.lat && sonKonum.lng) baslangic = { lat: sonKonum.lat, lng: sonKonum.lng };
-    else if (exportVeri.il && exportVeri.il !== 'TÜM İLLER' && KOORDINATLAR[exportVeri.il] && KOORDINATLAR[exportVeri.il]._merkez) {
-      var mrz = KOORDINATLAR[exportVeri.il]._merkez;
-      baslangic = { lat: mrz[0], lng: mrz[1] };
-    }
-    var sirali = [];
-    var kalan = adaylar.slice();
-    var suanki = baslangic;
-    while (kalan.length) {
-      var enYakin = 0, enKisa = Infinity;
-      for (var k = 0; k < kalan.length; k++) {
-        var dd = suanki ? mesafe(suanki, { lat: kalan[k].koord[0], lng: kalan[k].koord[1] }) : 0;
-        if (dd !== null && dd < enKisa) { enKisa = dd; enYakin = k; }
-      }
-      var sec = kalan.splice(enYakin, 1)[0];
-      sirali.push(sec);
-      suanki = { lat: sec.koord[0], lng: sec.koord[1] };
-    }
-    if (rotaOnerCizgi) harita.removeLayer(rotaOnerCizgi);
-    for (var rm = 0; rm < rotaOnerMarkers.length; rm++) harita.removeLayer(rotaOnerMarkers[rm]);
-    rotaOnerMarkers = [];
-    var puanlar = [];
-    if (baslangic) puanlar.push([baslangic.lat, baslangic.lng]);
-    for (var p = 0; p < sirali.length; p++) puanlar.push([sirali[p].koord[0], sirali[p].koord[1]]);
-    rotaOnerCizgi = L.polyline(puanlar, { color: '#8b5cf6', weight: 3, dashArray: '4 6', opacity: .9 }).addTo(harita);
-    for (var m = 0; m < sirali.length; m++) {
-      var mk = L.marker([sirali[m].koord[0], sirali[m].koord[1]], {
-        icon: rotaSiraIkon(m + 1)
-      }).addTo(harita).bindPopup('<b>' + (m + 1) + '. ' + escapeHtml(sirali[m].ad) + '</b><br>' + escapeHtml(sirali[m].ilce) + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + sirali[m].koord[0] + ',' + sirali[m].koord[1] + '&travelmode=driving">🧭 Navigasyonu Aç</a>');
-      rotaOnerMarkers.push(mk);
-    }
-    var basl = baslangic || (sirali.length ? { lat: sirali[0].koord[0], lng: sirali[0].koord[1] } : null);
-    var toplamKm = 0;
-    var kmSatirlar = [];
-    for (var t = 0; t < sirali.length; t++) {
-      var once = (t === 0 ? basl : { lat: sirali[t - 1].koord[0], lng: sirali[t - 1].koord[1] });
-      var km = mesafe(once, { lat: sirali[t].koord[0], lng: sirali[t].koord[1] }) || 0;
-      toplamKm += km;
-      kmSatirlar.push(km);
-    }
-    var listeHtml = '<div class="rota-baslik">🧭 Önerilen Rota <span style="margin-left:auto; font-size:.68rem; color:var(--soluk); font-weight:600;">' + sirali.length + ' mağaza · ' + toplamKm.toFixed(1) + ' km</span><button class="rota-kapat" onclick="rotaKapat()">✕</button></div>';
-    listeHtml += '<div class="rota-liste">';
-    for (var s2 = 0; s2 < sirali.length; s2++) {
-      listeHtml += '<div class="rota-satir"><span class="rota-no">' + (s2 + 1) + '</span><span class="rota-bilgi"><span class="rota-ad">' + escapeHtml(sirali[s2].ad) + '</span> <span class="rota-ilce">(' + escapeHtml(sirali[s2].ilce) + ')</span></span><span class="rota-km">+' + kmSatirlar[s2].toFixed(1) + ' km</span><a class="rota-nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + sirali[s2].koord[0] + ',' + sirali[s2].koord[1] + '&travelmode=driving">🧭</a></div>';
-    }
-    listeHtml += '</div>';
-    document.getElementById('rota-panel').innerHTML = listeHtml;
-    document.getElementById('rota-panel').style.display = '';
-    harita.invalidateSize();
-    toast('Rota önerildi: ' + sirali.length + ' mağaza · ' + toplamKm.toFixed(1) + ' km', 'ok');
-  }
-
-  function rotaKapat() {
-    if (rotaOnerCizgi && harita) harita.removeLayer(rotaOnerCizgi);
-    rotaOnerCizgi = null;
-    for (var rm = 0; rm < rotaOnerMarkers.length; rm++) if (harita) harita.removeLayer(rotaOnerMarkers[rm]);
-    rotaOnerMarkers = [];
-    document.getElementById('rota-panel').style.display = 'none';
   }
 
   var teslimRotaCizgi = null;
