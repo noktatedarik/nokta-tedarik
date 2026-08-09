@@ -475,6 +475,28 @@
 
   var sesAcik = true;
   var sesBtn = document.getElementById('ses-btn');
+  var SafariVar = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
+  var sesKilitAcildi = false;
+
+  function turkceSesSec() {
+    try {
+      var sesler = window.speechSynthesis.getVoices();
+      for (var i = 0; i < sesler.length; i++) {
+        if (/tr/i.test(sesler[i].lang) || /turk/i.test(sesler[i].name)) return sesler[i];
+      }
+    } catch (e) { }
+    return null;
+  }
+
+  function sesKalbi() {
+    try {
+      if (window.speechSynthesis.speaking === false) return;
+      if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); return; }
+      window.speechSynthesis.pause();
+      setTimeout(function () { try { window.speechSynthesis.resume(); } catch (e) { } }, 250);
+    } catch (e) { }
+  }
+
   function konus(metin) {
     if (!sesAcik) return;
     try {
@@ -485,13 +507,41 @@
         u.lang = 'tr-TR';
         u.rate = 1;
         u.pitch = 1;
+        var v = turkceSesSec();
+        if (v) { u.voice = v; u.lang = v.lang; }
+        window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices(); };
         window.speechSynthesis.speak(u);
+        if (SafariVar) {
+          var kalp = setInterval(function () {
+            try {
+              if (window.speechSynthesis.speaking === false) { clearInterval(kalp); return; }
+              window.speechSynthesis.pause();
+              setTimeout(function () { try { window.speechSynthesis.resume(); } catch (e) { } }, 250);
+            } catch (e) { clearInterval(kalp); }
+          }, 4000);
+        }
       }
     } catch (e) { }
   }
+
+  function sesKilit() {
+    if (sesKilitAcildi) return;
+    sesKilitAcildi = true;
+    try {
+      window.speechSynthesis.getVoices();
+      setTimeout(function () {
+        konus('Merhaba. Ben MÜDÜR. Yazıyla sorduğunuzda size sesli cevap vereceğim.');
+      }, 300);
+    } catch (e) { }
+  }
+
+  ['touchstart', 'click', 'keydown', 'keyup'].forEach(function (olay) {
+    document.addEventListener(olay, function () { if (SafariVar && 'speechSynthesis' in window) sesKilit(); }, { once: true });
+  });
   sesBtn.addEventListener('click', function () {
     sesAcik = !sesAcik;
     sesBtn.textContent = sesAcik ? '🔊' : '🔇';
+    if (sesAcik) konus('Ses açıldı.');
   });
 
   function soruGel(metin, sesliKaynak) {
@@ -556,9 +606,15 @@
     if (!DinlemeVar) {
       if (!konusmaYasak) {
         konusmaYasak = true;
-        mesajEkle('ben', 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome (bilgisayar veya Android Chrome) kullanın ve sayfayı https ile (GitHub Pages) açın.');
+        var uyari = SafariVar
+          ? 'Safari mikrofon dinlemeyi desteklemiyor, o yüzden "MÜDÜR deyip konuşma" Safari\'de çalışmaz. Sesli komut için Chrome (bilgisayar, Android veya iPhone\'da Chrome uygulaması) kullanın. Safari\'de sorunuzu yazıp ➤ tuşuna basın — size sesli cevap veririm.'
+          : 'Bu tarayıcı mikrofon dinlemeyi desteklemiyor. Chrome (bilgisayar veya Android Chrome kullanın) ve sayfayı https ile (GitHub Pages) açın.';
+        mesajEkle('ben', uyari);
       }
       dinlemeGoster(false);
+      dinlemeDurum.textContent = '💬 Mikrofon bu tarayıcıda yok — sorunuzu yazın (Safari)';
+      dinlemeDurum.classList.add('acik');
+      dinlemeDurum.style.display = 'block';
       return;
     }
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
