@@ -12,63 +12,155 @@
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
 <title>NOKTA TEDARİK — Şoför Paneli</title>
 <style>
-  :root { --turuncu:#f77f00; --turuncu-koyu:#d96b00; --mavi:#0e1b2c; --yesil:#1faa4c; }
+  :root {
+    --bg:#f1f5fb;
+    --card:#ffffff;
+    --card-2:#f8fafd;
+    --text:#1e2b3c;
+    --muted:#6b7f94;
+    --muted-2:#93a5b8;
+    --border:#e3eaf2;
+    --turuncu:#f77f00;
+    --turuncu-koyu:#e06f00;
+    --turuncu-acik:#fff4e5;
+    --mavi:#0e1b2c;
+    --yesil:#1faa4c;
+    --yesil-bg:#e7f6ec;
+    --yesil-kenar:#b9e4c4;
+    --kirmizi:#d64545;
+    --kirmizi-bg:#fdecea;
+    --kirmizi-kenar:#f2bfbf;
+    --mavi-acik:#eaf1f9;
+    --header-grad:linear-gradient(135deg,#0e1b2c,#1b2f4a);
+    --golge:0 2px 10px rgba(14,27,44,.06);
+    --golge-2:0 14px 40px rgba(14,27,44,.2);
+  }
+  body[data-tema="koyu"] {
+    --bg:#0c131d;
+    --card:#16212e;
+    --card-2:#1c2938;
+    --text:#e9eff6;
+    --muted:#9fb0c2;
+    --muted-2:#7f92a6;
+    --border:#26364a;
+    --turuncu-acik:#3a2a14;
+    --yesil-bg:#123320;
+    --yesil-kenar:#1d5230;
+    --kirmizi-bg:#3a1a1a;
+    --kirmizi-kenar:#5c2626;
+    --mavi-acik:#16283c;
+    --header-grad:linear-gradient(135deg,#0a111a,#152238);
+    --golge:0 2px 12px rgba(0,0,0,.4);
+    --golge-2:0 16px 44px rgba(0,0,0,.5);
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:#f4f7fb; color:#33465c; }
-  .ust { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:5; box-shadow:0 4px 18px rgba(14,27,44,.25); }
+  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:var(--bg); color:var(--text); transition:background .25s,color .25s; }
+  .ust { background:var(--header-grad); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:6; box-shadow:0 4px 18px rgba(14,27,44,.25); }
   .ust h1 { font-size:1.05rem; letter-spacing:2px; }
   .ust .alt { font-size:.78rem; opacity:.85; margin-top:4px; }
   .ust .sehir { color:#ffb347; font-weight:800; font-size:1.05rem; }
-  .ozet { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#fff; border-bottom:1px solid #e3eaf2; position:sticky; top:78px; z-index:4; }
-  .ozet b { color:var(--turuncu-koyu); font-size:1.25rem; }
-  .ozet span { font-size:.78rem; color:#6b7f94; }
+  .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
+  .cikis.tema { left:12px; right:auto; font-size:.95rem; padding:4px 9px; }
+  .ozet { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:76px; z-index:5; padding:10px 16px 12px; }
+  .ilerleme-ust { display:flex; justify-content:space-between; align-items:center; font-size:.7rem; color:var(--muted); font-weight:800; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
+  .ilerleme-ust b { color:var(--turuncu); font-size:.85rem; letter-spacing:0; }
+  .bar { height:10px; background:var(--card-2); border:1px solid var(--border); border-radius:999px; overflow:hidden; }
+  .bar-dolu { height:100%; width:0; background:linear-gradient(90deg,#f77f00,#ffb347); border-radius:999px; transition:width .4s ease; }
+  .ozet-3 { display:flex; gap:8px; margin-top:10px; }
+  .ozet-kutu { flex:1; text-align:center; background:var(--card-2); border:1px solid var(--border); border-radius:12px; padding:9px 6px; }
+  .ozet-kutu b { display:block; font-size:1.3rem; color:var(--text); }
+  .ozet-kutu span { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:800; }
+  .ozet-kutu.ok b { color:var(--yesil); }
+  .ozet-kutu.red b { color:var(--kirmizi); }
+  .ozet-kutu.bek b { color:var(--turuncu); }
+  .aksiyon { padding:10px 16px; background:var(--card); border-bottom:1px solid var(--border); display:grid; gap:8px; }
   .liste { padding:12px; display:grid; gap:10px; }
-  .il-baslik { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; border-radius:12px; padding:10px 14px; font-weight:800; font-size:.88rem; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center; }
+  .il-baslik { background:var(--header-grad); color:#fff; border-radius:12px; padding:10px 14px; font-weight:800; font-size:.88rem; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center; }
   .il-baslik span { color:#ffb347; font-size:.75rem; font-weight:700; }
-  .magaza { background:#fff; border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid #e3eaf2; box-shadow:0 2px 8px rgba(14,27,44,.05); }
+  .magaza { background:var(--card); border-radius:16px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); box-shadow:var(--golge); transition:transform .15s,box-shadow .2s,border-color .2s; }
+  .magaza:active { transform:scale(.985); }
+  .magaza.teslim-edildi { background:linear-gradient(135deg,var(--yesil-bg),var(--card)); border-color:var(--yesil-kenar); }
+  .magaza.red { background:linear-gradient(135deg,var(--kirmizi-bg),var(--card)); border-color:var(--kirmizi-kenar); }
   .magaza .ad { font-weight:700; font-size:.92rem; }
-  .magaza .saat { font-size:.75rem; color:#6b7f94; margin-top:2px; }
+  .magaza .saat { font-size:.75rem; color:var(--muted); margin-top:3px; }
+  .magaza .not { font-size:.7rem; color:#b35c00; background:var(--turuncu-acik); border:1px solid #f7d9a8; padding:3px 8px; border-radius:6px; margin-top:5px; display:inline-block; max-width:100%; }
+  .chip { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.4px; padding:3px 9px; border-radius:999px; margin-right:6px; vertical-align:middle; }
+  .chip.ok { background:var(--yesil); color:#fff; }
+  .chip.red { background:var(--kirmizi); color:#fff; }
+  .chip.bek { background:var(--mavi-acik); color:var(--muted); }
   .btn { border:none; border-radius:999px; padding:11px 18px; font-weight:800; font-size:.84rem; cursor:pointer; transition:.2s; }
-  .btn.teslim { background:linear-gradient(135deg,#f77f00,#d96b00); color:#fff; box-shadow:0 4px 12px rgba(247,127,0,.35); }
+  .btn.teslim { background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; box-shadow:0 4px 12px rgba(247,127,0,.35); }
+  .btn.teslim:hover { box-shadow:0 6px 16px rgba(247,127,0,.5); }
   .btn.teslim:active { transform:scale(.94); }
-  .btn.tamam { background:#e8f5ec; color:var(--yesil); }
-  .giris { max-width:340px; margin:80px auto; background:#fff; border-radius:18px; padding:28px 22px; text-align:center; box-shadow:0 12px 30px rgba(14,27,44,.1); }
-  .giris h2 { color:var(--mavi); font-size:1.1rem; letter-spacing:1px; }
-  .giris p { font-size:.8rem; color:#6b7f94; margin-top:6px; }
-  .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid #e3eaf2; border-radius:12px; margin:16px 0 8px; outline:none; }
+  .btn.tamam { background:var(--yesil-bg); color:var(--yesil); }
+  .btn.nav { background:var(--mavi-acik); color:#1d6fa5; padding:11px 12px; }
+  .btn.kaydet { background:var(--turuncu-acik); color:#b35c00; padding:11px 12px; }
+  .btn.not-btn { background:var(--card-2); color:var(--muted); padding:11px 12px; }
+  .btn.not-btn.dolu { background:var(--turuncu-acik); color:#b35c00; }
+  .giris { max-width:340px; margin:80px auto; background:var(--card); border-radius:18px; padding:28px 22px; text-align:center; box-shadow:var(--golge-2); }
+  .giris h2 { color:var(--text); font-size:1.1rem; letter-spacing:1px; }
+  .giris p { font-size:.8rem; color:var(--muted); margin-top:6px; }
+  .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid var(--border); border-radius:12px; margin:16px 0 8px; outline:none; background:var(--card-2); color:var(--text); }
   .giris input:focus { border-color:var(--turuncu); }
   .giris .btn { width:100%; }
   .hata { color:#d64545; font-size:.8rem; height:20px; }
-  .bos { text-align:center; color:#6b7f94; padding:40px 16px; }
-  .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
-  .baglanti { font-size:.7rem; color:#9fb0c3; padding:4px 16px 12px; text-align:center; }
-  .karsilama { background:linear-gradient(135deg,#f77f00,#d96b00); color:#fff; padding:14px 16px; font-weight:800; font-size:1.1rem; text-align:center; letter-spacing:.5px; }
+  .bos-kap { text-align:center; padding:44px 16px; color:var(--muted); }
+  .bos-kap .ikon { font-size:2.2rem; margin-bottom:8px; }
+  .bos-kap b { display:block; font-size:.95rem; color:var(--text); margin-bottom:4px; }
+  .bos-kap span { font-size:.8rem; }
+  .baglanti { font-size:.7rem; color:var(--muted-2); padding:4px 16px 12px; text-align:center; }
+  .karsilama { background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; padding:14px 16px; font-weight:800; font-size:1.1rem; text-align:center; letter-spacing:.5px; }
   .karsilama span { display:block; font-size:.75rem; font-weight:600; opacity:.9; margin-top:3px; letter-spacing:0; }
   .modal-kap { position:fixed; inset:0; background:rgba(14,27,44,.55); display:none; align-items:center; justify-content:center; z-index:50; padding:14px; }
-  .modal { background:#fff; border-radius:18px; padding:20px 16px; width:100%; max-width:380px; box-shadow:0 18px 50px rgba(14,27,44,.35); max-height:92vh; overflow-y:auto; }
-  .modal h3 { color:var(--mavi); font-size:1rem; letter-spacing:.5px; margin-bottom:4px; }
-  .modal .alt { font-size:.75rem; color:#6b7f94; margin-bottom:12px; }
-  .urun-satir { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 4px; border-bottom:1px solid #eef2f7; }
+  .modal { background:var(--card); border-radius:18px; padding:20px 16px; width:100%; max-width:380px; box-shadow:var(--golge-2); max-height:92vh; overflow-y:auto; color:var(--text); }
+  .modal h3 { color:var(--text); font-size:1rem; letter-spacing:.5px; margin-bottom:4px; }
+  .modal .alt { font-size:.75rem; color:var(--muted); margin-bottom:12px; }
+  .urun-satir { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 4px; border-bottom:1px solid var(--border); }
   .urun-satir .ad { font-size:.88rem; font-weight:700; flex:1; }
-  .urun-satir input { width:70px; padding:9px; font-size:1rem; text-align:center; border:2px solid #e3eaf2; border-radius:10px; outline:none; }
+  .urun-satir input { width:70px; padding:9px; font-size:1rem; text-align:center; border:2px solid var(--border); border-radius:10px; outline:none; background:var(--card-2); color:var(--text); }
   .urun-satir input:focus { border-color:var(--turuncu); }
   .modal .btn { width:100%; margin-top:14px; }
-  .modal .vazgec { background:#eef2f7; color:#6b7f94; margin-top:8px; box-shadow:none; }
-  .secici-kap { background:#fff; padding:12px 16px; border-bottom:1px solid #e3eaf2; display:grid; gap:8px; }
-  .secici-kap select { width:100%; padding:12px; font-size:.92rem; font-weight:700; border:2px solid #e3eaf2; border-radius:10px; outline:none; background:#fbfdff; color:#33465c; -webkit-appearance:none; appearance:none; }
+  .modal .vazgec { background:var(--card-2); color:var(--muted); margin-top:8px; box-shadow:none; }
+  .secici-kap { background:var(--card); padding:12px 16px; border-bottom:1px solid var(--border); display:grid; gap:8px; }
+  .secici-kap select { width:100%; padding:12px; font-size:.92rem; font-weight:700; border:2px solid var(--border); border-radius:10px; outline:none; background:var(--card-2); color:var(--text); -webkit-appearance:none; appearance:none; }
   .secici-kap select:focus { border-color:var(--turuncu); }
+  .ilce-kap { display:flex; flex-wrap:wrap; gap:6px; max-height:132px; overflow:auto; border:2px solid var(--border); border-radius:10px; padding:8px; background:var(--card-2); }
+  .ilce-kap .ilce-bos { font-size:.8rem; color:var(--muted-2); font-weight:700; padding:4px; width:100%; text-align:center; }
+  .ilce-kip { border:2px solid var(--border); background:var(--card); border-radius:999px; padding:7px 12px; font-size:.75rem; font-weight:800; cursor:pointer; color:var(--muted); }
+  .ilce-kap .ilce-kip.aktif { border-color:var(--turuncu); background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; box-shadow:0 3px 10px rgba(247,127,0,.3); }
   .tip-kap { display:flex; gap:6px; }
-  .tip-kap button { flex:1; border:2px solid #e3eaf2; background:#fff; border-radius:999px; padding:9px 4px; font-size:.7rem; font-weight:800; cursor:pointer; color:#6b7f94; }
-  .tip-kap button.aktif { border-color:var(--turuncu); background:linear-gradient(135deg,#f77f00,#d96b00); color:#fff; box-shadow:0 3px 10px rgba(247,127,0,.3); }
+  .tip-kap button { flex:1; border:2px solid var(--border); background:var(--card); border-radius:999px; padding:9px 4px; font-size:.7rem; font-weight:800; cursor:pointer; color:var(--muted); }
+  .tip-kap button.aktif { border-color:var(--turuncu); background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; box-shadow:0 3px 10px rgba(247,127,0,.3); }
   .rozet { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.5px; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle; }
-  .rozet.sok { background:#e8f5ec; color:#1f8a3d; }
-  .rozet.tk { background:#fff4e5; color:#b35c00; }
-  .rozet.dig { background:#eef2f7; color:#6b7f94; }
+  .rozet.sok { background:var(--yesil-bg); color:#1f8a3d; }
+  .rozet.tk { background:var(--turuncu-acik); color:#b35c00; }
+  .rozet.dig { background:var(--mavi-acik); color:#1d6fa5; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--mavi); color:#fff; padding:12px 18px; border-radius:12px; font-size:.85rem; font-weight:700; box-shadow:var(--golge-2); opacity:0; pointer-events:none; transition:.25s; z-index:100; max-width:92%; text-align:center; }
+  .toast.goster { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.ok { background:var(--yesil); }
+  .toast.hata { background:var(--kirmizi); }
+  #not-metin { width:100%; min-height:70px; padding:10px; font-size:.88rem; border:2px solid var(--border); border-radius:10px; outline:none; resize:vertical; font-family:inherit; background:var(--card-2); color:var(--text); }
+  #not-metin:focus { border-color:var(--turuncu); }
+  .skeleton { background:var(--card); border-radius:16px; padding:14px; border:1px solid var(--border); }
+  .sk-line { height:14px; border-radius:8px; background:linear-gradient(90deg,var(--card-2),var(--border),var(--card-2)); background-size:200% 100%; animation:sk 1.2s linear infinite; margin-bottom:8px; }
+  .sk-line.w60 { width:60%; }
+  .sk-line.w30 { width:30%; }
+  @keyframes sk { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+  body[data-tema="koyu"] .btn.nav { background:var(--mavi-acik) !important; color:#6cb4e8 !important; }
+  body[data-tema="koyu"] .btn.kaydet { background:var(--turuncu-acik) !important; color:#ffb347 !important; }
+  body[data-tema="koyu"] .btn.not-btn { background:var(--card-2) !important; color:var(--muted) !important; }
+  body[data-tema="koyu"] .btn.not-btn.dolu { background:var(--turuncu-acik) !important; color:#ffb347 !important; }
+  body[data-tema="koyu"] .btn.tamam { background:var(--yesil-bg) !important; color:var(--yesil) !important; }
+  body[data-tema="koyu"] .btn.geri-al { background:var(--kirmizi-bg) !important; color:#ff7b6b !important; }
+  body[data-tema="koyu"] .btn.red { background:var(--kirmizi-bg) !important; color:#ff7b6b !important; }
+  body[data-tema="koyu"] #not-sil { background:var(--kirmizi-bg) !important; color:#ff7b6b !important; }
+  body[data-tema="koyu"] .magaza .not { color:#ffc46b; }
 </style>
 </head>
 <body>
 
 <div class="ust" id="baslik-kap">
+  <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
   <h1>NOKTA TEDARİK · ŞOFÖR PANELİ</h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
@@ -86,7 +178,7 @@
   <div class="karsilama" id="karsilama">MERHABA OSMAN 👋 <span>İyi çalışmalar!</span></div>
   <div class="secici-kap">
     <select id="il-sec"><option value="">İL SEÇİN...</option></select>
-    <select id="ilce-sec"><option value="">ÖNCE İL SEÇİN</option></select>
+    <div class="ilce-kap" id="ilce-kap"><span class="ilce-bos">ÖNCE İL SEÇİN</span></div>
     <div class="tip-kap">
       <button data-tip="TUMU" class="aktif">TÜMÜ</button>
       <button data-tip="S">ŞOK</button>
@@ -95,10 +187,15 @@
     </div>
   </div>
   <div class="ozet">
-    <div><span>Bölgedeki mağaza</span><br><b id="ozet-sayi">0</b></div>
-    <div style="text-align:right;"><span>Bugün teslim edilen</span><br><b id="ozet-tamam">0</b></div>
+    <div class="ilerleme-ust"><span>Bugünkü ilerleme</span><b id="ozet-ilr">0 / 0</b></div>
+    <div class="bar"><div class="bar-dolu" id="ozet-bar"></div></div>
+    <div class="ozet-3">
+      <div class="ozet-kutu ok"><b id="ozet-tamam">0</b><span>Teslim</span></div>
+      <div class="ozet-kutu red"><b id="ozet-red">0</b><span>Red</span></div>
+      <div class="ozet-kutu bek"><b id="ozet-kalan">0</b><span>Kalan</span></div>
+    </div>
   </div>
-  <div style="padding:10px 16px; background:#fff; border-bottom:1px solid #e3eaf2; display:grid; gap:8px;">
+  <div class="aksiyon">
     <div style="display:flex; gap:8px;">
       <button class="btn teslim" id="yukleme-btn" style="padding:11px 10px; font-size:.78rem; flex:1;">📦 DEPO YÜKLEME</button>
       <button class="btn teslim" id="baslama-btn" style="padding:11px 10px; font-size:.78rem; flex:1;">🚚 İŞE BAŞLA</button>
@@ -107,11 +204,14 @@
       <button class="btn teslim" id="donus-btn" style="text-decoration:none; padding:9px 14px; font-size:.78rem; flex:1;">🔄 DÖNÜŞE GEÇ</button>
       <a class="btn teslim" id="depo-btn" href="tel:+905375966856" style="text-decoration:none; padding:9px 14px; font-size:.78rem;">📞 BÜYÜK PATRONU ARA</a>
     </div>
+    <button class="btn tamam" id="bitis-btn" style="width:100%; padding:12px; font-size:.8rem;">🏁 SEVKİYAT TAMAMLANDI</button>
   </div>
   <div class="liste" id="liste"></div>
   <div style="padding:0 16px 8px;"><button class="btn teslim" id="test-btn" style="width:100%;">TEST BİLDİRİMİ GÖNDER</button></div>
   <div class="baglanti" id="baglanti">Bağlantı kuruluyor...</div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <div class="modal-kap" id="urun-modal">
   <div class="modal">
@@ -120,6 +220,17 @@
     <div id="urun-listesi"></div>
     <button class="btn teslim" id="kaydet-btn">✓ KAYDET VE TESLİM ET</button>
     <button class="btn vazgec" id="vazgec-btn">Vazgeç</button>
+  </div>
+</div>
+
+<div class="modal-kap" id="not-modal">
+  <div class="modal">
+    <h3>📝 MAĞAZA NOTU</h3>
+    <div class="alt" id="not-magaza">Mağaza —</div>
+    <textarea id="not-metin" placeholder="Kalıcı not (ör: İki kasa bırak, X gününe düş, kapıyı çal)"></textarea>
+    <button class="btn teslim" id="not-kaydet">💾 KAYDET</button>
+    <button class="btn" id="not-sil" style="background:#fdecea; color:#c0392b; width:100%; margin-top:8px;">🗑 Notu Sil</button>
+    <button class="btn vazgec" id="not-vazgec">Vazgeç</button>
   </div>
 </div>
 
@@ -136,8 +247,21 @@
     { ad: 'GALETA', sutun: 'J' },
     { ad: 'TAM BUĞDAY LAVAŞ', sutun: 'K' }
   ];
+  var BAGETTA_URUNLER = [
+    { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
+    { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
+    { ad: 'KANDİL SİMİTİ', sutun: 'F' },
+    { ad: 'KONYA GEVREĞİ', sutun: 'G' },
+    { ad: 'SUSAMLI ÇÖREK', sutun: 'H' },
+    { ad: 'SAC EKMEĞİ', sutun: 'I' },
+    { ad: 'GALETA', sutun: 'J' }
+  ];
+  function markaListesi(tip) {
+    return tip === 'T' ? BAGETTA_URUNLER : URUNLER;
+  }
 </script>
 <script src="magazalar.js"></script>
+<script src="koordinatlar.js"></script>
 <script>
 
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
@@ -157,12 +281,12 @@
 
   var sehir = '';
   var seciliIl = '';
-  var seciliIlce = '';
+  var seciliIlceler = [];
   var seciliTip = 'TUMU';
   sehirEl.textContent = 'İl seçin';
 
   var ilSecEl = document.getElementById('il-sec');
-  var ilceSecEl = document.getElementById('ilce-sec');
+  var ilceKapEl = document.getElementById('ilce-kap');
   var TIP_AD = { S: 'ŞOK', T: 'TARIM KREDİ', D: 'DİĞER' };
 
   function ilDoldur() {
@@ -182,14 +306,17 @@
       }
     }
     ilceler.sort();
-    var html = '<option value="">TÜM İLÇELER</option>';
-    for (var j = 0; j < ilceler.length; j++) html += '<option value="' + ilceler[j] + '">' + ilceler[j] + '</option>';
-    ilceSecEl.innerHTML = html;
-    ilceSecEl.disabled = false;
+    if (!ilceler.length) { ilceKapEl.innerHTML = '<span class="ilce-bos">ÖNCE İL SEÇİN</span>'; return; }
+    var html = '<button class="ilce-kip' + (seciliIlceler.length ? '' : ' aktif') + '" data-ilce="">TÜM İLÇELER</button>';
+    for (var j = 0; j < ilceler.length; j++) {
+      var on = seciliIlceler.indexOf(ilceler[j]) !== -1;
+      html += '<button class="ilce-kip' + (on ? ' aktif' : '') + '" data-ilce="' + ilceler[j] + '">' + ilceler[j] + '</button>';
+    }
+    ilceKapEl.innerHTML = html;
   }
   ilSecEl.addEventListener('change', function () {
     seciliIl = ilSecEl.value;
-    seciliIlce = '';
+    seciliIlceler = [];
     sehir = seciliIl;
     sehirEl.textContent = seciliIl || 'İl seçin';
     document.getElementById('baslik-alt').style.display = seciliIl ? '' : 'none';
@@ -200,8 +327,18 @@
     donusBtn.textContent = '🔄 DÖNÜŞE GEÇ';
     donusBtn.style.background = '';
   });
-  ilceSecEl.addEventListener('change', function () {
-    seciliIlce = ilceSecEl.value;
+  ilceKapEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b || !b.hasAttribute('data-ilce')) return;
+    var ilce = b.getAttribute('data-ilce');
+    if (ilce === '') {
+      seciliIlceler = [];
+    } else {
+      var idx = seciliIlceler.indexOf(ilce);
+      if (idx === -1) seciliIlceler.push(ilce); else seciliIlceler.splice(idx, 1);
+      if (seciliIlceler.length === ilceKapEl.querySelectorAll('button').length - 1) seciliIlceler = [];
+    }
+    ilceDoldur();
     listeCiz();
     secimKaydet();
   });
@@ -216,20 +353,35 @@
   });
 
   function girisYap() {
-    if (pinEl.value.trim() === PIN) {
-      localStorage.setItem('sofor-pin', 'ok');
-      hata.textContent = '';
-      girisKap.style.display = 'none';
-      panel.style.display = '';
-      cikisBtn.style.display = '';
-      baslat();
-      bildirimIzinIste();
-      konumBaslat();
-    } else {
-      hata.textContent = 'Yanlış şifre';
-      pinEl.value = '';
-      pinEl.focus();
+    var girilen = pinEl.value.trim();
+    if (girilen === PIN) {
+      girisKabul();
+      return;
     }
+    fetch(FIREBASE_URL + '/ayar/soforPin.json')
+      .then(function (r) { return r.json(); })
+      .then(function (dp) {
+        if (dp && String(dp) === girilen) {
+          girisKabul();
+        } else {
+          hata.textContent = 'Yanlış şifre';
+          pinEl.value = '';
+          pinEl.focus();
+        }
+      })
+      .catch(function () {
+        hata.textContent = 'Bağlantı hatası — tekrar deneyin';
+      });
+  }
+  function girisKabul() {
+    localStorage.setItem('sofor-pin', 'ok');
+    hata.textContent = '';
+    girisKap.style.display = 'none';
+    panel.style.display = '';
+    cikisBtn.style.display = '';
+    baslat();
+    bildirimIzinIste();
+    konumBaslat();
   }
   document.getElementById('giris-btn').addEventListener('click', girisYap);
   pinEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') girisYap(); });
@@ -257,6 +409,44 @@
   var durumlar = {};
   var gunDurum = {};
   var sonZiyaretler = {};
+  var tamKonumlar = {};
+  var magazaNotlar = {};
+
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function toast(metin, tip) {
+    if (!toastEl) return;
+    toastEl.textContent = metin;
+    toastEl.className = 'toast goster' + (tip ? ' ' + tip : '');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.className = 'toast'; }, 2800);
+  }
+
+  var temaBtn = document.getElementById('tema-btn');
+  function temaUygula(koyu) {
+    document.body.setAttribute('data-tema', koyu ? 'koyu' : 'acik');
+    if (temaBtn) temaBtn.textContent = koyu ? '☀️' : '🌙';
+    try { localStorage.setItem('sofor-tema', koyu ? 'koyu' : 'acik'); } catch (e) { }
+  }
+  function temaAc() {
+    var kayitli = null;
+    try { kayitli = localStorage.getItem('sofor-tema'); } catch (e) { }
+    temaUygula(kayitli === 'koyu');
+  }
+  if (temaBtn) {
+    temaBtn.addEventListener('click', function () {
+      temaUygula(document.body.getAttribute('data-tema') !== 'koyu');
+    });
+  }
+  temaAc();
+
+  function iskeletGoster() {
+    var h = '';
+    for (var i = 0; i < 6; i++) {
+      h += '<div class="skeleton"><div class="sk-line w60"></div><div class="sk-line w30"></div><div class="sk-line" style="width:80%;"></div></div>';
+    }
+    if (liste) liste.innerHTML = h;
+  }
   var ilKm = { SAMSUN: 150, SİNOP: 220, AMASYA: 90, ÇORUM: 180, SİVAS: 95, TOKAT: 140, YOZGAT: 160, GİRESUN: 230, KAYSERİ: 220 };
   var ortalamaHiz = 85;
   function varisSaati(s) {
@@ -284,6 +474,7 @@
   var urunListesi = document.getElementById('urun-listesi');
   var modalMagaza = document.getElementById('modal-magaza');
   var beklemeKod = null;
+  var beklemeMarka = 'TAMKOY';
 
   function magazaBul(kod) {
     for (var l = 0; l < MAGAZALAR.length; l++) {
@@ -301,13 +492,18 @@
     if (!bul) return;
     var m = bul.magaza;
     var ziyaret = sonZiyaretler[kod];
+    var tip = m.t || 'S';
+    var markaAd = tip === 'T' ? 'BAĞETTA' : 'TAMKÖY';
     modalMagaza.textContent = bul.il + ' · ' + m.m + ' · ' + m.i +
-      (ziyaret ? ' · Son uğrama: ' + ziyaret.tarih : ' · İlk ziyaret');
+      (ziyaret ? ' · Son uğrama: ' + ziyaret.tarih : ' · İlk ziyaret') +
+      ' · ' + markaAd;
     beklemeKod = kod;
+    beklemeMarka = tip === 'T' ? 'BAGETTA' : 'TAMKOY';
+    var liste = markaListesi(tip);
     var html = '';
-    for (var u = 0; u < URUNLER.length; u++) {
-      html += '<div class="urun-satir"><span class="ad">' + URUNLER[u].ad + '</span>' +
-        '<input type="number" inputmode="numeric" min="0" placeholder="0" data-sutun="' + URUNLER[u].sutun + '"></div>';
+    for (var u = 0; u < liste.length; u++) {
+      html += '<div class="urun-satir"><span class="ad">' + liste[u].ad + '</span>' +
+        '<input type="number" inputmode="numeric" min="0" placeholder="0" data-sutun="' + liste[u].sutun + '"></div>';
     }
     urunListesi.innerHTML = html;
     urunModal.style.display = 'flex';
@@ -332,9 +528,9 @@
     var adres = FIREBASE_URL + '/gunluk/' + bugun + '/' + bul.il + '/' + bul.sira + '.json';
     fetch(adres, {
       method: 'PUT',
-      body: JSON.stringify({ saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod })
+      body: JSON.stringify({ saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod, marka: beklemeMarka })
     }).then(function () {
-      durumlar[beklemeKod] = { saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod };
+      durumlar[beklemeKod] = { saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod, marka: beklemeMarka };
       var ziyaretAdres = FIREBASE_URL + '/sonziyaret/' + beklemeKod + '.json';
       return fetch(ziyaretAdres, { method: 'PUT', body: JSON.stringify({ tarih: bugun, saat: saat }) });
     }).then(function () {
@@ -342,8 +538,10 @@
       urunModal.style.display = 'none';
       beklemeKod = null;
       listeCiz();
+      toast('✓ Teslim kaydedildi', 'ok');
     }).catch(function () {
       baglanti.textContent = 'Bağlantı hatası — kaydedilemedi';
+      toast('Teslim kaydedilemedi — interneti kontrol edin', 'hata');
     });
   }
 
@@ -363,6 +561,17 @@
     return p[2] + '.' + p[1] + '.' + p[0];
   }
 
+  function magazaKoordinat(sehir, ilce, kod) {
+    if (kod && tamKonumlar[kod]) {
+      var tk = tamKonumlar[kod];
+      if (tk.lat && tk.lng) return [tk.lat, tk.lng];
+    }
+    var s = KOORDINATLAR[sehir];
+    if (!s) return null;
+    var k = s[ilce] || s['_merkez'];
+    return k || null;
+  }
+
   function filtreliMagazalar() {
     var sonuc = [];
     for (var l = 0; l < MAGAZALAR.length; l++) {
@@ -370,7 +579,7 @@
       if (seciliIl && il.sehir !== seciliIl) continue;
       for (var i = 0; i < il.magazalar.length; i++) {
         var m = il.magazalar[i];
-        if (seciliIlce && m.i !== seciliIlce) continue;
+        if (seciliIlceler.length && seciliIlceler.indexOf(m.i) === -1) continue;
         if (seciliTip !== 'TUMU' && (m.t || 'S') !== seciliTip) continue;
         sonuc.push({ ilAd: il.sehir, magaza: m, sira: i + 1 });
       }
@@ -381,7 +590,8 @@
   function listeCiz() {
     var html = '';
     var toplam = 0;
-    var bugunYapilan = 0;
+    var teslimSay = 0;
+    var redSay = 0;
     var list = filtreliMagazalar();
     toplam = list.length;
     var ilGruplar = {};
@@ -398,35 +608,56 @@
         var m = grup[i].magaza;
         var d = durumlar[m.k] || null;
         var ziyaret = sonZiyaretler[m.k] || null;
-        if (d) bugunYapilan++;
+        if (d) { if (d.red) redSay++; else teslimSay++; }
         var alt = (ziyaret ? 'Son uğrama: ' + tarihKisa(ziyaret.tarih) + ' · ' : 'İlk ziyaret · ') + m.i;
         var tip = m.t || 'S';
         var rozet = '<span class="rozet ' + (tip === 'T' ? 'tk' : tip === 'D' ? 'dig' : 'sok') + '">' + TIP_AD[tip] + '</span>';
-        html += '<div class="magaza">' +
+        var chip = d ? (d.red ? '<span class="chip red">✗ RED</span>' : '<span class="chip ok">✓ TESLİM</span>') : '<span class="chip bek">BEKLİYOR</span>';
+        var saatMetin = d ? (d.red ? d.red + ' · ' + alt : 'Teslim: ' + d.saat + ' · ' + alt) : alt;
+        var koord = magazaKoordinat(grup[i].ilAd, m.i, m.k);
+        var navBtn = koord
+          ? '<a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + koord[0] + ',' + koord[1] + '" title="Navigasyonu aç" style="text-decoration:none; padding:11px 12px;">📍</a>'
+          : '';
+        var tamVar = tamKonumlar[m.k] && tamKonumlar[m.k].lat && tamKonumlar[m.k].lng;
+        var kayitBtn = tamVar
+          ? '<span class="rozet sok" style="font-size:.6rem;">✓ KONUM</span>'
+          : '<button class="btn nav kaydet" data-kaydet="' + m.k + '" title="Mağazanın tam konumunu GPS ile kaydet" style="text-decoration:none; padding:11px 12px;">📌</button>';
+        var not = magazaNotlar[m.k] ? magazaNotlar[m.k] : null;
+        var notBtn = '<button class="btn not-btn' + (not ? ' dolu' : '') + '" data-not="' + m.k + '" title="' + (not ? 'Notu düzenle' : 'Mağazaya not ekle') + '" style="padding:11px 12px;">📝</button>';
+        var notYazi = not ? '<div class="not">📝 ' + not + '</div>' : '';
+        html += '<div class="magaza' + (d ? (d.red ? ' red' : ' teslim-edildi') : '') + '">' +
           '<div><div class="ad">' + m.m + rozet + '</div>' +
-          '<div class="saat">' + (d ? (d.red ? '✗ ' + d.red : 'Teslim: ' + d.saat) + ' · ' + alt : alt) + '</div></div>' +
+          '<div class="saat">' + chip + saatMetin + '</div>' + notYazi + '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center;">' + navBtn + kayitBtn + notBtn +
           (d
             ? (d.red
-              ? '<button class="btn geri-al" data-geri="' + m.k + '" style="background:#fdecea;color:#c0392b;">✗ ' + d.red + '</button>'
+              ? '<button class="btn geri-al" data-geri="' + m.k + '" style="padding:11px 10px;">✗ ' + d.red + '</button>'
               : '<button class="btn tamam" data-geri="' + m.k + '">✓ Teslim Edildi</button>')
-            : '<div style="display:flex;gap:6px;">' +
-              '<button class="btn teslim" data-no="' + m.k + '">✓</button>' +
-              '<button class="btn red" data-red="' + m.k + '" style="background:#fdecea;color:#c0392b;padding:11px 10px;">✗</button>' +
-              '</div>') +
+            : '<button class="btn teslim" data-no="' + m.k + '">✓</button>' +
+              '<button class="btn red" data-red="' + m.k + '" style="padding:11px 10px;">✗</button>') +
+          '</div>' +
           '</div>';
       }
     }
-    if (!list.length) html = '<div class="bos">Seçim için mağaza bulunamadı</div>';
+    if (!list.length) {
+      html = '<div class="bos-kap"><div class="ikon">🗺️</div><b>Mağaza bulunamadı</b><span>İl / ilçe / tip seçimini değiştirmeyi deneyin</span></div>';
+    }
     liste.innerHTML = html;
-    document.getElementById('ozet-sayi').textContent = toplam;
-    document.getElementById('ozet-tamam').textContent = bugunYapilan;
+    var bugunYapilan = teslimSay + redSay;
+    var kalan = toplam - bugunYapilan;
+    document.getElementById('ozet-tamam').textContent = teslimSay;
+    document.getElementById('ozet-red').textContent = redSay;
+    document.getElementById('ozet-kalan').textContent = kalan;
+    document.getElementById('ozet-ilr').textContent = bugunYapilan + ' / ' + toplam;
+    var oran = toplam > 0 ? Math.round((bugunYapilan / toplam) * 100) : 0;
+    document.getElementById('ozet-bar').style.width = oran + '%';
   }
 
   function secimKaydet() {
     var adres = FIREBASE_URL + '/secim/' + tarihYaz(new Date()) + '.json';
     fetch(adres, {
       method: 'PUT',
-      body: JSON.stringify({ il: seciliIl, ilce: seciliIlce, tip: seciliTip })
+      body: JSON.stringify({ il: seciliIl, ilce: seciliIlceler, tip: seciliTip })
     }).catch(function () {});
   }
 
@@ -468,21 +699,133 @@
         listeCiz();
       }).catch(function () {
         baglanti.textContent = 'Bağlantı hatası';
+        toast('Red kaydedilemedi — interneti kontrol edin', 'hata');
       });
     }
     var geriRed = e.target.closest('.btn.geri-al');
     if (geriRed && confirm('Bu mağazanın "teslim edilemedi" işaretini geri al?')) {
       silKayit(geriRed.getAttribute('data-geri'), listeCiz);
     }
+    var kaydetBtn = e.target.closest('.btn.kaydet');
+    if (kaydetBtn) {
+      konumKaydet(kaydetBtn.getAttribute('data-kaydet'));
+      return;
+    }
+    var notBtn = e.target.closest('.btn.not-btn');
+    if (notBtn) {
+      notAc(notBtn.getAttribute('data-not'));
+      return;
+    }
   });
+
+  var beklemeNotKod = null;
+  var notModal = document.getElementById('not-modal');
+  var notMetin = document.getElementById('not-metin');
+  function notAc(kod) {
+    var bul = magazaBul(kod);
+    if (!bul) return;
+    beklemeNotKod = kod;
+    document.getElementById('not-magaza').textContent = bul.il + ' · ' + bul.magaza.m + ' · ' + bul.magaza.i;
+    notMetin.value = magazaNotlar[kod] || '';
+    notModal.style.display = 'flex';
+    notMetin.focus();
+  }
+  function notKaydet() {
+    if (beklemeNotKod === null) return;
+    var metin = notMetin.value.trim();
+    var kod4 = beklemeNotKod;
+    if (!metin) {
+      if (!magazaNotlar[kod4]) { notModal.style.display = 'none'; beklemeNotKod = null; return; }
+      fetch(FIREBASE_URL + '/magazanot/' + kod4 + '.json', { method: 'DELETE' }).then(function () {
+        delete magazaNotlar[kod4];
+        notModal.style.display = 'none';
+        beklemeNotKod = null;
+        baglanti.textContent = 'Not silindi';
+        toast('Not silindi', 'ok');
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası — silinemedi';
+        toast('Silinemedi — interneti kontrol edin', 'hata');
+      });
+      return;
+    }
+    fetch(FIREBASE_URL + '/magazanot/' + kod4 + '.json', {
+      method: 'PUT',
+      body: JSON.stringify({ not: metin })
+    }).then(function () {
+      magazaNotlar[kod4] = metin;
+      notModal.style.display = 'none';
+      beklemeNotKod = null;
+      baglanti.textContent = '✓ Not kaydedildi';
+      toast('Not kaydedildi', 'ok');
+      listeCiz();
+    }).catch(function () {
+      baglanti.textContent = 'Bağlantı hatası — not kaydedilemedi';
+      toast('Kaydedilemedi — interneti kontrol edin', 'hata');
+    });
+  }
+  function notSil() {
+    if (beklemeNotKod === null) return;
+    var kod5 = beklemeNotKod;
+    if (!magazaNotlar[kod5] || confirm('Bu mağazanın notu silinsin mi?')) {
+      fetch(FIREBASE_URL + '/magazanot/' + kod5 + '.json', { method: 'DELETE' }).then(function () {
+        delete magazaNotlar[kod5];
+        notModal.style.display = 'none';
+        beklemeNotKod = null;
+        baglanti.textContent = 'Not silindi';
+        toast('Not silindi', 'ok');
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası — silinemedi';
+        toast('Silinemedi — interneti kontrol edin', 'hata');
+      });
+    }
+  }
+  document.getElementById('not-kaydet').addEventListener('click', notKaydet);
+  document.getElementById('not-sil').addEventListener('click', notSil);
+  document.getElementById('not-vazgec').addEventListener('click', function () {
+    notModal.style.display = 'none';
+    beklemeNotKod = null;
+  });
+  notModal.addEventListener('click', function (e) {
+    if (e.target === notModal) { notModal.style.display = 'none'; beklemeNotKod = null; }
+  });
+
+  function konumKaydet(kod) {
+    if (!navigator.geolocation) {
+      alert('Bu tarayıcı GPS desteklemiyor.');
+      return;
+    }
+    baglanti.textContent = 'Konum alınıyor…';
+    toast('Konum alınıyor…', '');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var kayit = { lat: pos.coords.latitude, lng: pos.coords.longitude, saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), tarih: tarihYaz(new Date()) };
+      fetch(FIREBASE_URL + '/konumkayit/' + kod + '.json', {
+        method: 'PUT',
+        body: JSON.stringify(kayit)
+      }).then(function () {
+        tamKonumlar[kod] = kayit;
+        baglanti.textContent = '✓ Konum kaydedildi (' + kod + ')';
+        toast('✓ Konum kaydedildi', 'ok');
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası — konum kaydedilemedi';
+        toast('Konum kaydedilemedi', 'hata');
+      });
+    }, function (err) {
+      baglanti.textContent = 'Konum alınamadı — GPS açık ve izin verilmiş olmalı';
+      toast('GPS açık ve izin verilmiş olmalı', 'hata');
+    }, { enableHighAccuracy: true, timeout: 15000 });
+  }
 
   var yuklemeBtn = document.getElementById('yukleme-btn');
   var baslamaBtn = document.getElementById('baslama-btn');
+  var bitisBtn = document.getElementById('bitis-btn');
   function durumOku() {
     fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        if (d && (d.yukleme || d.baslama)) gunDurum = d;
+        if (d && (d.yukleme || d.baslama || d.tamamlandi)) gunDurum = d;
         else gunDurum = {};
         durumButonYansit();
       }).catch(function () { gunDurum = {}; });
@@ -502,6 +845,13 @@
       baslamaBtn.textContent = '🚚 İŞE BAŞLA';
       baslamaBtn.classList.remove('tamam');
     }
+    if (gunDurum.tamamlandi) {
+      bitisBtn.textContent = '✓ SEVKİYAT TAMAMLANDI ' + gunDurum.tamamlandi;
+      bitisBtn.classList.add('tamam');
+    } else {
+      bitisBtn.textContent = '🏁 SEVKİYAT TAMAMLANDI';
+      bitisBtn.classList.remove('tamam');
+    }
   }
   function durumDamga(yuklemeMi) {
     var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -518,10 +868,26 @@
       gunDurum.asama = 'baslama';
     }
     fetch(adres, { method: 'PATCH', body: JSON.stringify(veri) })
-      .then(function () { durumButonYansit(); baglanti.textContent = 'Gün durumu kaydedildi — ' + saat; })
-      .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; });
+      .then(function () { durumButonYansit(); baglanti.textContent = 'Gün durumu kaydedildi — ' + saat; toast('Gün durumu kaydedildi · ' + saat, 'ok'); })
+      .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
     durumButonYansit();
   }
+  function durumBitis() {
+    var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    var adres = FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json';
+    gunDurum.tamamlandi = saat;
+    gunDurum.asama = 'tamamlandi';
+    fetch(adres, { method: 'PATCH', body: JSON.stringify({ tamamlandi: saat, asama: 'tamamlandi' }) })
+      .then(function () { durumButonYansit(); baglanti.textContent = 'Sevkiyat tamamlandı — ' + saat; toast('Sevkiyat tamamlandı · ' + saat, 'ok'); })
+      .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
+    durumButonYansit();
+  }
+  if (yuklemeBtn) yuklemeBtn.addEventListener('click', function () { durumDamga(true); });
+  if (baslamaBtn) baslamaBtn.addEventListener('click', function () { durumDamga(false); });
+  if (bitisBtn) bitisBtn.addEventListener('click', function () {
+    if (!gunDurum.tamamlandi && confirm('Sevkiyat tamamlandı olarak işaretlensin mi?')) durumBitis();
+    else if (gunDurum.tamamlandi) durumBitis();
+  });
 
   var donusBtn = document.getElementById('donus-btn');
   var donusYapildi = false;
@@ -536,9 +902,10 @@
     donusBtn.textContent = '🔄 Dönüşte — Tahmini varış: ' + hesap.saat;
     donusBtn.style.background = 'var(--turuncu-koyu, #f39c12)';
     baglanti.textContent = 'Dönüş başladı — depoya tahmini varış ' + hesap.saat;
+    toast('Dönüş başladı · depoya varış ' + hesap.saat, 'ok');
     fetch(FIREBASE_URL + '/donus/' + tarihYaz(new Date()) + '.json', {
       method: 'PUT',
-      body: JSON.stringify({ il: seciliIl, ilce: seciliIlce, baslangic: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), varisTahmini: hesap.saat, ts: Date.now() })
+      body: JSON.stringify({ il: seciliIl, ilce: seciliIlceler, baslangic: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), varisTahmini: hesap.saat, ts: Date.now() })
     }).catch(function () {});
     fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       method: 'PATCH',
@@ -587,11 +954,26 @@
       if (d) sonZiyaretler = d;
       listeCiz();
     }).catch(function () { });
+    fetch(FIREBASE_URL + '/konumkayit.json').then(function (r) { return r.json(); }).then(function (d) {
+      if (d) tamKonumlar = d;
+      listeCiz();
+    }).catch(function () { });
+    fetch(FIREBASE_URL + '/magazanot.json').then(function (r) { return r.json(); }).then(function (d) {
+      var yeni = {};
+      if (d) {
+        for (var nk in d) {
+          if (d[nk] && d[nk].not) yeni[nk] = d[nk].not;
+        }
+      }
+      magazaNotlar = yeni;
+      listeCiz();
+    }).catch(function () { });
     durumOku();
   }
 
   function baslat() {
     ilDoldur();
+    iskeletGoster();
     yukle();
     setInterval(yukle, 2000);
   }
