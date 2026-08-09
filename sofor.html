@@ -1087,6 +1087,30 @@
   }
   document.getElementById('chat-gonder').addEventListener('click', mesajGonder);
   chatInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') mesajGonder(); });
+  function cal() {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      function bip(frekans, basla, sure) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        o.frequency.value = frekans;
+        var t = ctx.currentTime + basla;
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + sure);
+        o.start(t);
+        o.stop(t + sure + 0.02);
+      }
+      bip(880, 0, 0.16);
+      bip(880, 0.2, 0.16);
+      bip(1244, 0.4, 0.3);
+    } catch (e) { }
+  }
+  var bilinenSonMesajId = null;
+  var ilkMesajYukleme = true;
   function mesajlariYukle() {
     fetch(FIREBASE_URL + '/mesajlar.json')
       .then(function (r) { return r.json(); })
@@ -1097,6 +1121,19 @@
         }
         yeni.sort(function (a, b) { return (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)); });
         mesajlar = yeni;
+        var enSon = mesajlar.length ? mesajlar[mesajlar.length - 1].id : null;
+        if (ilkMesajYukleme) {
+          ilkMesajYukleme = false;
+          bilinenSonMesajId = enSon;
+        } else if (enSon && enSon !== bilinenSonMesajId) {
+          var gelen = mesajlar[mesajlar.length - 1].v;
+          bilinenSonMesajId = enSon;
+          if (gelen.g === 'yonetici') {
+            cal();
+            if (!chatAcik) chatAc();
+            toast('💬 Yönetici mesaj gönderdi: ' + gelen.m, 'ok');
+          }
+        }
         if (chatAcik) chatCiz();
       })
       .catch(function () { });
