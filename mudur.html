@@ -479,15 +479,40 @@
   var SafariVar = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
   var sesKilitAcildi = false;
 
+  var kayitSes = null;
+  var sesBekleyen = [];
+
+  function sesPuan(s) {
+    var n = (s.name || '').toLowerCase();
+    var p = 0;
+    if (/neural|natural|enhanced|premium|online|google/.test(n)) p += 30;
+    if (/aylin|yelda|tolga|siri|türkçe|turkish|tr-tr/.test(n)) p += 10;
+    if (/compact|derin|legacy|old/.test(n)) p -= 10;
+    return p;
+  }
+
   function turkceSesSec() {
     try {
       var sesler = window.speechSynthesis.getVoices();
+      var tr = [];
       for (var i = 0; i < sesler.length; i++) {
-        if (/tr/i.test(sesler[i].lang) || /turk/i.test(sesler[i].name)) return sesler[i];
+        if (/tr/i.test(sesler[i].lang) || /turk/i.test(sesler[i].name)) tr.push(sesler[i]);
       }
-      if (sesler && sesler.length) return sesler[0];
-    } catch (e) { }
-    return null;
+      if (!tr.length) return null;
+      tr.sort(function (a, b) { return sesPuan(b) - sesPuan(a); });
+      return tr[0];
+    } catch (e) { return null; }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = function () {
+      kayitSes = turkceSesSec();
+      if (kayitSes && sesBekleyen.length) {
+        var m = sesBekleyen.shift();
+        konus(m);
+      }
+    };
+    window.speechSynthesis.getVoices();
   }
 
   function sesKalbi() {
@@ -505,28 +530,27 @@
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         var temiz = metin.replace(/[\n•✓✅🚫🆘⏳💰📝]/g, ' ').replace(/[#*_`]/g, ' ').replace(/\s+/g, ' ').trim();
+        var v = kayitSes || turkceSesSec();
+        if (!v) { sesBekleyen.push(metin); return; }
         var u = new SpeechSynthesisUtterance(temiz);
-        u.lang = 'tr-TR';
-        u.rate = 1;
+        u.lang = v.lang;
+        u.voice = v;
+        u.rate = 0.95;
         u.pitch = 1;
-        var v = turkceSesSec();
-        if (v) { u.voice = v; u.lang = v.lang; }
         u.onerror = function (e) {
           try {
-            dinlemeDurum.textContent = '⚠️ Ses çalınmadı: ' + (e && e.error ? e.error : 'bilinmiyor') + ' (cihazda konuşma sesi/izni olmayabilir)';
+            dinlemeDurum.textContent = '⚠️ Ses çalınmadı: ' + (e && e.error ? e.error : 'bilinmiyor');
             dinlemeDurum.style.display = 'block';
           } catch (x) { }
         };
-        window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices(); };
         window.speechSynthesis.speak(u);
         if (SafariVar) {
           var kalp = setInterval(function () {
             try {
               if (window.speechSynthesis.speaking === false) { clearInterval(kalp); return; }
-              window.speechSynthesis.pause();
-              setTimeout(function () { try { window.speechSynthesis.resume(); } catch (e) { } }, 250);
+              if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); }
             } catch (e) { clearInterval(kalp); }
-          }, 4000);
+          }, 8000);
         }
       }
     } catch (e) { }
@@ -538,10 +562,12 @@
     try {
       window.speechSynthesis.cancel();
       window.speechSynthesis.getVoices();
-      var v = turkceSesSec();
+      var v = kayitSes || turkceSesSec();
       var u = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
       u.lang = v ? v.lang : 'tr-TR';
       if (v) u.voice = v;
+      u.rate = 0.95;
+      u.pitch = 1;
       window.speechSynthesis.speak(u);
       dinlemeDurum.textContent = '🔊 Ses hazır';
       dinlemeDurum.style.display = 'block';
