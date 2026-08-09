@@ -940,6 +940,9 @@
     if (!gec || !gec.length) {
       listeEl.innerHTML = '<div class="bos-kap" style="padding:24px;"><div class="ikon">🕓</div>Bu mağaza için ziyaret kaydı yok<div class="acik">İlk teslim kaydedildiğinde geçmiş burada görünür</div></div>';
     } else {
+      var kolonAd = {};
+      for (var ka = 0; ka < URUNLER.length; ka++) if (!kolonAd[URUNLER[ka].sutun]) kolonAd[URUNLER[ka].sutun] = URUNLER[ka].ad;
+      for (var kb = 0; kb < BAGETTA_URUNLER.length; kb++) if (!kolonAd[BAGETTA_URUNLER[kb].sutun]) kolonAd[BAGETTA_URUNLER[kb].sutun] = BAGETTA_URUNLER[kb].ad;
       var h = '';
       for (var i = 0; i < gec.length; i++) {
         var g = gec[i];
@@ -949,7 +952,10 @@
         if (g.urunler) {
           var parcalar = [];
           for (var uy in g.urunler) {
-            if (g.urunler[uy] && g.urunler[uy] > 0) parcalar.push(uy + ': ' + g.urunler[uy]);
+            if (g.urunler[uy] && g.urunler[uy] > 0) {
+              var urunAd = kolonAd[uy] || uy;
+              parcalar.push(urunAd + ': ' + g.urunler[uy]);
+            }
           }
           if (parcalar.length) urun = '<div style="font-size:.68rem; color:#9fb0c3;">' + parcalar.join(' · ') + '</div>';
         }
