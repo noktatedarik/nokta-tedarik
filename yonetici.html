@@ -1040,23 +1040,34 @@
     if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
     toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
     fiyatYukle().then(function () {
+      var adim = 'baslangic';
       try {
+        adim = 'kitap';
         var kitap = XLSX.utils.book_new();
+        adim = 'magaza-satir';
         var durum = [['İl', 'İlçe', 'Mağaza', 'Marka', 'Durum', 'Saat/Red', 'Son Ziyaret']].concat(magazaSatirlari());
+        adim = 'magaza-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(durum), 'Mağaza Durumu');
+        adim = 'red-satir';
         var red = [['Marka', 'Mağaza', 'İlçe', 'Red Nedeni', 'Saat']].concat(exportVeri.redler.map(function (r) { return [r.marka, r.ad, r.ilce, r.neden, r.saat]; }));
+        adim = 'red-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(red), 'Red Raporu');
+        adim = 'ciro-satir';
         var ciro = [['Ürün', 'Fiyat', 'Adet', 'Ciro']].concat(ciroSatirlari());
+        adim = 'ciro-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(ciro), 'Ciro Raporu');
+        adim = 'zam-satir';
         var zam = [['Tarih', 'Marka', 'Ürün', 'Eski Fiyat (₺)', 'Yeni Fiyat (₺)']].concat((fiyatGecmisi || []).map(function (k) {
           return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
         }));
+        adim = 'zam-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
+        adim = 'indir';
         excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
       } catch (e) {
-        console.error('Excel hatası:', e);
-        var hataMetin = 'Excel oluşturulamadı: ' + (e && e.message ? e.message : e);
+        console.error('Excel hatası [' + adim + ']:', e);
+        var hataMetin = 'Excel oluşturulamadı [adım: ' + adim + '] ' + (e && e.message ? e.message : JSON.stringify(e));
         toast(hataMetin, 'hata');
         try { alert(hataMetin); } catch (x) { }
       }
