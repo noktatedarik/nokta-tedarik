@@ -995,24 +995,33 @@
     setInterval(duyuruOku, 10000);
   }
 
+  function cihazKimligi() {
+    var k = localStorage.getItem('sofor-cihaz');
+    if (!k) {
+      k = 'S-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      localStorage.setItem('sofor-cihaz', k);
+    }
+    return k;
+  }
+
   function duyuruOku() {
     var ekran = document.getElementById('duyuru-ekran');
     if (!ekran) return;
-    fetch(FIREBASE_URL + '/duyuru.json')
+    fetch(FIREBASE_URL + '/duyurular.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        if (d && d.aktif && d.metin) {
-          var anahtar = (d.tarih || '') + '|' + (d.saat || '');
-          ekran.dataset.anahtar = anahtar;
-          if (localStorage.getItem('duyuru-kapat') !== anahtar) {
-            document.getElementById('duyuru-metin').textContent = d.metin;
-            ekran.style.display = 'flex';
-          } else {
-            ekran.style.display = 'none';
-          }
-        } else {
-          ekran.style.display = 'none';
+        var enYeni = null, enId = null;
+        for (var id in (d || {})) {
+          var k = d[id];
+          if (!k || !k.aktif || !k.metin) continue;
+          var anahtar = (k.tarih || '') + '|' + (k.saat || '');
+          if (!enYeni || anahtar > (enYeni.tarih + '|' + enYeni.saat)) { enYeni = k; enId = id; }
         }
+        if (!enId) { ekran.style.display = 'none'; return; }
+        if (localStorage.getItem('duyuru-kapat') === enId) { ekran.style.display = 'none'; return; }
+        ekran.dataset.anahtar = enId;
+        document.getElementById('duyuru-metin').textContent = enYeni.metin;
+        ekran.style.display = 'flex';
       })
       .catch(function () { });
   }
@@ -1108,7 +1117,14 @@
   document.getElementById('duyuru-kapat').addEventListener('click', function () {
     var ekran = document.getElementById('duyuru-ekran');
     ekran.style.display = 'none';
-    if (ekran.dataset.anahtar) localStorage.setItem('duyuru-kapat', ekran.dataset.anahtar);
+    if (ekran.dataset.anahtar) {
+      var id = ekran.dataset.anahtar;
+      localStorage.setItem('duyuru-kapat', id);
+      var c = cihazKimligi();
+      var kayit = {};
+      kayit['/duyurular/' + id + '/okundu/' + c] = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      fetch(FIREBASE_URL + '.json', { method: 'PATCH', body: JSON.stringify(kayit) }).catch(function () { });
+    }
   });
 </script>
 </body>

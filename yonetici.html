@@ -267,6 +267,18 @@
   .ciro-buyuk { text-align:center; padding:6px 0 4px; position:relative; }
   .ciro-buyuk .deger { font-family:'Sora',sans-serif; font-size:1.7rem; font-weight:800; color:var(--yesil); letter-spacing:.5px; }
   .ciro-buyuk .etiket { font-size:.6rem; color:var(--soluk); letter-spacing:1.5px; font-weight:700; text-transform:uppercase; margin-top:2px; }
+  .duyuru-gecmis-baslik { font-size:.68rem; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--soluk); margin:16px 0 8px; }
+  #duyuru-gecmis { display:flex; flex-direction:column; gap:8px; max-height:300px; overflow:auto; }
+  .gecmis-satir { background:var(--bg); border:1px solid var(--cizgi); border-radius:12px; padding:10px 12px; }
+  .gecmis-ust { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .gecmis-baslik { font-weight:700; color:var(--metin); font-size:.82rem; }
+  .gecmis-aktif { color:#f59e0b; font-size:.65rem; font-weight:800; letter-spacing:.5px; white-space:nowrap; }
+  .gecmis-pasif { color:var(--soluk); font-size:.65rem; font-weight:800; letter-spacing:.5px; white-space:nowrap; }
+  .gecmis-tarih { font-size:.66rem; color:var(--soluk); margin-top:3px; font-weight:600; }
+  .gecmis-okundu { font-size:.68rem; color:#059669; margin-top:5px; font-weight:700; word-break:break-word; }
+  .gecmis-okunmadi { font-size:.68rem; color:#b45309; margin-top:5px; font-weight:700; }
+  .gecmis-iptal { margin-top:7px; padding:4px 10px; font-size:.66rem; background:#fdecea; color:#c0392b; border:none; border-radius:8px; cursor:pointer; font-weight:800; }
+  .gecmis-bos { text-align:center; color:var(--soluk); font-size:.74rem; padding:14px; border:1px dashed var(--cizgi); border-radius:12px; }
   .sure-satir { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 4px; border-bottom:1px solid var(--cizgi2); font-size:.78rem; }
   .sure-satir:last-child { border-bottom:none; }
   .sure-ad { font-weight:700; color:var(--metin); }
@@ -463,6 +475,8 @@
       <textarea id="duyuru-metin" rows="3" placeholder="Duyuru metni..." style="width:100%; padding:11px; border:2px solid var(--cizgi); background:var(--kart); color:var(--metin); border-radius:10px; font-size:.9rem; outline:none; margin-bottom:10px; resize:vertical; font-family:inherit;"></textarea>
       <button class="btn" id="duyuru-gonder" style="width:100%; background:linear-gradient(135deg,#8b5cf6,#6d28d9); box-shadow:0 6px 16px rgba(139,92,246,.35);">📢 GÖNDER</button>
       <div class="hata" id="duyuru-hata" style="margin-top:8px;"></div>
+      <div class="duyuru-gecmis-baslik">DUYURU GEÇMİŞİ &amp; OKUNDU DURUMU</div>
+      <div id="duyuru-gecmis"></div>
     </div>
   </div>
 </div>
@@ -2067,6 +2081,7 @@
     document.getElementById('duyuru-hata').style.color = '';
     document.getElementById('duyuru-metin').value = '';
     document.getElementById('duyuru-modal').style.display = 'flex';
+    duyuruGecmisYukle();
   });
   document.getElementById('duyuru-kapat').addEventListener('click', function () { modalKapat('duyuru-modal'); });
   document.getElementById('duyuru-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('duyuru-modal'); });
@@ -2074,24 +2089,80 @@
     var metin = document.getElementById('duyuru-metin').value.trim();
     var hataEl = document.getElementById('duyuru-hata');
     if (!metin) { hataEl.textContent = 'Duyuru metni boş olamaz'; return; }
-    fetch(FIREBASE_URL + '/duyuru.json', {
+    var id = 'D-' + new Date().getTime();
+    var kayit = {
+      metin: metin,
+      saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+      tarih: tarihYaz(new Date()),
+      aktif: true,
+      okundu: {}
+    };
+    fetch(FIREBASE_URL + '/duyurular/' + id + '.json', {
       method: 'PUT',
-      body: JSON.stringify({
-        metin: metin,
-        saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-        tarih: tarihYaz(new Date()),
-        aktif: true
-      })
+      body: JSON.stringify(kayit)
     }).then(function () {
       hataEl.style.color = '#1faa4c';
       hataEl.textContent = '✓ Duyuru şoför paneline gönderildi';
       toast('📢 Duyuru gönderildi', 'ok');
+      duyuruGecmisYukle();
       setTimeout(function () { modalKapat('duyuru-modal'); }, 1200);
     }).catch(function () {
       hataEl.textContent = 'Gönderilemedi — interneti kontrol edin';
       toast('Duyuru gönderilemedi', 'hata');
     });
   });
+
+  function duyuruGecmisYukle() {
+    var kap = document.getElementById('duyuru-gecmis');
+    if (!kap) return;
+    fetch(FIREBASE_URL + '/duyurular.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var liste = [];
+        for (var id in (d || {})) liste.push({ id: id, v: d[id] });
+        liste.sort(function (a, b) {
+          var ka = (a.v.tarih || '') + '|' + (a.v.saat || '');
+          var kb = (b.v.tarih || '') + '|' + (b.v.saat || '');
+          return ka < kb ? 1 : (ka > kb ? -1 : 0);
+        });
+        if (!liste.length) {
+          kap.innerHTML = '<div class="gecmis-bos">Henüz duyuru gönderilmedi</div>';
+          return;
+        }
+        var h = '';
+        for (var i = 0; i < liste.length; i++) {
+          var k = liste[i].v;
+          var okunma = '';
+          var okunan = k.okundu || {};
+          var sayi = 0;
+          for (var c in okunan) { sayi++; okunma += (okunma ? ', ' : '') + 'cihaz ' + c + ' · ' + okunan[c]; }
+          okunma = sayi ? '<div class="gecmis-okundu">✓ Okundu (' + sayi + '): ' + okunma + '</div>' : '<div class="gecmis-okunmadi">— Henüz okunmadı</div>';
+          var durum = k.aktif
+            ? '<span class="gecmis-aktif">● AKTİF</span>'
+            : '<span class="gecmis-pasif">○ KAPALI</span>';
+          h += '<div class="gecmis-satir">' +
+            '<div class="gecmis-ust"><span class="gecmis-baslik">' + escapeHtml(k.metin) + '</span>' + durum + '</div>' +
+            '<div class="gecmis-tarih">' + (k.tarih || '') + ' · ' + (k.saat || '') + '</div>' + okunma +
+            (k.aktif ? '<button class="btn gecmis-iptal" data-duyuru-id="' + liste[i].id + '">İptal Et</button>' : '') +
+            '</div>';
+        }
+        kap.innerHTML = h;
+        var iptalBtns = kap.querySelectorAll('.gecmis-iptal');
+        for (var b = 0; b < iptalBtns.length; b++) {
+          iptalBtns[b].addEventListener('click', function () {
+            var did = this.getAttribute('data-duyuru-id');
+            fetch(FIREBASE_URL + '/duyurular/' + did + '.json', {
+              method: 'PATCH',
+              body: JSON.stringify({ aktif: false })
+            }).then(function () {
+              toast('Duyuru iptal edildi', 'ok');
+              duyuruGecmisYukle();
+            }).catch(function () { toast('İptal edilemedi', 'hata'); });
+          });
+        }
+      })
+      .catch(function () { });
+  }
 
   if (localStorage.getItem('yonetici-pin') === 'ok') {
     girisKap.style.display = 'none';
