@@ -500,7 +500,7 @@
     toastEl.className = tip || '';
     requestAnimationFrame(function () { toastEl.classList.add('goster'); });
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.classList.remove('goster'); }, 2600);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('goster'); }, tip === 'hata' ? 9000 : 2600);
   }
 
   function temaUygula() {
@@ -1037,7 +1037,7 @@
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
         XLSX.utils.writeFile(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
-      } catch (e) { toast('Excel oluşturulamadı: ' + e.message, 'hata'); }
+      } catch (e) { console.error('Excel hatası:', e); toast('Excel oluşturulamadı: ' + (e && e.message ? e.message : e), 'hata'); }
     });
   }
 
@@ -1095,7 +1095,7 @@
       doc.text('NOKTA TEDARİK  ·  Yönetici Paneli Raporu  ·  ' + exportVeri.tarih, 105, 290, { align: 'center' });
       doc.save('nokta-tedarik-rapor-' + exportVeri.tarih + '.pdf');
         toast('✓ PDF raporu indirildi', 'ok');
-      } catch (e) { toast('PDF oluşturulamadı: ' + e.message, 'hata'); }
+      } catch (e) { console.error('PDF hatası:', e); toast('PDF oluşturulamadı: ' + (e && e.message ? e.message : e), 'hata'); }
     });
   }
 
