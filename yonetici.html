@@ -326,6 +326,7 @@
         <button data-rd="magaza">🏬 Mağaza Durumu (CSV)</button>
         <button data-rd="red">🚫 Red Raporu (CSV)</button>
         <button data-rd="ciro">💰 Ciro Raporu (CSV)</button>
+        <button data-rd="fiyat">💶 Fiyat Listesi (CSV)</button>
         <button data-rd="yazdir">🖨 Yazdır</button>
       </div>
     </div>
@@ -990,6 +991,25 @@
     return k;
   }
 
+  function fiyatListesiSatirlari() {
+    var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
+    var kolonAd = urunKolonAdi();
+    var satirlar = [];
+    for (var s in ft) satirlar.push(['TAMKÖY', kolonAd[s] || s, ft[s]]);
+    for (var s2 in fb) satirlar.push(['BAĞETTA', kolonAd[s2] || s2, fb[s2]]);
+    return satirlar;
+  }
+
+  function fiyatCsv() {
+    if (!FIYATLAR) { toast('Fiyatlar yüklenmedi', 'hata'); return; }
+    toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
+    fiyatYukle().then(function () {
+      var satirlar = fiyatListesiSatirlari().map(function (s) { return [s[0], s[1], s[2] + ' ₺']; });
+      csvIndir('fiyat-listesi-' + (FIYATLAR.guncelleme || tarihYaz(new Date())).replace(/\//g, '-') + '.csv', ['Marka', 'Ürün', 'Fiyat (₺)'], satirlar);
+      toast('✓ Fiyat listesi indirildi', 'ok');
+    });
+  }
+
   function magazaSatirlari() {
     var satirlar = [];
     for (var i = 0; i < exportVeri.magazalar.length; i++) {
@@ -1069,6 +1089,10 @@
         }));
         adim = 'zam-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), temizSayfaAdi('Zam-Fiyat Kaydı'));
+        adim = 'fiyat-satir';
+        var fiyatlar = [['Marka', 'Ürün', 'Fiyat (₺)']].concat(fiyatListesiSatirlari().map(function (s) { return [s[0], s[1], s[2] + ' ₺']; }));
+        adim = 'fiyat-sayfa';
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(fiyatlar), temizSayfaAdi('Fiyat Listesi'));
         adim = 'indir';
         excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
@@ -1160,6 +1184,7 @@
       else if (tip === 'magaza') magazaCsv();
       else if (tip === 'red') redCsv();
       else if (tip === 'ciro') ciroCsv();
+      else if (tip === 'fiyat') fiyatCsv();
       else if (tip === 'yazdir') yazdir();
       raporMenusu(false);
     });
