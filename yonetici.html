@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -22,19 +22,35 @@
     --mavi:#0d1b33; --mavi-2:#152a4d;
     --turuncu:#f59e0b; --turuncu-koyu:#d97706; --turuncu-acik:#fbbf24;
     --yesil:#10b981; --kirmizi:#ef4444; --mor:#8b5cf6; --lacivert:#3b82f6;
-    --bg:#f4f6fb; --kart:#ffffff; --metin:#1e293b; --soluk:#64748b;
-    --cizgi:#e2e8f0; --cizgi2:#f1f5f9;
+    --bg:rgba(244,246,251,.55); --kart:rgba(255,255,255,.86); --metin:#1e293b; --soluk:#64748b;
+    --cizgi:rgba(226,232,240,.8); --cizgi2:rgba(241,245,249,.9);
     --golge:0 1px 2px rgba(15,23,42,.06), 0 4px 14px rgba(15,23,42,.06); --golge2:0 8px 30px rgba(15,23,42,.14);
     --beyaz-cizgi:rgba(255,255,255,.4);
   }
   body[data-tema="koyu"] {
-    --bg:#0b1220; --kart:#121b2e; --metin:#e2e8f0; --soluk:#94a3b8;
-    --cizgi:#22304a; --cizgi2:#182339;
+    --bg:rgba(11,18,32,.72); --kart:rgba(18,27,46,.82); --metin:#e2e8f0; --soluk:#94a3b8;
+    --cizgi:rgba(34,48,74,.85); --cizgi2:rgba(24,35,57,.9);
     --golge:0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3); --golge2:0 8px 30px rgba(0,0,0,.5);
     --beyaz-cizgi:rgba(255,255,255,.18);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Manrope','Segoe UI',Tahoma,Arial,sans-serif; background:var(--bg); color:var(--metin); transition:background .3s, color .3s; -webkit-font-smoothing:antialiased; }
+  body { font-family:'Manrope','Segoe UI',Tahoma,Arial,sans-serif; background:var(--bg); color:var(--metin); transition:background .3s, color .3s; -webkit-font-smoothing:antialiased; position:relative; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none; background:
+    radial-gradient(620px 480px at 12% -8%, rgba(59,130,246,.28), transparent 65%),
+    radial-gradient(540px 420px at 88% 12%, rgba(245,158,11,.24), transparent 60%),
+    radial-gradient(700px 520px at 18% 88%, rgba(139,92,246,.22), transparent 65%),
+    radial-gradient(600px 460px at 82% 78%, rgba(16,185,129,.2), transparent 62%);
+    animation:nebula 26s ease-in-out infinite alternate;
+  }
+  body[data-tema="koyu"]::before { background:
+    radial-gradient(620px 480px at 12% -8%, rgba(59,130,246,.34), transparent 65%),
+    radial-gradient(540px 420px at 88% 12%, rgba(245,158,11,.28), transparent 60%),
+    radial-gradient(700px 520px at 18% 88%, rgba(139,92,246,.3), transparent 65%),
+    radial-gradient(600px 460px at 82% 78%, rgba(16,185,129,.24), transparent 62%);
+  }
+  @keyframes nebula { 0% { transform:translate3d(0,0,0) scale(1); filter:hue-rotate(0deg); } 50% { transform:translate3d(-18px,12px,0) scale(1.06); filter:hue-rotate(8deg); } 100% { transform:translate3d(14px,-14px,0) scale(1.03); filter:hue-rotate(-6deg); } }
+  #panel, .giris { position:relative; z-index:1; }
+  .liste, .icerik, .grafik-kap { position:relative; z-index:1; }
   button { font-family:inherit; }
   ::-webkit-scrollbar { width:8px; height:8px; }
   ::-webkit-scrollbar-track { background:transparent; }
@@ -63,7 +79,7 @@
   .ust-btn:hover { background:rgba(255,255,255,.22); transform:translateY(-1px); }
   #tema-btn { right:78px; }
   #cikis-btn { right:14px; }
-  .giris { max-width:360px; margin:60px auto; background:var(--kart); border:1px solid var(--cizgi); border-radius:22px; padding:34px 26px; text-align:center; box-shadow:var(--golge2); position:relative; overflow:hidden; }
+  .giris { max-width:360px; margin:60px auto; background:var(--kart); border:1px solid var(--cizgi); border-radius:22px; padding:34px 26px; text-align:center; box-shadow:var(--golge2); position:relative; overflow:hidden; backdrop-filter:blur(22px) saturate(1.5); -webkit-backdrop-filter:blur(22px) saturate(1.5); }
   .giris::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background:linear-gradient(90deg,var(--turuncu),var(--turuncu-acik)); }
   .giris-logo { width:76px; height:76px; border-radius:50%; object-fit:cover; margin:0 auto 14px; display:block; border:3px solid var(--cizgi); box-shadow:var(--golge2); }
   .giris h2 { font-family:'Sora',sans-serif; color:var(--metin); font-size:1.05rem; letter-spacing:2px; }
@@ -75,12 +91,12 @@
   .btn:active { transform:translateY(0); }
   .giris .btn { width:100%; }
   .hata { color:var(--kirmizi); font-size:.8rem; height:20px; font-weight:600; }
-  .filtre { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); position:sticky; top:76px; z-index:5; backdrop-filter:blur(10px); }
+  .filtre { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); position:sticky; top:76px; z-index:5; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .filtre label { font-size:.68rem; color:var(--soluk); font-weight:700; letter-spacing:.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
   .filtre select, .filtre input { padding:8px 12px; border:2px solid var(--cizgi); border-radius:10px; font-size:.85rem; font-weight:700; color:var(--metin); outline:none; background:var(--kart); transition:border-color .2s, box-shadow .2s; }
   .filtre select:focus, .filtre input:focus { border-color:var(--turuncu); box-shadow:0 0 0 3px rgba(245,158,11,.12); }
-  .ozet { display:grid; grid-template-columns:repeat(auto-fit,minmax(96px,1fr)); gap:10px; padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
-  .ozet .kup { background:var(--bg); border:1px solid var(--cizgi); border-radius:16px; padding:12px 6px; text-align:center; box-shadow:var(--golge); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; }
+  .ozet { display:grid; grid-template-columns:repeat(auto-fit,minmax(96px,1fr)); gap:10px; padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
+  .ozet .kup { background:var(--bg); border:1px solid var(--cizgi); border-radius:16px; padding:12px 6px; text-align:center; box-shadow:var(--golge); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; backdrop-filter:blur(10px) saturate(1.2); -webkit-backdrop-filter:blur(10px) saturate(1.2); }
   .ozet .kup:hover { transform:translateY(-2px); box-shadow:var(--golge2); }
   .ozet .kup .ikon { font-size:1.1rem; display:block; margin-bottom:5px; }
   .ozet b { color:var(--turuncu-koyu); font-size:1.3rem; display:block; line-height:1.2; font-family:'Sora',sans-serif; }
@@ -100,10 +116,10 @@
   body[data-tema="koyu"] .leaflet-control-zoom a { background:#121b2e; color:#e2e8f0; border-color:#22304a; }
   body[data-tema="koyu"] .leaflet-control-attribution { background:rgba(18,27,46,.85); color:#94a3b8; }
   body[data-tema="koyu"] .leaflet-control-attribution a { color:#e2e8f0; }
-  .konum-bar { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.78rem; color:var(--soluk); display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:600; }
+  .konum-bar { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.78rem; color:var(--soluk); display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:600; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .canli-nokta { width:9px; height:9px; border-radius:50%; background:var(--yesil); display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; box-shadow:0 0 0 4px rgba(16,185,129,.18); }
   @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.35; } }
-  .bolum { padding:13px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:background .2s; position:relative; }
+  .bolum { padding:13px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:background .2s; position:relative; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .bolum::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:transparent; transition:background .2s; }
   .bolum:hover { background:var(--cizgi2); }
   .bolum.acik::before { background:linear-gradient(180deg,var(--turuncu),var(--turuncu-acik)); }
@@ -111,9 +127,9 @@
   .bolum .ad .ikon { font-size:.95rem; }
   .bolum .ok { color:var(--soluk); font-size:.8rem; display:inline-block; transition:transform .25s ease; }
   .bolum.acik .ok { transform:rotate(180deg); }
-  .icerik { padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
+  .icerik { padding:14px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .liste { padding:12px 16px; display:grid; gap:10px; background:var(--bg); }
-  .magaza { background:var(--kart); border-radius:16px; padding:13px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--cizgi); box-shadow:var(--golge); transition:transform .15s, box-shadow .2s, border-color .2s; }
+  .magaza { background:var(--kart); border-radius:16px; padding:13px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--cizgi); box-shadow:var(--golge); transition:transform .15s, box-shadow .2s, border-color .2s; backdrop-filter:blur(14px) saturate(1.3); -webkit-backdrop-filter:blur(14px) saturate(1.3); }
   .magaza:hover { transform:translateY(-2px); box-shadow:var(--golge2); border-color:var(--turuncu-acik); }
   .magaza .ad { font-family:'Sora',sans-serif; font-weight:700; font-size:.88rem; color:var(--metin); }
   .magaza .saat { font-size:.74rem; color:var(--soluk); margin-top:3px; }
@@ -148,6 +164,9 @@
   td.say-t { text-align:right; font-weight:800; color:#d97706; }
   tr.toplam td { background:rgba(245,158,11,.1); border-top:2px solid var(--turuncu); border-bottom:none; font-weight:800; color:var(--turuncu-koyu); }
   .marker-arac { background:var(--turuncu); border:3px solid #fff; border-radius:50% 50% 50% 0; width:24px; height:24px; transform:rotate(-45deg); box-shadow:0 4px 12px rgba(245,158,11,.55); }
+  .marker-arac::before, .marker-arac::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid var(--turuncu-acik); animation:radar 2s ease-out infinite; }
+  .marker-arac::after { animation-delay:1s; }
+  @keyframes radar { 0% { transform:rotate(-45deg) scale(.5); opacity:.9; } 100% { transform:rotate(-45deg) scale(2.4); opacity:0; } }
   .lejant { display:flex; gap:16px; padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.68rem; color:var(--soluk); flex-wrap:wrap; align-items:center; font-weight:600; }
   .lejant i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
   .lejant .ara-nokta { display:inline-block; width:8px; height:8px; background:var(--turuncu); border:2px solid #fff; transform:rotate(45deg); margin-right:5px; vertical-align:middle; box-shadow:0 1px 4px rgba(0,0,0,.3); }
@@ -225,7 +244,7 @@
   <button class="ust-btn" id="tema-btn" title="Tema değiştir">🌙</button>
   <button class="ust-btn" id="cikis-btn" style="display:none;">Çıkış</button>
   <div class="ust-logo"><img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><h1>NOKTA TEDARİK</h1></div>
-  <div class="alt">YÖNETİCİ PANELİ · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> <span class="canli-badge" id="canli-badge">● CANLI</span></div>
+  <div class="alt">YÖNETİCİ PANELİ · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir" id="canli-saat">--:--:--</span> <span class="canli-badge" id="canli-badge">● CANLI</span></div>
 </div>
 
 <div class="giris" id="giris-kap">
@@ -866,10 +885,10 @@
     for (var k in durumlar) {
       if (durumlar[k].red) red++; else tamam++;
     }
-    document.getElementById('ozet-tamam').textContent = tamam;
+    sayacAnim(document.getElementById('ozet-tamam'), tamam);
     document.getElementById('ozet-toplam').textContent = tamam + ' / ' + magazalar.length;
-    document.getElementById('ozet-red').textContent = red;
-    document.getElementById('ozet-eksik').textContent = eksikler.length;
+    sayacAnim(document.getElementById('ozet-red'), red);
+    sayacAnim(document.getElementById('ozet-eksik'), eksikler.length);
     var oran = magazalar.length > 0 ? Math.round((tamam / magazalar.length) * 100) : 0;
     document.getElementById('ozet-bar').style.width = oran + '%';
     document.getElementById('ozet-bar-metin').textContent = oran + '% tamamlandı';
@@ -1021,8 +1040,29 @@
 
   var ciroFmt = function (n) { return (n || 0).toLocaleString('tr-TR') + ' ₺'; };
 
+  function ciroSayacAnim(el, hedef) {
+    if (!el) return;
+    var mevcut = parseFloat(el.getAttribute('data-ciro') || '0') || 0;
+    if (mevcut === hedef) { el.textContent = ciroFmt(hedef); return; }
+    var baslangic = mevcut;
+    var fark = hedef - baslangic;
+    var sure = 800;
+    var t0 = null;
+    function adim(t) {
+      if (t0 === null) t0 = t;
+      var gecen = t - t0;
+      var oran = Math.min(gecen / sure, 1);
+      oran = 1 - Math.pow(1 - oran, 3);
+      var deger = Math.round(baslangic + fark * oran);
+      el.textContent = ciroFmt(deger);
+      if (oran < 1) requestAnimationFrame(adim);
+      else el.setAttribute('data-ciro', String(hedef));
+    }
+    requestAnimationFrame(adim);
+  }
+
   function ciroPanel(ciroGenel, bagetSutun, tamkoySutun) {
-    document.getElementById('ozet-ciro').textContent = ciroFmt(ciroGenel);
+    ciroSayacAnim(document.getElementById('ozet-ciro'), ciroGenel);
     var k = document.getElementById('ciro-panel');
     var h = '<div class="ciro-buyuk"><div class="deger">' + ciroFmt(ciroGenel) + '</div><div class="etiket">Toplam Ciro</div></div>';
     h += '<div class="tablo-sar"><table><thead><tr><th>ÜRÜN</th><th class="say">FİYAT</th><th class="say">ADET</th><th class="say">CİRO</th></tr></thead><tbody>';
@@ -1231,6 +1271,38 @@
     return null;
   }
 
+  function canliSaatBaslat() {
+    var el = document.getElementById('canli-saat');
+    if (!el) return;
+    function guncelle() {
+      var s = new Date();
+      el.textContent = ('0' + s.getHours()).slice(-2) + ':' + ('0' + s.getMinutes()).slice(-2) + ':' + ('0' + s.getSeconds()).slice(-2);
+    }
+    guncelle();
+    setInterval(guncelle, 1000);
+  }
+
+  function sayacAnim(el, hedef) {
+    if (!el) return;
+    var mevcut = parseInt(el.getAttribute('data-sayac') || '0', 10) || 0;
+    if (mevcut === hedef) { el.textContent = hedef.toLocaleString('tr-TR'); return; }
+    var baslangic = mevcut;
+    var fark = hedef - baslangic;
+    var sure = 700;
+    var t0 = null;
+    function adim(t) {
+      if (t0 === null) t0 = t;
+      var gecen = t - t0;
+      var oran = Math.min(gecen / sure, 1);
+      oran = 1 - Math.pow(1 - oran, 3);
+      var deger = Math.round(baslangic + fark * oran);
+      el.textContent = deger.toLocaleString('tr-TR');
+      if (oran < 1) requestAnimationFrame(adim);
+      else el.setAttribute('data-sayac', String(hedef));
+    }
+    requestAnimationFrame(adim);
+  }
+
   function baslat() {
     haritaKur();
     window.addEventListener('resize', function () { if (harita) harita.invalidateSize(); });
@@ -1244,6 +1316,7 @@
     yukleKonum();
     yukleRota();
     haftalikGetir();
+    canliSaatBaslat();
     setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
     setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
