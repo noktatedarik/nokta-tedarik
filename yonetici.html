@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --mavi:#0e1b2c; --mavi-2:#1b2f4a;
@@ -150,6 +151,37 @@
   #toast.goster { opacity:1; transform:translateX(-50%) translateY(0); }
   #toast.ok { background:var(--yesil); }
   #toast.hata { background:var(--kirmizi); }
+  .grafik-kap { padding:12px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
+  .grafik-baslik { font-size:.72rem; font-weight:800; letter-spacing:.5px; color:var(--soluk); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+  .grafik-baslik b { color:var(--turuncu-koyu); }
+  .grafik-satir { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:640px) { .grafik-satir { grid-template-columns:1fr; } }
+  .grafik-kutu { background:var(--bg); border:1px solid var(--cizgi); border-radius:14px; padding:10px; }
+  .grafik-kutu.kap { height:210px; position:relative; }
+  .grafik-kutu.tam { height:230px; }
+  .grafik-kutu canvas { max-height:100%; }
+  .ciro-buyuk { text-align:center; padding:4px 0 2px; }
+  .ciro-buyuk .deger { font-size:1.55rem; font-weight:800; color:var(--yesil); letter-spacing:.5px; }
+  .ciro-buyuk .etiket { font-size:.62rem; color:var(--soluk); letter-spacing:1px; font-weight:700; text-transform:uppercase; }
+  .sure-satir { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 4px; border-bottom:1px solid var(--cizgi2); font-size:.8rem; }
+  .sure-satir:last-child { border-bottom:none; }
+  .sure-ad { font-weight:700; color:var(--metin); }
+  .sure-deger { font-weight:800; color:var(--turuncu-koyu); font-size:.88rem; }
+  .sure-deger.yesil { color:var(--yesil); }
+  .sure-deger.kirmizi { color:var(--kirmizi); }
+  .sure-ust { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-bottom:10px; }
+  .sure-kutu { background:var(--bg); border:1px solid var(--cizgi); border-radius:12px; padding:10px 8px; text-align:center; }
+  .sure-kutu b { display:block; font-size:1.15rem; color:var(--metin); }
+  .sure-kutu span { font-size:.6rem; color:var(--soluk); font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+  .timeline { display:flex; align-items:center; gap:6px; margin:6px 0 2px; flex-wrap:wrap; }
+  .tl-adim { flex:1; min-width:88px; text-align:center; background:var(--bg); border:1px solid var(--cizgi); border-radius:10px; padding:7px 4px; }
+  .tl-adim .tl-saat { font-size:.85rem; font-weight:800; color:var(--muted); }
+  .tl-adim .tl-ad { font-size:.58rem; color:var(--soluk); font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+  .tl-adim.aktif { border-color:var(--turuncu); box-shadow:0 0 0 2px rgba(247,127,0,.18); }
+  .tl-adim.aktif .tl-saat { color:var(--turuncu-koyu); }
+  .tl-ok { color:var(--soluk); }
+  .rota-bilgi { font-size:.72rem; color:var(--soluk); padding-top:6px; line-height:1.5; }
+  .rota-bilgi b { color:var(--metin); }
 </style>
 </head>
 <body>
@@ -187,6 +219,7 @@
     <div class="kup kirmizi"><span class="ikon">🚫</span><b id="ozet-red">0</b><span>RED</span></div>
     <div class="kup lacivert"><span class="ikon">⏳</span><b id="ozet-eksik">0</b><span>BEKLEYEN</span></div>
     <div class="kup"><span class="ikon">🚚</span><b id="ozet-durum">—</b><span>ARAÇ</span></div>
+    <div class="kup yesil"><span class="ikon">💰</span><b id="ozet-ciro">0 ₺</b><span>CİRO</span></div>
   </div>
   <div class="bar-alan">
     <div class="bar-kap"><div class="bar-dolu" id="ozet-bar"></div></div>
@@ -218,6 +251,21 @@
 
   <div class="bolum" id="baslik-istatistik"><span class="ad"><span class="ikon">📊</span>ÜRÜN İSTATİSTİK &amp; DEPO ÇIKIŞI</span><span class="ok">▾</span></div>
   <div class="icerik" id="istatistik-panel" style="display:none;"></div>
+
+  <div class="bolum" id="baslik-ciro"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
+  <div class="icerik" id="ciro-panel" style="display:none;"></div>
+
+  <div class="bolum" id="baslik-grafik"><span class="ad"><span class="ikon">📈</span>GRAFİKLER</span><span class="ok">▾</span></div>
+  <div class="grafik-kap" id="grafik-panel" style="display:none;">
+    <div class="grafik-satir">
+      <div class="grafik-kutu kap"><div class="grafik-baslik">ÜRÜN DAĞILIMI <b id="grafik-urun-toplam">—</b></div><canvas id="grafik-urun"></canvas></div>
+      <div class="grafik-kutu kap"><div class="grafik-baslik">İL BAZLI TESLİM <b id="grafik-il-toplam">—</b></div><canvas id="grafik-il"></canvas></div>
+    </div>
+    <div class="grafik-kutu tam" style="margin-top:10px;"><div class="grafik-baslik">SON 7 GÜN TESLİMAT <b id="grafik-hafta-toplam">—</b></div><canvas id="grafik-hafta"></canvas></div>
+  </div>
+
+  <div class="bolum" id="baslik-sure"><span class="ad"><span class="ikon">⏱</span>SÜRE &amp; ROTA TAKİBİ</span><span class="ok">▾</span></div>
+  <div class="icerik" id="sure-panel" style="display:none;"></div>
 
   <div style="padding:0 16px 14px; text-align:center; font-size:.7rem; color:#9fb0c3;">Canlı takip 5 saniyede bir yenilenir · Konum şoför paneli açıkken gelir · "Tümü" seçimi tüm illeri toplar</div>
 
@@ -254,6 +302,7 @@
 </script>
 <script src="magazalar.js"></script>
 <script src="koordinatlar.js"></script>
+<script src="fiyatlar.js"></script>
 <script>
   function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
   function tarihYaz(d) {
@@ -280,6 +329,10 @@
     var t = document.body.getAttribute('data-tema') === 'koyu' ? 'acik' : 'koyu';
     localStorage.setItem('yonetici-tema', t);
     temaUygula();
+    var tema = grafikTheme();
+    if (grafikUrun) { grafikUrun.options.plugins.legend.labels.color = tema.metin; grafikUrun.update(); }
+    if (grafikIl) { grafikIl.options.scales.x.ticks.color = tema.metin; grafikIl.options.scales.y.ticks.color = tema.metin; grafikIl.options.scales.y.grid.color = tema.cizgi; grafikIl.update(); }
+    if (grafikHafta) { grafikHafta.options.scales.x.ticks.color = tema.metin; grafikHafta.options.scales.y.ticks.color = tema.metin; grafikHafta.options.scales.y.grid.color = tema.cizgi; grafikHafta.update(); }
   }
   document.getElementById('tema-btn').addEventListener('click', temaAc);
   temaUygula();
@@ -649,7 +702,11 @@
     var eksikler = [];
     var bagetSay = 0, tamkoySay = 0;
     var bagetToplam = {}, tamkoyToplam = {};
+    var bagetSutunToplam = {}, tamkoySutunToplam = {};
     var canliKayitlar = [];
+    var ciroGenel = 0;
+    var ilCiro = {};
+    var ilTeslim = {};
     for (var p = 0; p < BAGETTA_URUNLER.length; p++) bagetToplam[BAGETTA_URUNLER[p].ad] = 0;
     for (var p2 = 0; p2 < URUNLER.length; p2++) tamkoyToplam[URUNLER[p2].ad] = 0;
     var markaSay = { BAGETTA: 0, TAMKOY: 0 };
@@ -697,6 +754,7 @@
           var urunVeri = d.urunler || {};
           var kayitMarka = d.marka || marka;
           var urunListesi = kayitMarka === 'BAGETTA' ? BAGETTA_URUNLER : URUNLER;
+          var fiyatSet = FIYATLAR[kayitMarka] || FIYATLAR.TAMKOY;
           var hedefToplam = kayitMarka === 'BAGETTA' ? bagetToplam : tamkoyToplam;
           var urunYazi = [];
           for (var u = 0; u < urunListesi.length; u++) {
@@ -704,6 +762,9 @@
             if (deger && deger > 0) {
               urunYazi.push(urunListesi[u].ad + ': ' + deger);
               hedefToplam[urunListesi[u].ad] = (hedefToplam[urunListesi[u].ad] || 0) + deger;
+              if (kayitMarka === 'BAGETTA') bagetSutunToplam[urunListesi[u].sutun] = (bagetSutunToplam[urunListesi[u].sutun] || 0) + deger;
+              else tamkoySutunToplam[urunListesi[u].sutun] = (tamkoySutunToplam[urunListesi[u].sutun] || 0) + deger;
+              ciroGenel += deger * (fiyatSet[urunListesi[u].sutun] || 0);
             }
           }
           if (urunYazi.length) altSaat += ' — ' + urunYazi.join(', ');
@@ -715,6 +776,8 @@
       }
       if (durumTipi === 'teslim') {
         canliKayitlar.push({ ad: ad, ilce: alt, saat: d.saat || '', marka: marka, anahtar: anahtar, sehir: magazalar[i].sehir });
+        var ilAdKey = magazalar[i].sehir;
+        ilTeslim[ilAdKey] = (ilTeslim[ilAdKey] || 0) + 1;
       }
       var sonKayit = sonZiyaretler ? sonZiyaretler[anahtar] : null;
       var sonYazi = sonKayit
@@ -782,6 +845,9 @@
     teslimRotasiCiz(canliKayitlar, magazalar);
     redPanel(redler);
     istatistikPanel(bagetToplam, tamkoyToplam, magazalar.length, tamam, red, markaSay);
+    ciroPanel(ciroGenel, bagetSutunToplam, tamkoySutunToplam);
+    grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar);
+    surePanel(canliKayitlar, gunDurum);
     gecmisButonlar();
   }
 
@@ -902,6 +968,218 @@
     k.innerHTML = h;
   }
 
+  var ciroFmt = function (n) { return (n || 0).toLocaleString('tr-TR') + ' ₺'; };
+
+  function ciroPanel(ciroGenel, bagetSutun, tamkoySutun) {
+    document.getElementById('ozet-ciro').textContent = ciroFmt(ciroGenel);
+    var k = document.getElementById('ciro-panel');
+    var h = '<div class="ciro-buyuk"><div class="deger">' + ciroFmt(ciroGenel) + '</div><div class="etiket">Toplam Ciro</div></div>';
+    h += '<div class="tablo-sar"><table><thead><tr><th>ÜRÜN</th><th class="say">FİYAT</th><th class="say">ADET</th><th class="say">CİRO</th></tr></thead><tbody>';
+    var genelCiro = 0;
+    var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
+    var kolonAd = {};
+    for (var y = 0; y < URUNLER.length; y++) if (!kolonAd[URUNLER[y].sutun]) kolonAd[URUNLER[y].sutun] = URUNLER[y].ad;
+    for (var z = 0; z < BAGETTA_URUNLER.length; z++) if (!kolonAd[BAGETTA_URUNLER[z].sutun]) kolonAd[BAGETTA_URUNLER[z].sutun] = BAGETTA_URUNLER[z].ad;
+    var kolonlar = Object.keys(kolonAd);
+    for (var s = 0; s < kolonlar.length; s++) {
+      var sutun = kolonlar[s];
+      var ad = kolonAd[sutun];
+      var fiyatT = ft[sutun] || 0, fiyatB = fb[sutun] || 0;
+      var adetT = tamkoySutun[sutun] || 0, adetB = bagetSutun[sutun] || 0;
+      if (!adetT && !adetB) continue;
+      var ciroT = adetT * fiyatT, ciroB = adetB * fiyatB;
+      var ciroU = ciroT + ciroB;
+      var adetU = adetT + adetB;
+      var fiyatGoster = fiyatT || fiyatB;
+      genelCiro += ciroU;
+      h += '<tr><td>' + ad + '</td><td class="say">' + (fiyatGoster || '—') + ' ₺</td><td class="say">' + adetU + '</td><td class="say-b">' + ciroU.toLocaleString('tr-TR') + ' ₺</td></tr>';
+    }
+    h += '<tr class="toplam"><td>GENEL TOPLAM</td><td class="say"></td><td class="say"></td><td class="say-b">' + (genelCiro || 0).toLocaleString('tr-TR') + ' ₺</td></tr>';
+    h += '</tbody></table></div>';
+    h += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">Fiyatlar fiyatlar.js dosyasından okunur · ' + (FIYATLAR.guncelleme || '') + '</div>';
+    k.innerHTML = h;
+  }
+
+  var grafikUrun = null, grafikIl = null, grafikHafta = null;
+
+  function grafikRenkler() {
+    return ['#f77f00', '#1faa4c', '#2e6db4', '#8e44ad', '#e74c3c', '#f1c40f', '#16a085', '#d96b00', '#7f8c8d'];
+  }
+
+  function grafikTheme() {
+    var koyu = document.body.getAttribute('data-tema') === 'koyu';
+    return { metin: koyu ? '#dbe6f2' : '#33465c', cizgi: koyu ? '#23334d' : '#e3eaf2' };
+  }
+
+  function grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar) {
+    if (typeof Chart === 'undefined') return;
+    var tema = grafikTheme();
+    var urunler = [];
+    var gorulen = {};
+    for (var i = 0; i < URUNLER.length; i++) { var u = URUNLER[i]; if (!gorulen[u.ad]) { gorulen[u.ad] = true; urunler.push(u.ad); } }
+    for (var j = 0; j < BAGETTA_URUNLER.length; j++) { var u2 = BAGETTA_URUNLER[j]; if (!gorulen[u2.ad]) { gorulen[u2.ad] = true; urunler.push(u2.ad); } }
+    var urunEtiket = [], urunVeri = [];
+    var urunToplam = 0;
+    for (var q = 0; q < urunler.length; q++) {
+      var miktar = (bagetToplam[urunler[q]] || 0) + (tamkoyToplam[urunler[q]] || 0);
+      if (miktar > 0) { urunEtiket.push(urunler[q]); urunVeri.push(miktar); urunToplam += miktar; }
+    }
+    document.getElementById('grafik-urun-toplam').textContent = urunToplam + ' adet';
+    var ilEtiket = Object.keys(ilTeslim).sort();
+    var ilVeri = [];
+    var ilToplam = 0;
+    for (var w = 0; w < ilEtiket.length; w++) { ilVeri.push(ilTeslim[ilEtiket[w]]); ilToplam += ilTeslim[ilEtiket[w]]; }
+    document.getElementById('grafik-il-toplam').textContent = ilToplam + ' teslim';
+
+    var renkler = grafikRenkler();
+    if (!grafikUrun && document.getElementById('grafik-urun')) {
+      grafikUrun = new Chart(document.getElementById('grafik-urun'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: renkler, borderWidth: 2, borderColor: tema.cizgi }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: tema.metin, boxWidth: 10, font: { size: 9 } } } } } });
+    }
+    if (!grafikIl && document.getElementById('grafik-il')) {
+      grafikIl = new Chart(document.getElementById('grafik-il'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#2e6db4', borderRadius: 6, barPercentage: .7 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: tema.metin, font: { size: 9 } }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: tema.metin, precision: 0 }, grid: { color: tema.cizgi } } } } });
+    }
+    if (grafikUrun) { grafikUrun.data.labels = urunEtiket; grafikUrun.data.datasets[0].data = urunVeri; grafikUrun.update(); }
+    if (grafikIl) { grafikIl.data.labels = ilEtiket; grafikIl.data.datasets[0].data = ilVeri; grafikIl.update(); }
+    document.getElementById('grafik-hafta-toplam').textContent = (haftalikSonuc && haftalikSonuc.toplam) || 0;
+    haftalikCiz(tema);
+  }
+
+  var haftalikVeri = null;
+  var haftalikSonuc = null;
+
+  function haftalikCiz(tema) {
+    if (typeof Chart === 'undefined' || !haftalikVeri) return;
+    var etiket = [], veri = [];
+    var toplam = 0;
+    for (var i = 0; i < haftalikVeri.length; i++) {
+      var g = haftalikVeri[i];
+      etiket.push(g.tarih ? g.tarih.substring(8, 10) + '/' + g.tarih.substring(5, 7) : '');
+      veri.push(g.adet);
+      toplam += g.adet;
+    }
+    haftalikSonuc = { toplam: toplam };
+    document.getElementById('grafik-hafta-toplam').textContent = toplam;
+    if (!grafikHafta && document.getElementById('grafik-hafta')) {
+      grafikHafta = new Chart(document.getElementById('grafik-hafta'), { type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#f77f00', backgroundColor: 'rgba(247,127,0,.12)', fill: true, tension: .35, pointBackgroundColor: '#f77f00', borderWidth: 2.5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: tema.metin, font: { size: 9 } }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: tema.metin, precision: 0 }, grid: { color: tema.cizgi } } } } });
+    }
+    if (grafikHafta) { grafikHafta.data.labels = etiket; grafikHafta.data.datasets[0].data = veri; grafikHafta.update(); }
+  }
+
+  function haftalikGetir() {
+    var istekler = [];
+    var gunler = [];
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date();
+      d.setDate(d.getDate() - i);
+      gunler.push(tarihYaz(d));
+    }
+    for (var g = 0; g < gunler.length; g++) {
+      (function (tarih) {
+        istekler.push(fetch(FIREBASE_URL + '/gunluk/' + tarih + '.json').then(function (r) { return r.json(); }).then(function (d) {
+          var adet = 0;
+          if (d) {
+            for (var ilAd in d) {
+              var ilVeri = d[ilAd];
+              if (!ilVeri) continue;
+              for (var anahtar in ilVeri) {
+                var kayit = ilVeri[anahtar];
+                if (kayit && kayit.saat && !kayit.red) adet++;
+              }
+            }
+          }
+          return { tarih: tarih, adet: adet };
+        }).catch(function () { return { tarih: tarih, adet: 0 }; }));
+      })(gunler[g]);
+    }
+    Promise.all(istekler).then(function (sonuc) {
+      haftalikVeri = sonuc;
+      haftalikCiz(grafikTheme());
+    }).catch(function () {});
+  }
+
+  function surePanel(canliKayitlar, gunDurum) {
+    var k = document.getElementById('sure-panel');
+    var saatler = canliKayitlar.map(function (x) { return x.saat; }).filter(Boolean).sort();
+    var ilk = saatler.length ? saatler[0] : null;
+    var son = saatler.length ? saatler[saatler.length - 1] : null;
+    var yukleme = (gunDurum && gunDurum.yukleme) || null;
+    var baslama = (gunDurum && gunDurum.baslama) || null;
+    var tamamlandi = (gunDurum && gunDurum.tamamlandi) || null;
+    var donus = (gunDurum && gunDurum.donus) || null;
+
+    var h = '<div class="sure-ust">';
+    h += '<div class="sure-kutu"><b id="ilk-teslim">' + (ilk || '—') + '</b><span>İlk Teslim</span></div>';
+    h += '<div class="sure-kutu"><b id="son-teslim">' + (son || '—') + '</b><span>Son Teslim</span></div>';
+    h += '<div class="sure-kutu"><b>' + (saatler.length || 0) + '</b><span>Toplam Teslim</span></div>';
+    var sureDk = null;
+    if (ilk && son) sureDk = dakikaFark(ilk, son);
+    h += '<div class="sure-kutu"><b>' + (sureDk !== null ? sureDk + ' dk' : '—') + '</b><span>Teslim Aralığı</span></div>';
+    h += '</div>';
+
+    h += '<div class="timeline">';
+    var adimlar = [
+      { ad: 'Yükleme', saat: yukleme },
+      { ad: 'İş Başı', saat: baslama },
+      { ad: 'İlk Teslim', saat: ilk },
+      { ad: 'Dönüş', saat: donus || (gunDurum && gunDurum.asama === 'donus' ? 'Yolda' : null) }
+    ];
+    var aktifYok = true;
+    for (var a = 0; a < adimlar.length; a++) {
+      var aktif = !!adimlar[a].saat;
+      if (aktif) aktifYok = false;
+      h += '<div class="tl-adim' + (aktif ? ' aktif' : '') + '"><div class="tl-saat">' + (adimlar[a].saat || '—') + '</div><div class="tl-ad">' + adimlar[a].ad + '</div></div>';
+      if (a < adimlar.length - 1) h += '<span class="tl-ok">›</span>';
+    }
+    h += '</div>';
+
+    h += '<div class="rota-bilgi">';
+    if (sonZiyaretler) {
+      h += 'Son 3 gün teslim ortalaması: <b>' + sonUcGunOrtalamasi() + '</b> teslim/gün';
+    }
+    h += '</div>';
+
+    var gecikme = sureUyari(saatler, gunDurum);
+    if (gecikme) h += '<div class="uyari">' + gecikme + '</div>';
+    k.innerHTML = h;
+  }
+
+  function dakikaFark(a, b) {
+    var pa = a.split(':').map(Number), pb = b.split(':').map(Number);
+    return (pb[0] * 60 + pb[1]) - (pa[0] * 60 + pa[1]);
+  }
+
+  function sonUcGunOrtalamasi() {
+    var oran = 0;
+    if (ziyaretGecmisi) {
+      var gunSay = {};
+      for (var k in ziyaretGecmisi) {
+        var liste = ziyaretGecmisi[k];
+        for (var i = 0; i < liste.length; i++) {
+          if (liste[i].tarih) gunSay[liste[i].tarih] = (gunSay[liste[i].tarih] || 0) + 1;
+        }
+      }
+      var gunler = Object.keys(gunSay).sort().slice(-3);
+      if (gunler.length) {
+        var sum = 0;
+        for (var g = 0; g < gunler.length; g++) sum += gunSay[gunler[g]];
+        oran = Math.round(sum / gunler.length);
+      }
+    }
+    return oran;
+  }
+
+  function sureUyari(saatler, gunDurum) {
+    if (!saatler.length || !gunDurum) return null;
+    var simdi = new Date();
+    var simdiDk = simdi.getHours() * 60 + simdi.getMinutes();
+    var sonDk = null;
+    var sonS = saatler[saatler.length - 1];
+    if (sonS) { var p = sonS.split(':').map(Number); sonDk = p[0] * 60 + p[1]; }
+    var dkSon = (simdiDk - sonDk);
+    if (dkSon > 45 && !gunDurum.tamamlandi) return '⚠ Son teslimden ' + dkSon + ' dk geçti — teslimatlar tamamlanmadı. Kontrol edin.';
+    return null;
+  }
+
   function baslat() {
     haritaKur();
     window.addEventListener('resize', function () { if (harita) harita.invalidateSize(); });
@@ -914,9 +1192,11 @@
     yukleGunDurumu();
     yukleKonum();
     yukleRota();
+    haftalikGetir();
     setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
     setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
+    setInterval(haftalikGetir, 300000);
   }
 
   function bolumAc(kapamaId, panelId) {
@@ -930,6 +1210,9 @@
   document.getElementById('baslik-istatistik').addEventListener('click', function () { bolumAc('baslik-istatistik', 'istatistik-panel'); });
   document.getElementById('baslik-canli').addEventListener('click', function () { bolumAc('baslik-canli', 'canli-panel'); });
   document.getElementById('baslik-liste').addEventListener('click', function () { bolumAc('baslik-liste', 'liste'); });
+  document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
+  document.getElementById('baslik-grafik').addEventListener('click', function () { bolumAc('baslik-grafik', 'grafik-panel'); });
+  document.getElementById('baslik-sure').addEventListener('click', function () { bolumAc('baslik-sure', 'sure-panel'); });
 
   document.getElementById('gecmis-kapat').addEventListener('click', function () { modalKapat('gecmis-modal'); });
   document.getElementById('gecmis-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('gecmis-modal'); });
