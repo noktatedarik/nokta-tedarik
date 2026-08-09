@@ -164,6 +164,30 @@
   body[data-tema="koyu"] .btn.red { background:var(--kirmizi-bg) !important; color:#ff7b6b !important; }
   body[data-tema="koyu"] #not-sil { background:var(--kirmizi-bg) !important; color:#ff7b6b !important; }
   body[data-tema="koyu"] .magaza .not { color:#ffc46b; }
+  .sos-banner { position:fixed; top:0; left:0; right:0; z-index:96; background:linear-gradient(90deg,#b91c1c,#dc2626); color:#fff; padding:12px 16px; font-weight:800; font-size:.85rem; letter-spacing:1px; text-align:center; display:none; align-items:center; justify-content:center; gap:10px; box-shadow:0 4px 20px rgba(220,38,38,.5); animation:sosGir .3s ease; }
+  .sos-banner.goster { display:flex; }
+  @keyframes sosGir { from { transform:translateY(-100%); opacity:0; } to { transform:none; opacity:1; } }
+  .sos-banner .sos-ikon { font-size:1.3rem; animation:sosNabz 1s ease infinite; }
+  @keyframes sosNabz { 0%,100% { transform:scale(1); } 50% { transform:scale(1.3); } }
+  .chat-cap { position:fixed; inset:0; z-index:95; background:rgba(10,18,30,.6); display:none; align-items:flex-end; justify-content:center; }
+  .chat-cap.goster { display:flex; }
+  .chat-panel { width:100%; max-width:520px; background:var(--card); border-radius:20px 20px 0 0; max-height:84vh; display:flex; flex-direction:column; box-shadow:0 -12px 44px rgba(0,0,0,.4); animation:mesajGir .28s cubic-bezier(.2,.8,.3,1); }
+  @keyframes mesajGir { from { transform:translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
+  .chat-baslik { display:flex; align-items:center; justify-content:space-between; padding:15px 16px; border-bottom:1px solid var(--border); font-weight:800; font-size:.88rem; letter-spacing:1px; color:var(--text); }
+  .chat-kapat { background:var(--card-2); border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:.85rem; color:var(--muted); flex-shrink:0; }
+  .chat-icerik { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:8px; min-height:200px; }
+  .chat-bos { text-align:center; color:var(--muted); font-size:.8rem; padding:26px 10px; }
+  .chat-msg { max-width:82%; padding:9px 12px; border-radius:15px; font-size:.88rem; line-height:1.5; word-break:break-word; font-weight:500; }
+  .chat-msg.ben { align-self:flex-end; background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; border-bottom-right-radius:4px; }
+  .chat-msg.onlar { align-self:flex-start; background:var(--card-2); color:var(--text); border-bottom-left-radius:4px; }
+  .chat-msg .s { display:block; font-size:.62rem; opacity:.7; margin-top:4px; font-weight:700; }
+  .chat-alt { display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border); }
+  .chat-alt input { flex:1; padding:12px 14px; border:2px solid var(--border); border-radius:999px; background:var(--card-2); color:var(--text); font-size:.88rem; outline:none; }
+  .chat-alt input:focus { border-color:var(--turuncu); }
+  .chat-alt button { background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; border:none; border-radius:999px; padding:0 20px; font-weight:800; cursor:pointer; font-size:.8rem; }
+  .chat-alt button:active { transform:scale(.94); }
+  .btn.acil { background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; box-shadow:0 4px 12px rgba(220,38,38,.4); }
+  .btn.acil.aktif { animation:sosNabz 1.2s ease infinite; }
 </style>
 </head>
 <body>
@@ -221,6 +245,10 @@
       <button class="btn teslim" id="donus-btn" style="text-decoration:none; padding:9px 14px; font-size:.78rem; flex:1;">🔄 DÖNÜŞE GEÇ</button>
       <a class="btn teslim" id="depo-btn" href="tel:+905375966856" style="text-decoration:none; padding:9px 14px; font-size:.78rem;">📞 BÜYÜK PATRONU ARA</a>
     </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn" id="mesaj-btn" style="flex:1; padding:11px 10px; font-size:.78rem; background:var(--mavi-acik); color:#1d6fa5; box-shadow:none;">💬 YÖNETİCİYLE YAZIŞ</button>
+      <button class="btn acil" id="sos-btn" style="flex:1; padding:11px 10px; font-size:.78rem;">🆘 ACİL DURUM</button>
+    </div>
     <button class="btn tamam" id="bitis-btn" style="width:100%; padding:12px; font-size:.8rem;">🏁 SEVKİYAT TAMAMLANDI</button>
   </div>
   <div class="liste" id="liste"></div>
@@ -248,6 +276,28 @@
     <button class="btn teslim" id="not-kaydet">💾 KAYDET</button>
     <button class="btn" id="not-sil" style="background:#fdecea; color:#c0392b; width:100%; margin-top:8px;">🗑 Notu Sil</button>
     <button class="btn vazgec" id="not-vazgec">Vazgeç</button>
+  </div>
+</div>
+
+<div class="sos-banner" id="sos-banner"><span class="sos-ikon">🆘</span>SOS AKTİF — Yöneticiye acil durum bildirildi</div>
+
+<div class="modal-kap" id="sos-modal">
+  <div class="modal" style="border-top:6px solid #dc2626;">
+    <h3 style="color:#dc2626;">🆘 ACİL DURUM</h3>
+    <p style="font-size:.85rem; color:var(--muted); line-height:1.6; margin:8px 0 16px;">Butona basınca yönetici panelinde <b>kırmızı alarm</b> yanar. Gerçek bir acil durumda kullanın.</p>
+    <button class="btn acil" id="sos-onay" style="width:100%; padding:13px;">🆘 EVET, SOS GÖNDER</button>
+    <button class="btn vazgec" id="sos-vazgec">Vazgeç</button>
+  </div>
+</div>
+
+<div class="chat-cap" id="chat-cap">
+  <div class="chat-panel">
+    <div class="chat-baslik">💬 YÖNETİCİ İLE YAZIŞMA<button class="chat-kapat" id="chat-kapat">✕</button></div>
+    <div class="chat-icerik" id="chat-icerik"></div>
+    <div class="chat-alt">
+      <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." maxlength="500">
+      <button id="chat-gonder">GÖNDER</button>
+    </div>
   </div>
 </div>
 
@@ -282,6 +332,7 @@
 <script>
 
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   function tarihYaz(d) {
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
@@ -993,7 +1044,123 @@
     setInterval(yukle, 2000);
     duyuruOku();
     setInterval(duyuruOku, 10000);
+    mesajlariYukle();
+    setInterval(mesajlariYukle, 3000);
+    sosKontrol();
+    setInterval(sosKontrol, 3000);
   }
+
+  var mesajlar = [];
+  var chatAcik = false;
+  var chatCap = document.getElementById('chat-cap');
+  var chatIcerik = document.getElementById('chat-icerik');
+  var chatInput = document.getElementById('chat-input');
+  function chatAc() {
+    chatAcik = true;
+    chatCap.classList.add('goster');
+    mesajlariYukle();
+    setTimeout(function () { if (chatInput) chatInput.focus(); }, 200);
+  }
+  function chatKapat() {
+    chatAcik = false;
+    chatCap.classList.remove('goster');
+  }
+  document.getElementById('mesaj-btn').addEventListener('click', chatAc);
+  document.getElementById('chat-kapat').addEventListener('click', chatKapat);
+  chatCap.addEventListener('click', function (e) { if (e.target === chatCap) chatKapat(); });
+  function mesajGonder() {
+    var metin = chatInput.value.trim();
+    if (!metin) return;
+    var kayit = {
+      g: 'sofor',
+      m: metin,
+      t: tarihYaz(new Date()),
+      s: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    };
+    var id = 'M-' + new Date().getTime();
+    fetch(FIREBASE_URL + '/mesajlar/' + id + '.json', { method: 'PUT', body: JSON.stringify(kayit) })
+      .then(function () {
+        chatInput.value = '';
+        mesajlariYukle();
+      })
+      .catch(function () { toast('Mesaj gönderilemedi — bağlantı hatası', 'hata'); });
+  }
+  document.getElementById('chat-gonder').addEventListener('click', mesajGonder);
+  chatInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') mesajGonder(); });
+  function mesajlariYukle() {
+    fetch(FIREBASE_URL + '/mesajlar.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var yeni = [];
+        for (var id in (d || {})) {
+          if (d[id] && d[id].m) yeni.push({ id: id, v: d[id] });
+        }
+        yeni.sort(function (a, b) { return (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)); });
+        mesajlar = yeni;
+        if (chatAcik) chatCiz();
+      })
+      .catch(function () { });
+  }
+  function chatCiz() {
+    if (!chatIcerik) return;
+    if (!mesajlar.length) { chatIcerik.innerHTML = '<div class="chat-bos">Henüz mesaj yok — yöneticiye yazabilirsiniz</div>'; return; }
+    var h = '';
+    for (var i = 0; i < mesajlar.length; i++) {
+      var k = mesajlar[i].v;
+      var ben = k.g === 'sofor';
+      h += '<div class="chat-msg ' + (ben ? 'ben' : 'onlar') + '">' + escapeHtml(k.m) +
+        '<span class="s">' + (ben ? 'SİZ' : 'YÖNETİCİ') + ' · ' + (k.t || '') + ' ' + (k.s || '') + '</span></div>';
+    }
+    chatIcerik.innerHTML = h;
+    chatIcerik.scrollTop = chatIcerik.scrollHeight;
+  }
+
+  var sosAktif = false;
+  var sosBtn = document.getElementById('sos-btn');
+  var sosBanner = document.getElementById('sos-banner');
+  function sosDurumYansit() {
+    if (sosBtn) {
+      sosBtn.classList.toggle('aktif', sosAktif);
+      sosBtn.textContent = sosAktif ? '🆘 SOS AKTİF — KAPAT' : '🆘 ACİL DURUM';
+      sosBtn.style.background = sosAktif ? '' : '';
+    }
+    if (sosBanner) sosBanner.classList.toggle('goster', sosAktif);
+  }
+  function sosGonder(aktif) {
+    var veri = aktif
+      ? { aktif: true, t: tarihYaz(new Date()), s: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) }
+      : { aktif: false };
+    fetch(FIREBASE_URL + '/sos.json', { method: 'PUT', body: JSON.stringify(veri) })
+      .then(function () {
+        sosAktif = aktif;
+        sosDurumYansit();
+        toast(aktif ? '🆘 SOS yöneticiye gönderildi' : 'SOS kapatıldı', aktif ? 'hata' : 'ok');
+      })
+      .catch(function () { toast('SOS gönderilemedi — bağlantı hatası', 'hata'); });
+  }
+  function sosKontrol() {
+    fetch(FIREBASE_URL + '/sos.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var aktif = !!(d && d.aktif);
+        if (aktif !== sosAktif) { sosAktif = aktif; sosDurumYansit(); }
+      })
+      .catch(function () { });
+  }
+  document.getElementById('sos-btn').addEventListener('click', function () {
+    if (sosAktif) {
+      sosGonder(false);
+    } else {
+      document.getElementById('sos-modal').style.display = 'flex';
+    }
+  });
+  document.getElementById('sos-onay').addEventListener('click', function () {
+    document.getElementById('sos-modal').style.display = 'none';
+    sosGonder(true);
+  });
+  document.getElementById('sos-vazgec').addEventListener('click', function () {
+    document.getElementById('sos-modal').style.display = 'none';
+  });
 
   function cihazKimligi() {
     var k = localStorage.getItem('sofor-cihaz');

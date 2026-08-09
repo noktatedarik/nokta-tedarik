@@ -323,6 +323,25 @@
   .fiyat-satir input { width:74px; padding:7px 9px; border:2px solid var(--cizgi); border-radius:9px; font-size:.85rem; font-weight:800; text-align:right; color:var(--metin); background:var(--kart); outline:none; transition:border-color .2s; }
   .fiyat-satir input:focus { border-color:var(--turuncu); }
   .fiyat-satir .tl { color:var(--soluk); font-size:.8rem; }
+  .sos-banner { position:fixed; top:0; left:0; right:0; z-index:60; background:linear-gradient(90deg,#991b1b,#dc2626); color:#fff; padding:12px 14px; font-weight:800; font-size:.85rem; letter-spacing:.5px; text-align:center; display:none; align-items:center; justify-content:center; gap:12px; box-shadow:0 4px 24px rgba(220,38,38,.55); animation:sosGir .3s ease; }
+  .sos-banner.goster { display:flex; flex-wrap:wrap; }
+  @keyframes sosGir { from { transform:translateY(-100%); opacity:0; } to { transform:none; opacity:1; } }
+  .sos-banner .sos-ikon { font-size:1.4rem; animation:sosNabz 1s ease infinite; }
+  @keyframes sosNabz { 0%,100% { transform:scale(1); } 50% { transform:scale(1.3); } }
+  .sos-banner .sos-metin b { display:block; font-size:.95rem; }
+  .sos-banner .sos-metin span { font-size:.68rem; opacity:.85; font-weight:600; }
+  .sos-banner .sos-kapat { background:#fff; color:#b91c1c; border:none; border-radius:999px; padding:8px 16px; font-weight:800; font-size:.75rem; cursor:pointer; flex-shrink:0; }
+  .sos-banner .sos-kapat:active { transform:scale(.94); }
+  .chat-icerik { height:min(52vh, 340px); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .chat-bos { text-align:center; color:var(--soluk); font-size:.8rem; padding:24px 10px; }
+  .chat-msg { max-width:82%; padding:9px 12px; border-radius:15px; font-size:.86rem; line-height:1.5; word-break:break-word; font-weight:500; }
+  .chat-msg.ben { align-self:flex-end; background:linear-gradient(135deg,#059669,#10b981); color:#fff; border-bottom-right-radius:4px; }
+  .chat-msg.onlar { align-self:flex-start; background:var(--bg); color:var(--metin); border-bottom-left-radius:4px; }
+  .chat-msg .s { display:block; font-size:.62rem; opacity:.75; margin-top:4px; font-weight:700; }
+  .chat-alt { display:flex; gap:8px; padding:12px 0 0; }
+  .chat-alt input { flex:1; padding:11px 13px; border:2px solid var(--cizgi); border-radius:999px; background:var(--kart); color:var(--metin); font-size:.86rem; outline:none; }
+  .chat-alt input:focus { border-color:var(--turuncu); }
+  .chat-alt button { background:linear-gradient(135deg,#059669,#10b981); color:#fff; border:none; border-radius:999px; padding:0 18px; font-weight:800; cursor:pointer; font-size:.78rem; }
 </style>
 </head>
 <body>
@@ -439,10 +458,14 @@
 
   <div style="padding:0 16px 16px; text-align:center; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
     <button class="btn" id="duyuru-gonder-btn" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9); font-size:.75rem; padding:9px 16px; box-shadow:0 6px 16px rgba(139,92,246,.35);">📢 DUYURU GÖNDER</button>
+    <button class="btn" id="mesaj-ac-btn" style="background:linear-gradient(135deg,#0891b2,#0e7490); font-size:.75rem; padding:9px 16px; box-shadow:0 6px 16px rgba(8,145,178,.35);">💬 MESAJLAŞMA</button>
+    <button class="btn" id="sos-durum-btn" style="background:linear-gradient(135deg,#dc2626,#991b1b); font-size:.75rem; padding:9px 16px;">🆘 SOS DURUMU</button>
     <button class="btn" id="fiyat-btn" style="background:linear-gradient(135deg,#059669,#10b981); font-size:.75rem; padding:9px 16px; box-shadow:0 6px 16px rgba(16,185,129,.35);">💶 FİYAT GÜNCELLE</button>
     <button class="btn" id="pin-degistir" style="background:linear-gradient(135deg,#2e6db4,#1b4d86); font-size:.75rem; padding:9px 16px;">🔒 ŞOFÖR PIN DEĞİŞTİR</button>
   </div>
 </div>
+
+<div class="sos-banner" id="sos-banner"><span class="sos-ikon">🆘</span><span class="sos-metin"><b>SOS ALARMI — ŞOFÖR ACİL DURUMDA</b><span id="sos-banner-zaman"></span></span><button class="sos-kapat" id="sos-kapat-btn">GÖRDÜM, KAPAT</button></div>
 
 <nav class="altnav" id="altnav">
   <button class="altnav-sek sekme-aktif" data-hedef="panel"><span class="sekme-ikon">🏠</span><span class="sekme-ad">Ana</span></button>
@@ -482,6 +505,28 @@
       <div class="duyuru-gecmis-baslik">DUYURU GEÇMİŞİ &amp; OKUNDU DURUMU</div>
       <div id="duyuru-gecmis"></div>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="mesaj-modal" style="display:none;">
+  <div class="modal-kap">
+    <div class="modal-baslik"><b>💬 YÖNETİCİ ⇄ ŞOFÖR MESAJLAŞMA</b><button class="modal-kapat" id="mesaj-kapat">✕</button></div>
+    <div class="modal-icerik">
+      <div style="font-size:.78rem; color:#6b7f94; margin-bottom:10px;">Şoför panelinden gönderilen mesajlar anında burada görünür. Mesajlar kayıt altında tutulur.</div>
+      <div class="chat-icerik" id="mesaj-icerik"></div>
+      <div class="chat-alt">
+        <input type="text" id="mesaj-input" placeholder="Şoföre mesajınız..." maxlength="500">
+        <button id="mesaj-gonder">GÖNDER</button>
+      </div>
+      <div class="hata" id="mesaj-hata" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="sos-modal" style="display:none;">
+  <div class="modal-kap">
+    <div class="modal-baslik" style="color:#b91c1c;"><b>🆘 SOS DURUMU</b><button class="modal-kapat" id="sos-modal-kapat">✕</button></div>
+    <div class="modal-icerik" id="sos-modal-icerik"></div>
   </div>
 </div>
 
@@ -1954,6 +1999,10 @@
     setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
     setInterval(haftalikGetir, 300000);
+    mesajlariYukle();
+    setInterval(mesajlariYukle, 3000);
+    sosKontrol();
+    setInterval(sosKontrol, 3000);
   }
 
   function bolumAc(kapamaId, panelId) {
@@ -2128,6 +2177,134 @@
       toast('Duyuru gönderilemedi', 'hata');
     });
   });
+
+  var mesajAcik = false;
+  var mesajlar = [];
+  function mesajlariYukle() {
+    fetch(FIREBASE_URL + '/mesajlar.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var yeni = [];
+        for (var id in (d || {})) {
+          if (d[id] && d[id].m) yeni.push({ id: id, v: d[id] });
+        }
+        yeni.sort(function (a, b) { return (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)); });
+        mesajlar = yeni;
+        if (mesajAcik) mesajCiz();
+      })
+      .catch(function () { });
+  }
+  function mesajCiz() {
+    var kap = document.getElementById('mesaj-icerik');
+    if (!kap) return;
+    if (!mesajlar.length) { kap.innerHTML = '<div class="chat-bos">Henüz mesaj yok — şoföre yazabilirsiniz</div>'; return; }
+    var h = '';
+    for (var i = 0; i < mesajlar.length; i++) {
+      var k = mesajlar[i].v;
+      var ben = k.g === 'yonetici';
+      h += '<div class="chat-msg ' + (ben ? 'ben' : 'onlar') + '">' + escapeHtml(k.m) +
+        '<span class="s">' + (ben ? 'SİZ' : 'ŞOFÖR') + ' · ' + (k.t || '') + ' ' + (k.s || '') + '</span></div>';
+    }
+    kap.innerHTML = h;
+    kap.scrollTop = kap.scrollHeight;
+  }
+  document.getElementById('mesaj-ac-btn').addEventListener('click', function () {
+    mesajAcik = true;
+    document.getElementById('mesaj-hata').textContent = '';
+    document.getElementById('mesaj-input').value = '';
+    document.getElementById('mesaj-modal').style.display = 'flex';
+    mesajlariYukle();
+    setTimeout(function () { document.getElementById('mesaj-input').focus(); }, 200);
+  });
+  document.getElementById('mesaj-kapat').addEventListener('click', function () { mesajAcik = false; modalKapat('mesaj-modal'); });
+  document.getElementById('mesaj-modal').addEventListener('click', function (e) { if (e.target === this) { mesajAcik = false; modalKapat('mesaj-modal'); } });
+  document.getElementById('mesaj-gonder').addEventListener('click', function () {
+    var input = document.getElementById('mesaj-input');
+    var metin = input.value.trim();
+    if (!metin) { document.getElementById('mesaj-hata').textContent = 'Mesaj boş olamaz'; return; }
+    var kayit = {
+      g: 'yonetici',
+      m: metin,
+      t: tarihYaz(new Date()),
+      s: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    };
+    var id = 'M-' + new Date().getTime();
+    fetch(FIREBASE_URL + '/mesajlar/' + id + '.json', { method: 'PUT', body: JSON.stringify(kayit) })
+      .then(function () {
+        input.value = '';
+        document.getElementById('mesaj-hata').textContent = '';
+        mesajlariYukle();
+      })
+      .catch(function () {
+        document.getElementById('mesaj-hata').textContent = 'Gönderilemedi — interneti kontrol edin';
+        toast('Mesaj gönderilemedi', 'hata');
+      });
+  });
+  document.getElementById('mesaj-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('mesaj-gonder').click(); });
+
+  var sosAktif = false;
+  var sosSaat = '';
+  var sosBanner = document.getElementById('sos-banner');
+  function sosKontrol() {
+    fetch(FIREBASE_URL + '/sos.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var aktif = !!(d && d.aktif);
+        if (aktif) sosSaat = (d.t || '') + ' · ' + (d.s || '');
+        if (aktif && !sosAktif) {
+          toast('🆘 Şoför SOS gönderdi — acil durum!', 'hata');
+          try { document.title = '🆘 SOS ALARMI'; } catch (e) { }
+          setTimeout(function () { try { document.title = 'NOKTA TEDARİK — Yönetici'; } catch (e) { } }, 12000);
+        }
+        if (aktif) {
+          document.getElementById('sos-banner-zaman').textContent = (d.t || '') + ' · ' + (d.s || '') + ' saatinde gönderildi';
+        }
+        if (aktif !== sosAktif) {
+          sosAktif = aktif;
+          sosBanner.classList.toggle('goster', aktif);
+        }
+        if (document.getElementById('sos-modal').style.display === 'flex') sosModalCiz();
+      })
+      .catch(function () { });
+  }
+  function sosModalCiz() {
+    var kap = document.getElementById('sos-modal-icerik');
+    if (!kap) return;
+    var d = {};
+    var h = '<div style="font-size:.85rem; color:#6b7f94; line-height:1.6; margin-bottom:14px;">Şoför panelinde <b>🆘 ACİL DURUM</b> butonu, yöneticiye buradan alarm gönderir.</div>';
+    if (sosAktif) {
+      h += '<div style="background:rgba(220,38,38,.09); border:2px solid #dc2626; border-radius:14px; padding:16px; text-align:center; margin-bottom:14px;">' +
+        '<div style="font-size:2.4rem; animation:sosNabz 1s ease infinite; margin-bottom:6px;">🆘</div>' +
+        '<b style="color:#b91c1c; font-size:.95rem;">ALARM AKTİF</b>' +
+        '<div style="font-size:.78rem; color:#6b7f94; margin-top:6px;">' + (sosSaat || '') + ' saatinde gönderildi</div>' +
+        '<button class="btn" id="sos-modal-kapat-acil" style="width:100%; margin-top:12px; background:#dc2626; color:#fff; box-shadow:0 6px 16px rgba(220,38,38,.4);">GÖRDÜM, ALARMI KAPAT</button></div>';
+    } else {
+      h += '<div style="background:var(--bg); border:1px solid var(--cizgi); border-radius:14px; padding:16px; text-align:center;">' +
+        '<div style="font-size:1.6rem; margin-bottom:4px;">✅</div>' +
+        '<b style="color:var(--metin); font-size:.9rem;">Alarm yok</b>' +
+        '<div style="font-size:.78rem; color:var(--soluk); margin-top:4px;">Şoförden aktif SOS bildirimi bulunmuyor.</div></div>';
+    }
+    kap.innerHTML = h;
+    var b = document.getElementById('sos-modal-kapat-acil');
+    if (b) b.addEventListener('click', function () { sosKapat(); });
+  }
+  function sosKapat() {
+    fetch(FIREBASE_URL + '/sos.json', { method: 'PUT', body: JSON.stringify({ aktif: false }) })
+      .then(function () {
+        sosAktif = false;
+        sosBanner.classList.remove('goster');
+        toast('SOS alarmı kapatıldı', 'ok');
+        if (document.getElementById('sos-modal').style.display === 'flex') sosModalCiz();
+      })
+      .catch(function () { toast('Kapatılamadı — interneti kontrol edin', 'hata'); });
+  }
+  document.getElementById('sos-kapat-btn').addEventListener('click', sosKapat);
+  document.getElementById('sos-durum-btn').addEventListener('click', function () {
+    sosModalCiz();
+    document.getElementById('sos-modal').style.display = 'flex';
+  });
+  document.getElementById('sos-modal-kapat').addEventListener('click', function () { modalKapat('sos-modal'); });
+  document.getElementById('sos-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('sos-modal'); });
 
   function duyuruGecmisYukle() {
     var kap = document.getElementById('duyuru-gecmis');
