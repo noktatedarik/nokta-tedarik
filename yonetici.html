@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Yönetici Paneli">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>NOKTA TEDARİK — Yönetici Paneli</title>
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1018,6 +1021,10 @@
     return satirlar;
   }
 
+  function temizSayfaAdi(ad) {
+    return String(ad).replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 31);
+  }
+
   function excelIndir(kitap, dosyaAdi) {
     var veri = XLSX.write(kitap, { bookType: 'xlsx', type: 'array' });
     var blob = new Blob([veri], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1061,7 +1068,7 @@
           return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
         }));
         adim = 'zam-sayfa';
-        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam-Fiyat Kaydı');
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), temizSayfaAdi('Zam-Fiyat Kaydı'));
         adim = 'indir';
         excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
