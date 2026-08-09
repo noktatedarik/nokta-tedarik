@@ -928,9 +928,6 @@
     if (!gec || !gec.length) {
       listeEl.innerHTML = '<div class="bos-kap" style="padding:24px;"><div class="ikon">🕓</div>Bu mağaza için ziyaret kaydı yok<div class="acik">İlk teslim kaydedildiğinde geçmiş burada görünür</div></div>';
     } else {
-      var kolonAd = {};
-      for (var ka = 0; ka < URUNLER.length; ka++) if (!kolonAd[URUNLER[ka].sutun]) kolonAd[URUNLER[ka].sutun] = URUNLER[ka].ad;
-      for (var kb = 0; kb < BAGETTA_URUNLER.length; kb++) if (!kolonAd[BAGETTA_URUNLER[kb].sutun]) kolonAd[BAGETTA_URUNLER[kb].sutun] = BAGETTA_URUNLER[kb].ad;
       var h = '';
       for (var i = 0; i < gec.length; i++) {
         var g = gec[i];
@@ -938,10 +935,13 @@
         var durum = g.red ? '<span class="g-nedeni">✗ ' + g.red + '</span>' : '<span style="color:#1faa4c;">✓ Teslim</span>';
         var urun = '';
         if (g.urunler) {
+          var gListe = (g.marka === 'BAGETTA') ? BAGETTA_URUNLER : URUNLER;
+          var gKolAd = {};
+          for (var gk2 = 0; gk2 < gListe.length; gk2++) gKolAd[gListe[gk2].sutun] = gListe[gk2].ad;
           var parcalar = [];
           for (var uy in g.urunler) {
             if (g.urunler[uy] && g.urunler[uy] > 0) {
-              var urunAd = kolonAd[uy] || uy;
+              var urunAd = gKolAd[uy] || uy;
               parcalar.push(urunAd + ': ' + g.urunler[uy]);
             }
           }
