@@ -528,10 +528,13 @@
     if (sesKilitAcildi) return;
     sesKilitAcildi = true;
     try {
+      window.speechSynthesis.cancel();
       window.speechSynthesis.getVoices();
-      setTimeout(function () {
-        konus('Merhaba. Ben MÜDÜR. Yazıyla sorduğunuzda size sesli cevap vereceğim.');
-      }, 300);
+      var u = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
+      u.lang = 'tr-TR';
+      window.speechSynthesis.speak(u);
+      dinlemeDurum.textContent = '🔊 Ses hazır';
+      dinlemeDurum.style.display = 'block';
     } catch (e) { }
   }
 
