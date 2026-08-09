@@ -126,6 +126,7 @@
     <span>NOKTA TEDARİK · yapay zeka asistanı · canlı veri</span>
   </div>
   <div class="sag">
+    <button class="btn-ust" id="ses-test-btn" title="Sesi test et">📣</button>
     <button class="btn-ust" id="ses-btn" title="Ses açık/kapalı">🔊</button>
     <span class="nokta" id="baglanti-nokta"></span>
   </div>
@@ -484,6 +485,7 @@
       for (var i = 0; i < sesler.length; i++) {
         if (/tr/i.test(sesler[i].lang) || /turk/i.test(sesler[i].name)) return sesler[i];
       }
+      if (sesler && sesler.length) return sesler[0];
     } catch (e) { }
     return null;
   }
@@ -509,6 +511,12 @@
         u.pitch = 1;
         var v = turkceSesSec();
         if (v) { u.voice = v; u.lang = v.lang; }
+        u.onerror = function (e) {
+          try {
+            dinlemeDurum.textContent = '⚠️ Ses çalınmadı: ' + (e && e.error ? e.error : 'bilinmiyor') + ' (cihazda konuşma sesi/izni olmayabilir)';
+            dinlemeDurum.style.display = 'block';
+          } catch (x) { }
+        };
         window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices(); };
         window.speechSynthesis.speak(u);
         if (SafariVar) {
@@ -530,13 +538,23 @@
     try {
       window.speechSynthesis.cancel();
       window.speechSynthesis.getVoices();
+      var v = turkceSesSec();
       var u = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
-      u.lang = 'tr-TR';
+      u.lang = v ? v.lang : 'tr-TR';
+      if (v) u.voice = v;
       window.speechSynthesis.speak(u);
       dinlemeDurum.textContent = '🔊 Ses hazır';
       dinlemeDurum.style.display = 'block';
     } catch (e) { }
   }
+
+  document.getElementById('ses-test-btn').addEventListener('click', function () {
+    sesAcik = true;
+    sesBtn.textContent = '🔊';
+    konus('Test sesi. Bir, iki, üç. MÜDÜR sesli çalışıyor.');
+    dinlemeDurum.textContent = '🎤 Sesi test ettiniz — duydunuz mu?';
+    dinlemeDurum.style.display = 'block';
+  });
 
   ['touchstart', 'click', 'keydown', 'keyup'].forEach(function (olay) {
     document.addEventListener(olay, function () { if (SafariVar && 'speechSynthesis' in window) sesKilit(); }, { once: true });
@@ -693,8 +711,21 @@
 
   dinleyiciKur();
 
-  document.getElementById('gonder-btn').addEventListener('click', function () { soruGel(giris.value); });
-  giris.addEventListener('keydown', function (e) { if (e.key === 'Enter') soruGel(giris.value); });
+  function soruGonder() {
+    if (SafariVar && !sesKilitAcildi && 'speechSynthesis' in window) {
+      sesKilitAcildi = true;
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.getVoices();
+        var k = new SpeechSynthesisUtterance('Merhaba, ben MÜDÜR.');
+        k.lang = 'tr-TR';
+        window.speechSynthesis.speak(k);
+      } catch (e) { }
+    }
+    soruGel(giris.value);
+  }
+  document.getElementById('gonder-btn').addEventListener('click', soruGonder);
+  giris.addEventListener('keydown', function (e) { if (e.key === 'Enter') soruGonder(); });
 
   flatListe();
   veriTazele();
