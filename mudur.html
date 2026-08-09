@@ -785,6 +785,8 @@
   var googleEl = null;
   var googleDurdur = true;
   var googleZamanlayici = null;
+  var googleBaslangicZaman = 0;
+  var googleHataSayac = 0;
 
   function gDurdur() {
     googleDurdur = true;
@@ -794,16 +796,19 @@
     googleParcalar = [];
   }
 
-  function gCihazaDus(ekMetin) {
+  function gCihazaDus(ekMetin, neden) {
     var kalan = googleParcalar.join(', ');
     if (ekMetin) kalan = ekMetin + ', ' + kalan;
     gDurdur();
-    kaynak = 'cihaz';
-    try { localStorage.setItem('mudur-kaynak', 'cihaz'); } catch (e) { }
+    googleHataSayac++;
+    if (googleHataSayac >= 3) {
+      kaynak = 'cihaz';
+      try { localStorage.setItem('mudur-kaynak', 'cihaz'); } catch (e) { }
+    }
     kaynakVurgula();
     konusCihaz(kalan);
     try {
-      dinlemeDurum.textContent = kalan ? '📱 Google sesi ulaşmadı — cihaz sesine geçildi' : '📱 Cihaz sesi';
+      dinlemeDurum.textContent = neden ? ('☁️ Google sesi: ' + neden + ' — cihaz sesiyle okunuyor') : '📱 Cihaz sesi';
       dinlemeDurum.style.display = 'block';
     } catch (e) { }
   }
@@ -830,25 +835,27 @@
     try {
       if (!googleEl) googleEl = new Audio();
       googleEl.onended = function () {
+        googleHataSayac = 0;
         setTimeout(function () { if (!googleDurdur) gOynat(); }, 140);
       };
-      googleEl.onerror = function () { gCihazaDus(metin); };
+      googleEl.onerror = function () { gCihazaDus(metin, 'yüklenemedi'); };
       googleEl.src = 'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=' + encodeURIComponent(metin);
       googleEl.load();
-      googleEl.play().catch(function () { gCihazaDus(metin); });
+      googleEl.play().catch(function () { gCihazaDus(metin, 'engellendi'); });
+      googleBaslangicZaman = Date.now();
       var gWatchdog = function () {
         try {
           if (googleDurdur || !googleEl) return;
-          if (googleEl.ended || !googleEl.paused) {
-            googleZamanlayici = setTimeout(gWatchdog, 2000);
-            return;
-          }
-          gCihazaDus();
+          if (googleEl.error) { gCihazaDus(metin, 'yüklenemedi'); return; }
+          if (googleEl.ended) { googleZamanlayici = setTimeout(gWatchdog, 1000); return; }
+          if (!googleEl.paused) { googleZamanlayici = setTimeout(gWatchdog, 1500); return; }
+          if (Date.now() - googleBaslangicZaman < 6000) { googleZamanlayici = setTimeout(gWatchdog, 1000); return; }
+          gCihazaDus(metin, 'tam 6 sn bekledim, ses gelmedi');
         } catch (e) { }
       };
-      googleZamanlayici = setTimeout(gWatchdog, 3500);
+      googleZamanlayici = setTimeout(gWatchdog, 2000);
     } catch (e) {
-      gCihazaDus(metin);
+      gCihazaDus(metin, 'motor hatası');
     }
   }
 
