@@ -1018,6 +1018,18 @@
     return satirlar;
   }
 
+  function excelIndir(kitap, dosyaAdi) {
+    var veri = XLSX.write(kitap, { bookType: 'xlsx', type: 'array' });
+    var blob = new Blob([veri], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = dosyaAdi;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
   function excelRapor() {
     if (typeof XLSX === 'undefined') { toast('Excel kütüphanesi yüklenemedi', 'hata'); return; }
     if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
@@ -1035,7 +1047,7 @@
           return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
         }));
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
-        XLSX.utils.writeFile(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
+        excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
       } catch (e) { console.error('Excel hatası:', e); toast('Excel oluşturulamadı: ' + (e && e.message ? e.message : e), 'hata'); }
     });
