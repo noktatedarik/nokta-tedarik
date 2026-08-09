@@ -345,6 +345,9 @@
     <label>İl
       <select id="il-sec"></select>
     </label>
+    <label>İlçe
+      <select id="ilce-sec"><option value="">TÜM İLÇELER</option></select>
+    </label>
     <label>Tarih
       <input type="date" id="tarih-sec">
     </label>
@@ -525,10 +528,12 @@
   var sehirEl = document.getElementById('sehir-ad');
   var tarihEl = document.getElementById('tarih-ad');
   var ilSec = document.getElementById('il-sec');
+  var ilceSec = document.getElementById('ilce-sec');
   var tarihSec = document.getElementById('tarih-sec');
   var aramaEl = null;
 
   var secilenIl = bugunkuSehir() || (MAGAZALAR.length ? MAGAZALAR[0].sehir : '');
+  var secilenIlce = '';
   var secilenTarih = tarihYaz(new Date());
   tarihSec.max = secilenTarih;
   tarihSec.value = secilenTarih;
@@ -541,6 +546,39 @@
     s.forEach(function (x) { liste2.push(x); });
     liste2.sort();
     return liste2;
+  }
+
+  function ilceListesi(il) {
+    var s = new Set();
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (il !== '__TUMU__' && normalize(MAGAZALAR[l].sehir) !== normalize(il)) continue;
+      var il2 = MAGAZALAR[l];
+      for (var i = 0; i < il2.magazalar.length; i++) {
+        var ilce = il2.magazalar[i].i;
+        if (ilce) s.add(ilce);
+      }
+    }
+    var liste2 = [];
+    s.forEach(function (x) { liste2.push(x); });
+    liste2.sort();
+    return liste2;
+  }
+
+  function ilceDoldur() {
+    ilceSec.innerHTML = '';
+    var tumu = document.createElement('option');
+    tumu.value = '';
+    tumu.textContent = 'TÜM İLÇELER';
+    ilceSec.appendChild(tumu);
+    var ilceler = ilceListesi(secilenIl);
+    for (var i = 0; i < ilceler.length; i++) {
+      var o = document.createElement('option');
+      o.value = ilceler[i];
+      o.textContent = ilceler[i];
+      ilceSec.appendChild(o);
+    }
+    if (secilenIlce && ilceler.indexOf(secilenIlce) === -1) secilenIlce = '';
+    ilceSec.value = secilenIlce;
   }
 
   function secimKur() {
@@ -559,9 +597,16 @@
     ilSec.value = secilenIl;
     ilSec.addEventListener('change', function () {
       secilenIl = ilSec.value;
+      secilenIlce = '';
       sehirEl.textContent = secilenIl === '__TUMU__' ? 'TÜM İLLER' : secilenIl;
+      ilceDoldur();
       yukle();
     });
+    ilceSec.addEventListener('change', function () {
+      secilenIlce = ilceSec.value;
+      yukle();
+    });
+    ilceDoldur();
     tarihSec.addEventListener('change', function () {
       if (!tarihSec.value) return;
       secilenTarih = tarihSec.value;
@@ -572,11 +617,15 @@
 
   function magazaListesiGetir() {
     var liste2 = [];
+    function ekle(il, m, sira) {
+      if (secilenIlce && m.i && normalize(m.i) !== normalize(secilenIlce)) return;
+      liste2.push({ sehir: il, m: m, sira: sira });
+    }
     if (secilenIl === '__TUMU__') {
       for (var l = 0; l < MAGAZALAR.length; l++) {
         var il = MAGAZALAR[l];
         for (var i = 0; i < il.magazalar.length; i++) {
-          liste2.push({ sehir: il.sehir, m: il.magazalar[i], sira: i + 1 });
+          ekle(il.sehir, il.magazalar[i], i + 1);
         }
       }
     } else {
@@ -585,7 +634,7 @@
         if (normalize(MAGAZALAR[l2].sehir) === hedef) {
           var il2 = MAGAZALAR[l2];
           for (var i2 = 0; i2 < il2.magazalar.length; i2++) {
-            liste2.push({ sehir: il2.sehir, m: il2.magazalar[i2], sira: i2 + 1 });
+            ekle(il2.sehir, il2.magazalar[i2], i2 + 1);
           }
           break;
         }
