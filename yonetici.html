@@ -283,6 +283,8 @@
   .tl-ok { color:var(--soluk); }
   .rota-bilgi { font-size:.7rem; color:var(--soluk); padding-top:8px; line-height:1.6; }
   .rota-bilgi b { color:var(--metin); }
+  .nav-link { display:inline-flex; align-items:center; gap:5px; margin-top:9px; background:linear-gradient(135deg,#059669,#10b981); color:#fff; text-decoration:none; font-size:.72rem; font-weight:800; padding:8px 14px; border-radius:999px; box-shadow:0 4px 12px rgba(16,185,129,.4); transition:.2s; }
+  .nav-link:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(16,185,129,.5); }
   #panel { padding-bottom:84px; }
   .altnav { position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:space-around; align-items:stretch; background:rgba(13,27,51,.9); backdrop-filter:blur(20px) saturate(1.5); -webkit-backdrop-filter:blur(20px) saturate(1.5); border-top:1px solid rgba(255,255,255,.12); padding:6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow:0 -8px 30px rgba(10,23,48,.35); }
   #giris-kap:not([style*="none"]) ~ .altnav { display:none; }
@@ -372,7 +374,10 @@
   </div>
   <div class="konum-bar">
     <span><span class="canli-nokta"></span><span id="konum-metin">Araç konumu bekleniyor...</span></span>
-    <a class="btn" id="ara-btn" href="tel:+905467606608" style="text-decoration:none; padding:8px 14px; font-size:.75rem;">📞 ŞOFÖRÜ ARA</a>
+    <div style="display:flex; gap:6px; flex-shrink:0;">
+      <a class="btn" id="nav-btn" href="#" target="_blank" rel="noopener" style="text-decoration:none; padding:8px 12px; font-size:.72rem; background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 4px 12px rgba(16,185,129,.35);">🧭 ROTA</a>
+      <a class="btn" id="ara-btn" href="tel:+905467606608" style="text-decoration:none; padding:8px 12px; font-size:.72rem;">📞 ARA</a>
+    </div>
   </div>
 
   <div class="uyari ok" id="eksik-uyari" style="display:none;"></div>
@@ -680,6 +685,8 @@
         var m = mesafe(sonKonum, { lat: d.lat, lng: d.lng });
         sonKonum = { lat: d.lat, lng: d.lng };
         document.getElementById('konum-metin').textContent = 'Son konum: ' + (d.saat || '—') + ' · ' + (d.sehir || '');
+        var navBtn = document.getElementById('nav-btn');
+        if (navBtn) navBtn.href = 'https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving';
         if (gunDurum.tamamlandi) {
           document.getElementById('ozet-durum').textContent = '✓ Tamamlandı ' + gunDurum.tamamlandi;
         } else {
@@ -687,7 +694,7 @@
         }
         if (harita) {
           if (!aracMarker) {
-            aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—'));
+            aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>');
             harita.setView(nokta, 13);
           } else {
             aracMarker.setLatLng(nokta);
