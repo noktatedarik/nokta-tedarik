@@ -782,14 +782,30 @@
 
   var googleParcalar = [];
   var googleIndex = 0;
-  var googleAp = null;
+  var googleEl = null;
   var googleDurdur = true;
+  var googleZamanlayici = null;
 
   function gDurdur() {
     googleDurdur = true;
-    if (googleAp) { try { googleAp.pause(); } catch (e) { } googleAp = null; }
+    if (googleZamanlayici) { clearTimeout(googleZamanlayici); googleZamanlayici = null; }
+    if (googleEl) { try { googleEl.pause(); } catch (e) { } }
     googleIndex = 0;
     googleParcalar = [];
+  }
+
+  function gCihazaDus(ekMetin) {
+    var kalan = googleParcalar.join(', ');
+    if (ekMetin) kalan = ekMetin + ', ' + kalan;
+    gDurdur();
+    kaynak = 'cihaz';
+    try { localStorage.setItem('mudur-kaynak', 'cihaz'); } catch (e) { }
+    kaynakVurgula();
+    konusCihaz(kalan);
+    try {
+      dinlemeDurum.textContent = kalan ? '📱 Google sesi ulaşmadı — cihaz sesine geçildi' : '📱 Cihaz sesi';
+      dinlemeDurum.style.display = 'block';
+    } catch (e) { }
   }
 
   function metinParcala(metin, cap) {
@@ -812,24 +828,27 @@
     if (googleIndex >= googleParcalar.length) { googleParcalar = []; return; }
     var metin = googleParcalar[googleIndex]; googleIndex++;
     try {
-      var url = 'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=' + encodeURIComponent(metin);
-      var a = new Audio(url);
-      a.onended = function () {
+      if (!googleEl) googleEl = new Audio();
+      googleEl.onended = function () {
         setTimeout(function () { if (!googleDurdur) gOynat(); }, 140);
       };
-      a.onerror = function () {
-        gDurdur();
-        konusCihaz(googleParcalar.join(', '));
+      googleEl.onerror = function () { gCihazaDus(metin); };
+      googleEl.src = 'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=' + encodeURIComponent(metin);
+      googleEl.load();
+      googleEl.play().catch(function () { gCihazaDus(metin); });
+      var gWatchdog = function () {
+        try {
+          if (googleDurdur || !googleEl) return;
+          if (googleEl.ended || !googleEl.paused) {
+            googleZamanlayici = setTimeout(gWatchdog, 2000);
+            return;
+          }
+          gCihazaDus();
+        } catch (e) { }
       };
-      var p = a.play();
-      if (p && p.catch) p.catch(function () {
-        gDurdur();
-        konusCihaz(googleParcalar.join(', '));
-      });
-      googleAp = a;
+      googleZamanlayici = setTimeout(gWatchdog, 3500);
     } catch (e) {
-      gDurdur();
-      konusCihaz(googleParcalar.join(', '));
+      gCihazaDus(metin);
     }
   }
 
@@ -840,6 +859,7 @@
     googleParcalar = metinParcala(metin, 150);
     if (!googleParcalar.length) return;
     googleDurdur = false;
+    try { dinlemeDurum.textContent = '☁️ Google ses ile okunuyor'; dinlemeDurum.style.display = 'block'; } catch (e) { }
     gOynat();
   }
 
