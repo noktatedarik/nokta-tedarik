@@ -1031,7 +1031,12 @@
   }
 
   function excelRapor() {
-    if (typeof XLSX === 'undefined') { toast('Excel kütüphanesi yüklenemedi', 'hata'); return; }
+    if (typeof XLSX === 'undefined') {
+      var m0 = 'Excel kütüphanesi yüklenemedi (CDN erişim sorunu olabilir)';
+      toast(m0, 'hata');
+      try { alert(m0); } catch (x) { }
+      return;
+    }
     if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
     toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
     fiyatYukle().then(function () {
@@ -1049,7 +1054,12 @@
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
         excelIndir(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
         toast('✓ Excel raporu indirildi', 'ok');
-      } catch (e) { console.error('Excel hatası:', e); toast('Excel oluşturulamadı: ' + (e && e.message ? e.message : e), 'hata'); }
+      } catch (e) {
+        console.error('Excel hatası:', e);
+        var hataMetin = 'Excel oluşturulamadı: ' + (e && e.message ? e.message : e);
+        toast(hataMetin, 'hata');
+        try { alert(hataMetin); } catch (x) { }
+      }
     });
   }
 
