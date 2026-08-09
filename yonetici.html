@@ -952,23 +952,26 @@
 
   function ciroCsv() {
     if (!exportVeri) { toast('Veri henüz yüklenmedi', 'hata'); return; }
-    var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
-    var kolonAd = {};
-    for (var y = 0; y < URUNLER.length; y++) if (!kolonAd[URUNLER[y].sutun]) kolonAd[URUNLER[y].sutun] = URUNLER[y].ad;
-    for (var z = 0; z < BAGETTA_URUNLER.length; z++) if (!kolonAd[BAGETTA_URUNLER[z].sutun]) kolonAd[BAGETTA_URUNLER[z].sutun] = BAGETTA_URUNLER[z].ad;
-    var satirlar = [];
-    var toplam = 0;
-    for (var s in kolonAd) {
-      var fiyatT = ft[s] || 0, fiyatB = fb[s] || 0;
-      var adetT = exportVeri.tamkoySutun[s] || 0, adetB = exportVeri.bagetSutun[s] || 0;
-      if (!adetT && !adetB) continue;
-      var ciro = adetT * fiyatT + adetB * fiyatB;
-      toplam += ciro;
-      satirlar.push([kolonAd[s], fiyatT || fiyatB, adetT + adetB, ciro]);
-    }
-    satirlar.push(['GENEL TOPLAM', '', '', toplam]);
-    csvIndir('ciro-raporu-' + exportVeri.tarih + '.csv', ['Ürün', 'Fiyat (₺)', 'Adet', 'Ciro (₺)'], satirlar);
-    toast('✓ Ciro raporu indirildi', 'ok');
+    toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
+    fiyatYukle().then(function () {
+      var ft = FIYATLAR.TAMKOY || {}, fb = FIYATLAR.BAGETTA || {};
+      var kolonAd = {};
+      for (var y = 0; y < URUNLER.length; y++) if (!kolonAd[URUNLER[y].sutun]) kolonAd[URUNLER[y].sutun] = URUNLER[y].ad;
+      for (var z = 0; z < BAGETTA_URUNLER.length; z++) if (!kolonAd[BAGETTA_URUNLER[z].sutun]) kolonAd[BAGETTA_URUNLER[z].sutun] = BAGETTA_URUNLER[z].ad;
+      var satirlar = [];
+      var toplam = 0;
+      for (var s in kolonAd) {
+        var fiyatT = ft[s] || 0, fiyatB = fb[s] || 0;
+        var adetT = exportVeri.tamkoySutun[s] || 0, adetB = exportVeri.bagetSutun[s] || 0;
+        if (!adetT && !adetB) continue;
+        var ciro = adetT * fiyatT + adetB * fiyatB;
+        toplam += ciro;
+        satirlar.push([kolonAd[s], fiyatT || fiyatB, adetT + adetB, ciro]);
+      }
+      satirlar.push(['GENEL TOPLAM', '', '', toplam]);
+      csvIndir('ciro-raporu-' + exportVeri.tarih + '.csv', ['Ürün', 'Fiyat (₺)', 'Adet', 'Ciro (₺)'], satirlar);
+      toast('✓ Ciro raporu indirildi', 'ok');
+    });
   }
 
   function yazdir() {
@@ -1018,24 +1021,33 @@
   function excelRapor() {
     if (typeof XLSX === 'undefined') { toast('Excel kütüphanesi yüklenemedi', 'hata'); return; }
     if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
-    try {
-      var kitap = XLSX.utils.book_new();
-      var durum = [['İl', 'İlçe', 'Mağaza', 'Marka', 'Durum', 'Saat/Red', 'Son Ziyaret']].concat(magazaSatirlari());
-      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(durum), 'Mağaza Durumu');
-      var red = [['Marka', 'Mağaza', 'İlçe', 'Red Nedeni', 'Saat']].concat(exportVeri.redler.map(function (r) { return [r.marka, r.ad, r.ilce, r.neden, r.saat]; }));
-      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(red), 'Red Raporu');
-      var ciro = [['Ürün', 'Fiyat', 'Adet', 'Ciro']].concat(ciroSatirlari());
-      XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(ciro), 'Ciro Raporu');
-      XLSX.utils.writeFile(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
-      toast('✓ Excel raporu indirildi', 'ok');
-    } catch (e) { toast('Excel oluşturulamadı: ' + e.message, 'hata'); }
+    toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
+    fiyatYukle().then(function () {
+      try {
+        var kitap = XLSX.utils.book_new();
+        var durum = [['İl', 'İlçe', 'Mağaza', 'Marka', 'Durum', 'Saat/Red', 'Son Ziyaret']].concat(magazaSatirlari());
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(durum), 'Mağaza Durumu');
+        var red = [['Marka', 'Mağaza', 'İlçe', 'Red Nedeni', 'Saat']].concat(exportVeri.redler.map(function (r) { return [r.marka, r.ad, r.ilce, r.neden, r.saat]; }));
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(red), 'Red Raporu');
+        var ciro = [['Ürün', 'Fiyat', 'Adet', 'Ciro']].concat(ciroSatirlari());
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(ciro), 'Ciro Raporu');
+        var zam = [['Tarih', 'Marka', 'Ürün', 'Eski Fiyat (₺)', 'Yeni Fiyat (₺)']].concat((fiyatGecmisi || []).map(function (k) {
+          return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
+        }));
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(zam), 'Zam / Fiyat Kaydı');
+        XLSX.utils.writeFile(kitap, 'nokta-tedarik-rapor-' + exportVeri.tarih + '.xlsx');
+        toast('✓ Excel raporu indirildi', 'ok');
+      } catch (e) { toast('Excel oluşturulamadı: ' + e.message, 'hata'); }
+    });
   }
 
   function pdfRapor() {
     if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF) { toast('PDF kütüphanesi yüklenemedi', 'hata'); return; }
     if (!exportVeri || !exportVeri.magazalar.length) { toast('Veri henüz yüklenmedi', 'hata'); return; }
-    try {
-      var doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+    toast('🔄 Fiyatlar kontrol ediliyor...', 'ok');
+    fiyatYukle().then(function () {
+      try {
+        var doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
       doc.setFillColor(13, 27, 51);
       doc.rect(0, 0, 210, 32, 'F');
       doc.setTextColor(255, 255, 255);
@@ -1072,12 +1084,19 @@
       }
       if (y > 250) { doc.addPage(); y = 20; }
       baslikTablosu('CİRO RAPORU', ciroSatirlari(), ['Ürün', 'Fiyat', 'Adet', 'Ciro']);
+      if ((fiyatGecmisi || []).length) {
+        if (y > 250) { doc.addPage(); y = 20; }
+        baslikTablosu('ZAM / FİYAT DEĞİŞİKLİK KAYDI', fiyatGecmisi.map(function (k) {
+          return [k.tarih, k.marka, k.urun, k.eskifiyat + ' ₺', k.yenifiyat + ' ₺'];
+        }), ['Tarih', 'Marka', 'Ürün', 'Eski Fiyat', 'Yeni Fiyat']);
+      }
       doc.setFontSize(7);
       doc.setTextColor(150);
       doc.text('NOKTA TEDARİK  ·  Yönetici Paneli Raporu  ·  ' + exportVeri.tarih, 105, 290, { align: 'center' });
       doc.save('nokta-tedarik-rapor-' + exportVeri.tarih + '.pdf');
-      toast('✓ PDF raporu indirildi', 'ok');
-    } catch (e) { toast('PDF oluşturulamadı: ' + e.message, 'hata'); }
+        toast('✓ PDF raporu indirildi', 'ok');
+      } catch (e) { toast('PDF oluşturulamadı: ' + e.message, 'hata'); }
+    });
   }
 
   function raporMenusu(acik) {
@@ -1889,8 +1908,10 @@
     });
   });
 
+  var fiyatGecmisi = [];
+
   function fiyatYukle() {
-    fetch(FIREBASE_URL + '/ayar/fiyatlar.json')
+    var p1 = fetch(FIREBASE_URL + '/ayar/fiyatlar.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d && d.TAMKOY && d.BAGETTA) {
@@ -1899,6 +1920,12 @@
           FIYATLAR.guncelleme = d.guncelleme || FIYATLAR.guncelleme;
         }
       }).catch(function () { });
+    var p2 = fetch(FIREBASE_URL + '/ayar/fiyatlar/degisim.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (Array.isArray(d)) fiyatGecmisi = d;
+      }).catch(function () { });
+    return Promise.all([p1, p2]);
   }
 
   function fiyatModalAc() {
@@ -1921,13 +1948,25 @@
   document.getElementById('fiyat-kapat').addEventListener('click', function () { modalKapat('fiyat-modal'); });
   document.getElementById('fiyat-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('fiyat-modal'); });
   document.getElementById('fiyat-kaydet').addEventListener('click', function () {
+    var eskiT = FIYATLAR.TAMKOY || {}, eskiB = FIYATLAR.BAGETTA || {};
     var ft = {}, fb = {};
     document.querySelectorAll('#fiyat-modal input[data-marka]').forEach(function (inp) {
       var val = Math.max(0, parseFloat(inp.value) || 0);
       if (inp.getAttribute('data-marka') === 'TAMKOY') ft[inp.getAttribute('data-sutun')] = val;
       else fb[inp.getAttribute('data-sutun')] = val;
     });
-    var yeni = { TAMKOY: ft, BAGETTA: fb, guncelleme: new Date().toLocaleDateString('tr-TR') };
+    var guncellemeTarih = new Date().toLocaleDateString('tr-TR');
+    var yeni = { TAMKOY: ft, BAGETTA: fb, guncelleme: guncellemeTarih };
+    var kayitlar = [];
+    var kolonAd = urunKolonAdi();
+    function zamKarsilastir(marka, eski, yeniF) {
+      for (var s in kolonAd) {
+        var e = eski[s] || 0, y = yeniF[s] || 0;
+        if (y !== e) kayitlar.push({ tarih: guncellemeTarih, marka: marka, urun: kolonAd[s], eskifiyat: e, yenifiyat: y });
+      }
+    }
+    zamKarsilastir('TAMKOY', eskiT, ft);
+    zamKarsilastir('BAGETTA', eskiB, fb);
     fetch(FIREBASE_URL + '/ayar/fiyatlar.json', {
       method: 'PUT',
       body: JSON.stringify(yeni)
@@ -1935,10 +1974,23 @@
       FIYATLAR.TAMKOY = ft;
       FIYATLAR.BAGETTA = fb;
       FIYATLAR.guncelleme = yeni.guncelleme;
+      if (kayitlar.length) {
+        return fetch(FIREBASE_URL + '/ayar/fiyatlar/degisim.json')
+          .then(function (r) { return r.json(); })
+          .then(function (mevcut) {
+            var eski = Array.isArray(mevcut) ? mevcut : fiyatGecmisi;
+            fiyatGecmisi = kayitlar.concat(eski).slice(0, 300);
+            return fetch(FIREBASE_URL + '/ayar/fiyatlar/degisim.json', {
+              method: 'PUT',
+              body: JSON.stringify(fiyatGecmisi)
+            });
+          });
+      }
+    }).then(function () {
       var hataEl = document.getElementById('fiyat-hata');
       hataEl.style.color = '#1faa4c';
-      hataEl.textContent = '✓ Fiyatlar güncellendi';
-      toast('💶 Fiyatlar kaydedildi', 'ok');
+      hataEl.textContent = kayitlar.length ? '✓ Fiyatlar güncellendi (' + kayitlar.length + ' ürün)' : '✓ Fiyatlar kaydedildi';
+      toast(kayitlar.length ? '💶 ' + kayitlar.length + ' ürünün fiyatı güncellendi' : '💶 Fiyatlar kaydedildi', 'ok');
       yukle();
       setTimeout(function () { modalKapat('fiyat-modal'); }, 1300);
     }).catch(function () {
