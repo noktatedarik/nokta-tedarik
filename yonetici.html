@@ -439,6 +439,19 @@
   <div class="bolum" id="baslik-depo"><span class="ad"><span class="ikon">🏭</span>SEVKİYAT &amp; KOLİ HESABI</span><span class="ok">▾</span></div>
   <div class="icerik" id="depo-panel" style="display:none;"></div>
 
+  <div class="bolum" id="baslik-giris"><span class="ad"><span class="ikon">📥</span>DEPO GİRİŞİ — KOLİ EKLE</span><span class="ok">▾</span></div>
+  <div class="icerik" id="giris-panel" style="display:none;">
+    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:12px 2px;">
+      <label style="font-size:.72rem; color:#6b7f94;">TARİH<br><input type="date" id="giris-tarih" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
+      <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="giris-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA · 12'li koli</option><option value="TAMKOY">TAMKÖY · 20'li koli</option></select></label>
+      <label style="font-size:.72rem; color:#6b7f94;">ÜRÜN<br><select id="giris-urun" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></select></label>
+      <label style="font-size:.72rem; color:#6b7f94;">KOLİ<br><input type="number" id="giris-koli" min="0" value="1" style="width:80px; padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
+      <button id="giris-ekle-btn" style="padding:9px 16px; background:#1faa4c; color:#fff; border:0; border-radius:8px; font-weight:700; font-size:.82rem; cursor:pointer;">+ GİRİŞ EKLE</button>
+    </div>
+    <div id="giris-liste"></div>
+    <div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Değerler koli cinsindendir (Bağetta 12'li, Tamköy 20'li çarpanı). Aynı ürüne tekrar eklerseniz üstüne eklenir.</div>
+  </div>
+
   <div class="bolum" id="baslik-ciro"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="ciro-panel" style="display:none;"></div>
 
@@ -1018,6 +1031,98 @@
     if (metin === sonStokSnap) return;
     sonStokSnap = metin;
     fetch(FIREBASE_URL + '/depostok/hesap.json', { method: 'PUT', body: JSON.stringify({ tarih: tarih, metin: metin }) }).catch(function () { });
+  }
+
+  function girisUrunDoldur() {
+    var mk = document.getElementById('giris-marka').value;
+    var sec = document.getElementById('giris-urun');
+    var liste = mk === 'BAGETTA' ? BAGETTA_URUNLER : URUNLER;
+    var h = '';
+    for (var i = 0; i < liste.length; i++) {
+      h += '<option value="' + liste[i].sutun + '">' + liste[i].ad + ' (' + liste[i].sutun + ')</option>';
+    }
+    sec.innerHTML = h || '<option value="">Ürün yok</option>';
+  }
+
+  function girisListeGoster() {
+    var kap = document.getElementById('giris-liste');
+    var tarih = document.getElementById('giris-tarih').value;
+    if (!kap || !tarih) return;
+    fetch(FIREBASE_URL + '/depostok/giris/' + tarih + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var h = '<div class="ad" style="font-weight:700; color:var(--mavi); padding:8px 0 4px;">KOLİ GİRİŞLERİ · ' + tarih + '</div>';
+        if (!d) { kap.innerHTML = h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte koli girişi yok</div></div>'; return; }
+        var kolonAd = urunKolonAdi();
+        var satirlar = [];
+        for (var mk in d) {
+          if (mk !== 'BAGETTA' && mk !== 'TAMKOY') continue;
+          var koliler = d[mk];
+          if (!koliler) continue;
+          for (var s in koliler) {
+            var v = parseFloat(koliler[s]) || 0;
+            if (!v) continue;
+            satirlar.push({ marka: mk, sutun: s, ad: kolonAd[s] || s, koli: v });
+          }
+        }
+        satirlar.sort(function (a, b) { return a.marka === b.marka ? (a.ad < b.ad ? -1 : 1) : (a.marka < b.marka ? -1 : 1); });
+        if (!satirlar.length) { kap.innerHTML = h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte koli girişi yok</div></div>'; return; }
+        h += '<div class="tablo-sar"><table><thead><tr><th>MARKA</th><th>ÜRÜN</th><th class="say">KOLİ</th><th class="say">ADET</th><th></th></tr></thead><tbody>';
+        for (var i = 0; i < satirlar.length; i++) {
+          var sr = satirlar[i];
+          var boy = sr.marka === 'BAGETTA' ? 12 : 20;
+          h += '<tr><td>' + (sr.marka === 'BAGETTA' ? 'BAĞETTA' : 'TAMKÖY') + '</td><td>' + sr.ad + '</td><td class="say">' + sr.koli + '</td><td class="say">' + Math.round(sr.koli * boy) + '</td>' +
+            '<td style="text-align:right;"><button class="btn-gecmis" data-giris-sil="1" data-marka="' + sr.marka + '" data-sutun="' + sr.sutun + '" data-tarih="' + tarih + '" style="background:#e74c3c; color:#fff;">🗑 Sil</button></td></tr>';
+        }
+        h += '</tbody></table></div>';
+        kap.innerHTML = h;
+        var silBtns = kap.querySelectorAll('[data-giris-sil]');
+        for (var b = 0; b < silBtns.length; b++) {
+          silBtns[b].addEventListener('click', function () {
+            girisSil(this.getAttribute('data-marka'), this.getAttribute('data-sutun'), this.getAttribute('data-tarih'));
+          });
+        }
+      }).catch(function () {
+        if (kap) kap.innerHTML = '<div class="acik" style="font-size:.72rem; color:#9fb0c3;">Girişler yüklenemedi — interneti kontrol edin</div>';
+      });
+  }
+
+  function girisEkle() {
+    var tarih = document.getElementById('giris-tarih').value;
+    var marka = document.getElementById('giris-marka').value;
+    var sutun = document.getElementById('giris-urun').value;
+    var koli = Math.max(0, parseInt(document.getElementById('giris-koli').value, 10) || 0);
+    if (!tarih) { toast('Tarih seçin', 'hata'); return; }
+    if (!sutun) { toast('Ürün seçin', 'hata'); return; }
+    if (koli <= 0) { toast('Koli adedi girin', 'hata'); return; }
+    fetch(FIREBASE_URL + '/depostok/giris/' + tarih + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (mevcut) {
+        mevcut = mevcut || {};
+        var m = mevcut[marka] || {};
+        m[sutun] = (parseFloat(m[sutun]) || 0) + koli;
+        mevcut[marka] = m;
+        return fetch(FIREBASE_URL + '/depostok/giris/' + tarih + '.json', { method: 'PUT', body: JSON.stringify(mevcut) });
+      })
+      .then(function () {
+        girisListeGoster();
+        depoGirisGetir().then(function () { yukle(); });
+        toast('✓ Koli girişi eklendi', 'ok');
+      })
+      .catch(function () { toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
+  }
+
+  function girisSil(marka, sutun, tarih) {
+    var gv = {};
+    gv[marka] = {};
+    gv[marka][sutun] = null;
+    fetch(FIREBASE_URL + '/depostok/giris/' + tarih + '.json', { method: 'PATCH', body: JSON.stringify(gv) })
+      .then(function () {
+        girisListeGoster();
+        depoGirisGetir().then(function () { yukle(); });
+        toast('🗑 Koli girişi silindi', 'ok');
+      })
+      .catch(function () { toast('Silinemedi — interneti kontrol edin', 'hata'); });
   }
 
   function depoStokExcelSatirlari(tarih) {
@@ -1864,7 +1969,7 @@
       '<div class="ad" style="font-weight:800; color:var(--mavi); padding-bottom:4px;">📦 DEPO STOK — KALAN <span style="font-weight:500; opacity:.7;">(birikimli giriş − dağıtılan · ' + secilenTarih + ' tarihine kadar)</span></div>';
     var stkVeri = depoStokSay(secilenTarih);
     if (!stkVeri.varMi) {
-      stokH += '<div class="bos-kap" style="padding:14px;"><div class="ikon">📦</div>Stok kaydı yok<div class="acik">Koli girişinizi Excel makronuzla şu adrese yazın:<br><b>' + FIREBASE_URL + '/depostok/giris/{tarih}.json</b><br>Örnek (değerler koli adedidir):<br>{ "BAGETTA": { "D": 12, "I": 3 }, "TAMKOY": { "E": 5 } }</div></div>';
+      stokH += '<div class="bos-kap" style="padding:14px;"><div class="ikon">📦</div>Stok kaydı yok<div class="acik">Koli girişini paneldaki <b>📥 DEPO GİRİŞİ</b> formuyla ekleyin ya da makronuzla şu adrese yazın:<br><b>' + FIREBASE_URL + '/depostok/giris/{tarih}.json</b><br>Örnek (değerler koli adedidir):<br>{ "BAGETTA": { "D": 12, "I": 3 }, "TAMKOY": { "E": 5 } }</div></div>';
     } else {
       stokH += depoStokSatirlar('BAGETTA', 12, BAGETTA_URUNLER);
       stokH += depoStokSatirlar('TAMKOY', 20, URUNLER);
@@ -2175,6 +2280,18 @@
   document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
   document.getElementById('baslik-grafik').addEventListener('click', function () { bolumAc('baslik-grafik', 'grafik-panel'); });
   document.getElementById('baslik-sure').addEventListener('click', function () { bolumAc('baslik-sure', 'sure-panel'); });
+  document.getElementById('baslik-giris').addEventListener('click', function () { bolumAc('baslik-giris', 'giris-panel'); });
+  (function () {
+    var gt = document.getElementById('giris-tarih');
+    if (!gt) return;
+    gt.value = tarihYaz(new Date());
+    gt.max = tarihYaz(new Date());
+    document.getElementById('giris-marka').addEventListener('change', function () { girisUrunDoldur(); });
+    gt.addEventListener('change', function () { girisListeGoster(); });
+    girisUrunDoldur();
+    girisListeGoster();
+    document.getElementById('giris-ekle-btn').addEventListener('click', girisEkle);
+  })();
 
   document.getElementById('gecmis-kapat').addEventListener('click', function () { modalKapat('gecmis-modal'); });
   document.getElementById('gecmis-modal').addEventListener('click', function (e) { if (e.target === this) modalKapat('gecmis-modal'); });
