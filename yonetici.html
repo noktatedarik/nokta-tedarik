@@ -451,7 +451,7 @@
     </div>
     <div id="giris-liste"></div>
 
-    <div class="ad" style="font-weight:800; color:#c0392b; padding:16px 2px 2px;">⬆️ DEPODAN ÇIKAN — DAĞITILAN / SEVKİYAT</div>
+    <div class="ad" style="font-weight:800; color:#c0392b; padding:16px 2px 2px;">⬆️ DEPODAN ÇIKAN — DAĞITILAN <span style="font-weight:500; opacity:.8;">(şoför teslimlerinden OTOMATİK · elle girmek isterseniz alt form)</span></div>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:6px 2px;">
       <label style="font-size:.72rem; color:#6b7f94;">TARİH<br><input type="date" id="cikis-tarih" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
       <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="cikis-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA · 12'li koli</option><option value="TAMKOY">TAMKÖY · 20'li koli</option></select></label>
@@ -1055,7 +1055,6 @@
 
   var sonStokSnap = null;
   function depoStokSnapGonder() {
-    if (!depoGirisTum || !depoCikisTum) return;
     var tarih = tarihYaz(new Date());
     var stk = depoStokSay(tarih);
     var satirlar = ['tarih=' + tarih, 'Marka\tÜrün\tGirişKoli\tÇıkışKoli\tKalanKoli\tGirişAdet\tÇıkışAdet\tKalanAdet'];
@@ -1064,6 +1063,7 @@
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
+        if (!gA && !cA) continue;
         var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
         satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA].join('\t'));
       }
@@ -1150,6 +1150,7 @@
       .then(function () {
         stokListeGoster(kapId, tarihSel, node, baslik, silAttr);
         depoStokVeriGetir();
+        depoStokSnapGonder();
         toast(okMetin, 'ok');
       })
       .catch(function () { toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
@@ -1166,6 +1167,7 @@
       .then(function () {
         stokListeGoster(kapId, tarihSel, node, baslik);
         depoStokVeriGetir();
+        depoStokSnapGonder();
         toast('🗑 Kayıt silindi', 'ok');
       })
       .catch(function () { toast('Silinemedi — interneti kontrol edin', 'hata'); });
