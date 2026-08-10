@@ -983,15 +983,41 @@
     for (var i = 0; i < urunler.length; i++) {
       var u = urunler[i], s = u.sutun;
       var gA = g[s] || 0, cA = c[s] || 0, kalA = gA - cA;
-      if (kalA < 0) kalA = 0;
       if (!gA && !cA) continue;
       kgA += gA; kcA += cA; kkA += kalA;
-      var gK = Math.ceil(gA / boy), cK = Math.ceil(cA / boy), kalK = Math.ceil(kalA / boy);
-      t += '<tr><td>' + u.ad + '</td><td class="say">' + gK + '</td><td class="say">' + cK + '</td><td class="say-b">' + kalK + '</td><td class="say">' + gA + '</td><td class="say">' + cA + '</td><td class="say-b">' + kalA + '</td></tr>';
+      var gK = Math.ceil(gA / boy), cK = Math.ceil(cA / boy);
+      var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
+      var neg = kalA < 0 ? ' style="color:#e74c3c;font-weight:800;"' : '';
+      t += '<tr><td>' + u.ad + '</td><td class="say">' + gK + '</td><td class="say">' + cK + '</td><td class="say-b"' + neg + '>' + kalK + '</td><td class="say">' + gA + '</td><td class="say">' + cA + '</td><td class="say-b"' + neg + '>' + kalA + '</td></tr>';
     }
-    t += '<tr class="toplam"><td>GENEL</td><td class="say">' + Math.ceil(kgA / boy) + '</td><td class="say">' + Math.ceil(kcA / boy) + '</td><td class="say-b">' + Math.ceil(kkA / boy) + '</td><td class="say">' + kgA + '</td><td class="say">' + kcA + '</td><td class="say-b">' + kkA + '</td></tr>';
+    var kkK = kkA < 0 ? Math.floor(kkA / boy) : Math.ceil(kkA / boy);
+    var negT = kkA < 0 ? ' style="color:#e74c3c;font-weight:800;"' : '';
+    t += '<tr class="toplam"><td>GENEL</td><td class="say">' + Math.ceil(kgA / boy) + '</td><td class="say">' + Math.ceil(kcA / boy) + '</td><td class="say-b"' + negT + '>' + kkK + '</td><td class="say">' + kgA + '</td><td class="say">' + kcA + '</td><td class="say-b"' + negT + '>' + kkA + '</td></tr>';
     t += '</tbody></table></div>';
     return t;
+  }
+
+  var sonStokSnap = null;
+  function depoStokSnapGonder() {
+    if (!depoGirisTum) return;
+    var tarih = tarihYaz(new Date());
+    var stk = depoStokSay(tarih);
+    var satirlar = ['tarih=' + tarih, 'Marka\tÜrün\tGirişKoli\tÇıkışKoli\tKalanKoli\tGirişAdet\tÇıkışAdet\tKalanAdet'];
+    function ekle(markaAd, boy, urunler) {
+      var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
+      for (var i = 0; i < urunler.length; i++) {
+        var u = urunler[i];
+        var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
+        var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
+        satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA].join('\t'));
+      }
+    }
+    ekle('BAGETTA', 12, BAGETTA_URUNLER);
+    ekle('TAMKOY', 20, URUNLER);
+    var metin = satirlar.join('\n');
+    if (metin === sonStokSnap) return;
+    sonStokSnap = metin;
+    fetch(FIREBASE_URL + '/depostok/hesap.json', { method: 'PUT', body: JSON.stringify({ tarih: tarih, metin: metin }) }).catch(function () { });
   }
 
   function depoStokExcelSatirlari(tarih) {
@@ -1002,9 +1028,9 @@
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
-        if (kalA < 0) kalA = 0;
         if (!gA && !cA) continue;
-        satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), Math.ceil(kalA / boy), gA, cA, kalA]);
+        var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
+        satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA]);
       }
     }
     ekle('BAGETTA', 12, BAGETTA_URUNLER);
@@ -1581,6 +1607,7 @@
     istatistikPanel(bagetToplam, tamkoyToplam, magazalar.length, tamam, red, markaSay);
     ciroPanel(ciroGenel, bagetSutunToplam, tamkoySutunToplam);
     depoPanel(ilUrun, bagetSutunToplam, tamkoySutunToplam);
+    depoStokSnapGonder();
     grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar);
     surePanel(canliKayitlar, gunDurum);
     gecmisButonlar();
@@ -1841,7 +1868,7 @@
     } else {
       stokH += depoStokSatirlar('BAGETTA', 12, BAGETTA_URUNLER);
       stokH += depoStokSatirlar('TAMKOY', 20, URUNLER);
-      stokH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Giriş değerleri koli cinsinden yazılır (Bağetta 12\'li, Tamköy 20\'li çarpanı). Çıkış, teslim edilen mağazalardan otomatik toplanır. Kalan = Giriş − Çıkış.</div>';
+      stokH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Giriş değerleri koli cinsinden yazılır (Bağetta 12\'li, Tamköy 20\'li çarpanı). Çıkış, teslim edilen mağazalardan otomatik toplanır. Kalan = Giriş − Çıkış. <b style="color:#e74c3c;">Kalan negatifse bir hata var</b>: ya bu ürünün stok girişi eksik ya da fazla dağıtım yapıldı.</div>';
     }
     stokH += '</div>';
 
