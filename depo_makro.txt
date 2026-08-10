@@ -1,108 +1,154 @@
 =========================================================================
- DEPO STOK OTOMATIK MAKROSU
+ OTOMATIK DEPO MAKROSU - NOKTA TEDARIK (FINAL SURUM)
 =========================================================================
- NE YAPAR:
- - Yonetici panelindeki "Depo Stok" verisini (giris/cikan/kalan) okur.
- - Excel'de "Depo" sayfasini otomatik yeniler:
-   A1=tablo adi  B1=guncellenme tarihi  (A2:H2)=basliklar  (3. satirdan itibaren) veriler
- - Kalan negatifse KIRMIZI yazar.
- - Paneldeki her islem (koli giris, cikis, sofor teslimi) yansir;
-   yani sofor teslim girdikce "Cikan Koli" artar, "Kalan Koli" azalir.
+ Excel dosyasinda: NOKTA_TEDARIK_GRS.xlsm
+ - Modul adi: OtoDepo
+ - VeriSenkron icindeki eski "DepoSayfaGuncelle" (sadece BUGUNUN
+   dagitimini yaziyordu) kaldirildi; yerine OtoDepoGuncelle cagiriliyor.
 
- KURULUM:
- 1. Excel'de Alt+F11 ile VBE'yi acin.
- 2. Sol ustte Moduller > Modul1'e tiklayin (yoksa: Insert > Module).
- 3. Alttaki kodun TAMAMINI yapistirin.
- 4. Calistirmak icin: Alt+F8 > DepoGuncelle > Calistir.
-    (Dosya her acildiginda OTOMATIK calismasini isterseniz asagidaki
-     "OTOMATIK ACIKLIS IKINCI KOD" bolumunu de ekleyin.)
- 5. Not: Eski elle yazdiginiz koli girislerinizi artik panelden girin
-    (yonetici panelinde: DEPO GIRISI formu). Depo sayfasi artik sadece
-    sistemden gelen verinin goruntusudur ve makro calistiginda yenilenir.
+ NE YAPAR:
+ - https://nokta-tedarik-default-rtdb.firebaseio.com/depostok/hesap.json
+   snapshot'ini okur (yonetici paneli ve/veya sistem bu dosyayi gunceller).
+ - Depo sayfasini doldurur:
+     C = Toplam Gelen Koli   (panel koli girisinden)
+     D = C * Koli Adedi      (adet)
+     E = Dagitilan (Toplam)  (SOFOR teslimleri BIRIKIMLI, gecmis dahil)
+     F = D - E               (depoda kalan adet) -> negatifse KIRMIZI
+     G = F / Koli Adedi      (kalan koli)        -> negatifse KIRMIZI
+ - BAĞETTA ve TAMKÖY bolumlerinin toplam satirlarini gunceller.
+ - Excel acilinca (Workbook_Open) ve dakikada bir (mevcut timer) OTOMATIK
+   calisir; ayrica Alt+F8 > OtoDepoGuncelle ile elle de calistirilabilir.
+
+ NOT: Snapshot'id 'yonetici paneli acildiginda' da yenilenir; bu yuzden
+ koli girisi panelden yapildikca ve sofor teslim girdikce Excel kendiliginden
+ guncellenir.
 
 =========================================================================
 
 Option Explicit
+Private Const FB_URL As String = "https://nokta-tedarik-default-rtdb.firebaseio.com"
 
-Sub DepoGuncelle()
+Public Sub OtoDepoGuncelle(Optional Sessiz As Boolean = False)
     On Error GoTo Hata
-    Dim http As Object
-    Dim body As String, metin As String, tarih As String
-    Dim ws As Worksheet
-
-    Set http = CreateObject("MSXML2.XMLHTTP")
-    http.Open "GET", "https://nokta-tedarik-default-rtdb.firebaseio.com/depostok/hesap.json", False
-    http.Send
-
-    If http.Status <> 200 Then
-        MsgBox "Veri alinamadi (HTTP " & http.Status & "). Internet baglantisini kontrol edin.", vbExclamation, "Depo Stok"
+    Dim h As Object
+    Set h = CreateObject("WinHttp.WinHttpRequest.5.1")
+    h.Open "GET", FB_URL & "/depostok/hesap.json", False
+    h.SetTimeouts 20000, 20000, 20000, 20000
+    h.Send
+    If h.Status <> 200 Then
+        If Not Sessiz Then MsgBox "Veri alinamadi (HTTP " & h.Status & "). Internet baglantisini kontrol edin.", vbExclamation, "Depo Stok"
         Exit Sub
     End If
-
-    body = Utf8Cevir(http.responseBody)
+    Dim body As String
+    body = Utf8Cevir(h.responseBody)
+    Dim metin As String, tarih As String
     tarih = Ara(body, """tarih"":""", """")
     metin = Ara(body, """metin"":""", """")
-
     If Len(metin) = 0 Then
-        MsgBox "Snapshot bos. Yonetici panelini bir kez acip bekleyin, sonra bu makroyu tekrar calistirin.", vbInformation, "Depo Stok"
+        If Not Sessiz Then MsgBox "Snapshot bos. Yonetici panelini acip bekleyin.", vbInformation, "Depo Stok"
         Exit Sub
     End If
-
-    ' JSON kacis karakterlerini gercege cevir
     metin = Replace(metin, "\n", vbLf)
     metin = Replace(metin, "\t", vbTab)
 
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets("Depo")
-    On Error GoTo 0
-    If ws Is Nothing Then
-        Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
-        ws.Name = "Depo"
-    End If
-
-    ws.Range("A1:H300").Clear
-
-    ws.Range("A1").Value = "DEPO STOK"
-    ws.Range("B1").Value = tarih
-    ws.Range("A2").Value = "Marka"
-    ws.Range("B2").Value = "Urun"
-    ws.Range("C2").Value = "Giris Koli"
-    ws.Range("D2").Value = "Cikan Koli"
-    ws.Range("E2").Value = "Kalan Koli"
-    ws.Range("F2").Value = "Giris Adet"
-    ws.Range("G2").Value = "Cikan Adet"
-    ws.Range("H2").Value = "Kalan Adet"
-
-    Dim lines As Variant, i As Long, f As Variant, r As Long
+    Dim dict As Object
+    Set dict = CreateObject("Scripting.Dictionary")
+    Dim lines As Variant, i As Long, f As Variant
     lines = Split(metin, vbLf)
-    r = 3
     For i = 0 To UBound(lines)
         If Left(lines(i), 6) = "tarih=" Then GoTo sonraki
         If Left(lines(i), 5) = "Marka" Then GoTo sonraki
         f = Split(lines(i), vbTab)
         If UBound(f) < 7 Then GoTo sonraki
-        ws.Cells(r, 1).Value = f(0)
-        ws.Cells(r, 2).Value = f(1)
-        ws.Cells(r, 3).Value = CLng(f(2))
-        ws.Cells(r, 4).Value = CLng(f(3))
-        ws.Cells(r, 5).Value = CLng(f(4))
-        ws.Cells(r, 6).Value = CLng(f(5))
-        ws.Cells(r, 7).Value = CLng(f(6))
-        ws.Cells(r, 8).Value = CLng(f(7))
-        If CLng(f(4)) < 0 Then ws.Cells(r, 5).Font.Color = vbRed
-        If CLng(f(7)) < 0 Then ws.Cells(r, 8).Font.Color = vbRed
-        r = r + 1
+        dict(UCase(f(0)) & "|" & UCase(f(1))) = Array(CDbl(f(2)), CDbl(f(6)))
 sonraki:
     Next i
 
-    ws.Rows("1:2").Font.Bold = True
-    ws.Activate
-    MsgBox "Depo sayfasi guncellendi. Tarih: " & tarih, vbInformation, "Depo Stok"
-    Exit Sub
+    Dim dws As Worksheet
+    On Error Resume Next
+    Set dws = ThisWorkbook.Worksheets("Depo")
+    On Error GoTo 0
+    If dws Is Nothing Then Exit Sub
 
+    Application.ScreenUpdating = False
+    Dim rBag As Long, rTam As Long
+    rBag = BaslikSatiri(dws, "BA" & ChrW(286) & "ETTA")
+    rTam = BaslikSatiri(dws, "TAMK" & ChrW(214) & "Y")
+    If rBag = 0 Or rTam = 0 Then Exit Sub
+
+    YaziTablosu dws, rBag + 2, rBag + 8, rBag + 9, dict, "BAGETTA"
+    YaziTablosu dws, rTam + 2, rTam + 9, rTam + 10, dict, "TAMKOY"
+
+    Application.ScreenUpdating = True
+    If Not Sessiz Then MsgBox "Depo sayfasi guncellendi. Tarih: " & tarih, vbInformation, "Depo Stok"
+    Exit Sub
 Hata:
-    MsgBox "Hata: " & Err.Description, vbCritical, "Depo Stok"
+    Application.ScreenUpdating = True
+    Err.Clear
+    If Not Sessiz Then MsgBox "Hata: " & Err.Description, vbCritical, "Depo Stok"
 End Sub
+
+Private Sub YaziTablosu(dws As Worksheet, ilkSatir As Long, sonSatir As Long, toplamSatir As Long, dict As Object, markaAna As String)
+    Dim rr As Long, urunAd As String, B As Double, gK As Double, dag As Double
+    Dim D_ As Double, F_ As Double, G2 As Double
+    Dim sd As Double, se As Double, sf As Double, sg As Double
+    Dim v As Variant, kAna As String
+    For rr = ilkSatir To sonSatir
+        urunAd = Trim(CStr(dws.Cells(rr, 1).Value))
+        If urunAd = "" Then Exit For
+        B = Val(dws.Cells(rr, 2).Value)
+        If B <= 0 Then B = 1
+        gK = 0: dag = 0
+        kAna = markaAna & "|" & UCase(urunAd)
+        If dict.Exists(kAna) Then
+            v = dict(kAna)
+            gK = v(0)
+            dag = v(1)
+        End If
+        D_ = gK * B
+        F_ = D_ - dag
+        If F_ >= 0 Then
+            G2 = Application.WorksheetFunction.RoundUp(F_ / B, 0)
+        Else
+            G2 = -Application.WorksheetFunction.RoundUp(-F_ / B, 0)
+        End If
+        dws.Cells(rr, 3).Value = gK
+        dws.Cells(rr, 4).Value = D_
+        dws.Cells(rr, 5).Value = dag
+        dws.Cells(rr, 6).Value = F_
+        dws.Cells(rr, 7).Value = G2
+        If F_ < 0 Then
+            dws.Cells(rr, 6).Font.Color = vbRed
+            dws.Cells(rr, 7).Font.Color = vbRed
+        Else
+            dws.Cells(rr, 6).Font.ColorIndex = -4105
+            dws.Cells(rr, 7).Font.ColorIndex = -4105
+        End If
+        sd = sd + D_: se = se + dag: sf = sf + F_: sg = sg + G2
+    Next rr
+    dws.Cells(toplamSatir, 4).Value = sd
+    dws.Cells(toplamSatir, 5).Value = se
+    dws.Cells(toplamSatir, 6).Value = sf
+    dws.Cells(toplamSatir, 7).Value = sg
+    If sf < 0 Then
+        dws.Cells(toplamSatir, 6).Font.Color = vbRed
+        dws.Cells(toplamSatir, 7).Font.Color = vbRed
+    Else
+        dws.Cells(toplamSatir, 6).Font.ColorIndex = -4105
+        dws.Cells(toplamSatir, 7).Font.ColorIndex = -4105
+    End If
+End Sub
+
+Private Function BaslikSatiri(dws As Worksheet, metin As String) As Long
+    Dim rr As Long
+    For rr = 1 To 30
+        If Trim(CStr(dws.Cells(rr, 1).Value)) = metin Then
+            BaslikSatiri = rr
+            Exit Function
+        End If
+    Next rr
+    BaslikSatiri = 0
+End Function
 
 Private Function Ara(ByVal kaynak As String, ByVal bas As String, ByVal bit As String) As String
     Dim p As Long, q As Long
@@ -126,14 +172,3 @@ Private Function Utf8Cevir(ByRef veri) As String
     Utf8Cevir = st.ReadText
     st.Close
 End Function
-
-=========================================================================
- OTOMATIK ACIKLIS IKINCI KOD (istege bagli)
- DOSYA HER ACIKTIGINDA OTOMATIK GUNCELLESIN DIYORSANIZ:
- 1. VBE'de solda "ThisWorkbook" a cift tiklayin.
- 2. Alttaki 3 satiri yapistirin.
-=========================================================================
-
-Private Sub Workbook_Open()
-    DepoGuncelle
-End Sub
