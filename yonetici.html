@@ -1778,27 +1778,32 @@
     var iller = Object.keys(ilUrun || {}).sort();
     var kolonAd = urunKolonAdi();
     var sutunlar = Object.keys(kolonAd);
-    if (!iller.length) {
-      k.innerHTML = '<div class="bos-kap" style="padding:18px;"><div class="ikon">🏭</div>Sevkiyat verisi yok<div class="acik">Teslim edilen ürünler burada listelenir</div></div>';
-      return;
+    var h = '';
+    var bosSevkiyat = '<div class="bos-kap" style="padding:18px;"><div class="ikon">🏭</div>Bugün dağıtılan yok<div class="acik">Teslim edilen ürünler burada listelenir — aşağıdaki depo stok her zaman günceldir</div></div>';
+    if (iller.length) {
+      h += '<div class="tablo-sar"><table><thead><tr><th>ÜRÜN</th>';
+      for (var i = 0; i < iller.length; i++) h += '<th class="say">' + iller[i] + '</th>';
+      h += '<th class="say">TOPLAM</th></tr></thead><tbody>';
+    } else {
+      h = bosSevkiyat;
     }
-    var h = '<div class="tablo-sar"><table><thead><tr><th>ÜRÜN</th>';
-    for (var i = 0; i < iller.length; i++) h += '<th class="say">' + iller[i] + '</th>';
-    h += '<th class="say">TOPLAM</th></tr></thead><tbody>';
     var genelTop = 0;
     for (var s = 0; s < sutunlar.length; s++) {
       var sutun = sutunlar[s];
       var satirTop = 0;
-      var satir = '<tr><td>' + kolonAd[sutun] + '</td>';
+      var satir = iller.length ? '<tr><td>' + kolonAd[sutun] + '</td>' : '';
       for (var i2 = 0; i2 < iller.length; i2++) {
         var adet = (ilUrun[iller[i2]] && ilUrun[iller[i2]][sutun]) || 0;
         satirTop += adet;
         satir += '<td class="say">' + (adet || '—') + '</td>';
       }
-      satir += '<td class="say-b">' + satirTop + '</td></tr>';
-      genelTop += satirTop;
-      h += satir;
+      if (iller.length) {
+        satir += '<td class="say-b">' + satirTop + '</td></tr>';
+        genelTop += satirTop;
+        h += satir;
+      }
     }
+    if (iller.length) {
     h += '<tr class="toplam"><td>GENEL TOPLAM</td>';
     for (var i3 = 0; i3 < iller.length; i3++) {
       var ilTop = 0;
@@ -1824,6 +1829,9 @@
     koliH += '<tr class="toplam"><td>GENEL</td><td class="say">' + genelTop + '</td><td class="say"></td><td class="say"></td><td class="say-b">' + genelKoli + ' koli</td></tr>';
     koliH += '</tbody></table></div>';
     koliH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Koli hesabı: Bağetta 12\'li, Tamköy 20\'li koli varsayımıyla üstten yuvarlanır.</div>';
+    } else {
+      koliH = '';
+    }
 
     var stokH = '<div style="margin-top:16px; padding-top:12px; border-top:1px dashed rgba(120,140,160,.25);">' +
       '<div class="ad" style="font-weight:800; color:var(--mavi); padding-bottom:4px;">📦 DEPO STOK — KALAN <span style="font-weight:500; opacity:.7;">(birikimli giriş − dağıtılan · ' + secilenTarih + ' tarihine kadar)</span></div>';
