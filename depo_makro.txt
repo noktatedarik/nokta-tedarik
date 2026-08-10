@@ -1,0 +1,139 @@
+=========================================================================
+ DEPO STOK OTOMATIK MAKROSU
+=========================================================================
+ NE YAPAR:
+ - Yonetici panelindeki "Depo Stok" verisini (giris/cikan/kalan) okur.
+ - Excel'de "Depo" sayfasini otomatik yeniler:
+   A1=tablo adi  B1=guncellenme tarihi  (A2:H2)=basliklar  (3. satirdan itibaren) veriler
+ - Kalan negatifse KIRMIZI yazar.
+ - Paneldeki her islem (koli giris, cikis, sofor teslimi) yansir;
+   yani sofor teslim girdikce "Cikan Koli" artar, "Kalan Koli" azalir.
+
+ KURULUM:
+ 1. Excel'de Alt+F11 ile VBE'yi acin.
+ 2. Sol ustte Moduller > Modul1'e tiklayin (yoksa: Insert > Module).
+ 3. Alttaki kodun TAMAMINI yapistirin.
+ 4. Calistirmak icin: Alt+F8 > DepoGuncelle > Calistir.
+    (Dosya her acildiginda OTOMATIK calismasini isterseniz asagidaki
+     "OTOMATIK ACIKLIS IKINCI KOD" bolumunu de ekleyin.)
+ 5. Not: Eski elle yazdiginiz koli girislerinizi artik panelden girin
+    (yonetici panelinde: DEPO GIRISI formu). Depo sayfasi artik sadece
+    sistemden gelen verinin goruntusudur ve makro calistiginda yenilenir.
+
+=========================================================================
+
+Option Explicit
+
+Sub DepoGuncelle()
+    On Error GoTo Hata
+    Dim http As Object
+    Dim body As String, metin As String, tarih As String
+    Dim ws As Worksheet
+
+    Set http = CreateObject("MSXML2.XMLHTTP")
+    http.Open "GET", "https://nokta-tedarik-default-rtdb.firebaseio.com/depostok/hesap.json", False
+    http.Send
+
+    If http.Status <> 200 Then
+        MsgBox "Veri alinamadi (HTTP " & http.Status & "). Internet baglantisini kontrol edin.", vbExclamation, "Depo Stok"
+        Exit Sub
+    End If
+
+    body = Utf8Cevir(http.responseBody)
+    tarih = Ara(body, """tarih"":""", """")
+    metin = Ara(body, """metin"":""", """")
+
+    If Len(metin) = 0 Then
+        MsgBox "Snapshot bos. Yonetici panelini bir kez acip bekleyin, sonra bu makroyu tekrar calistirin.", vbInformation, "Depo Stok"
+        Exit Sub
+    End If
+
+    ' JSON kacis karakterlerini gercege cevir
+    metin = Replace(metin, "\n", vbLf)
+    metin = Replace(metin, "\t", vbTab)
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets("Depo")
+    On Error GoTo 0
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
+        ws.Name = "Depo"
+    End If
+
+    ws.Range("A1:H300").Clear
+
+    ws.Range("A1").Value = "DEPO STOK"
+    ws.Range("B1").Value = tarih
+    ws.Range("A2").Value = "Marka"
+    ws.Range("B2").Value = "Urun"
+    ws.Range("C2").Value = "Giris Koli"
+    ws.Range("D2").Value = "Cikan Koli"
+    ws.Range("E2").Value = "Kalan Koli"
+    ws.Range("F2").Value = "Giris Adet"
+    ws.Range("G2").Value = "Cikan Adet"
+    ws.Range("H2").Value = "Kalan Adet"
+
+    Dim lines As Variant, i As Long, f As Variant, r As Long
+    lines = Split(metin, vbLf)
+    r = 3
+    For i = 0 To UBound(lines)
+        If Left(lines(i), 6) = "tarih=" Then GoTo sonraki
+        If Left(lines(i), 5) = "Marka" Then GoTo sonraki
+        f = Split(lines(i), vbTab)
+        If UBound(f) < 7 Then GoTo sonraki
+        ws.Cells(r, 1).Value = f(0)
+        ws.Cells(r, 2).Value = f(1)
+        ws.Cells(r, 3).Value = CLng(f(2))
+        ws.Cells(r, 4).Value = CLng(f(3))
+        ws.Cells(r, 5).Value = CLng(f(4))
+        ws.Cells(r, 6).Value = CLng(f(5))
+        ws.Cells(r, 7).Value = CLng(f(6))
+        ws.Cells(r, 8).Value = CLng(f(7))
+        If CLng(f(4)) < 0 Then ws.Cells(r, 5).Font.Color = vbRed
+        If CLng(f(7)) < 0 Then ws.Cells(r, 8).Font.Color = vbRed
+        r = r + 1
+sonraki:
+    Next i
+
+    ws.Rows("1:2").Font.Bold = True
+    ws.Activate
+    MsgBox "Depo sayfasi guncellendi. Tarih: " & tarih, vbInformation, "Depo Stok"
+    Exit Sub
+
+Hata:
+    MsgBox "Hata: " & Err.Description, vbCritical, "Depo Stok"
+End Sub
+
+Private Function Ara(ByVal kaynak As String, ByVal bas As String, ByVal bit As String) As String
+    Dim p As Long, q As Long
+    p = InStr(kaynak, bas)
+    If p = 0 Then Ara = "": Exit Function
+    p = p + Len(bas)
+    q = InStr(p, kaynak, bit)
+    If q = 0 Then q = Len(kaynak) + 1
+    Ara = Mid(kaynak, p, q - p)
+End Function
+
+Private Function Utf8Cevir(ByRef veri) As String
+    Dim st As Object
+    Set st = CreateObject("ADODB.Stream")
+    st.Type = 1
+    st.Open
+    st.Write veri
+    st.Position = 0
+    st.Type = 2
+    st.CharSet = "utf-8"
+    Utf8Cevir = st.ReadText
+    st.Close
+End Function
+
+=========================================================================
+ OTOMATIK ACIKLIS IKINCI KOD (istege bagli)
+ DOSYA HER ACIKTIGINDA OTOMATIK GUNCELLESIN DIYORSANIZ:
+ 1. VBE'de solda "ThisWorkbook" a cift tiklayin.
+ 2. Alttaki 3 satiri yapistirin.
+=========================================================================
+
+Private Sub Workbook_Open()
+    DepoGuncelle
+End Sub
