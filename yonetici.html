@@ -866,11 +866,14 @@
 
   var sonZiyaretler = null;
   var ziyaretGecmisi = null;
+  var dagilimTum = null;
+  var depoGirisTum = null;
 
   function sonZiyaretGetir() {
     return fetch(FIREBASE_URL + '/gunluk.json')
       .then(function (r) { return r.json(); })
       .then(function (veri) {
+        dagilimTum = veri;
         var map = {};
         var gecmis = {};
         if (veri) {
@@ -913,6 +916,100 @@
         ziyaretGecmisi = gecmis;
         return map;
       }).catch(function () { return sonZiyaretler || {}; });
+  }
+
+  function depoGirisGetir() {
+    return fetch(FIREBASE_URL + '/depostok/giris.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { depoGirisTum = d || null; return d; })
+      .catch(function () { depoGirisTum = null; return null; });
+  }
+
+  function depoStokSay(tarih) {
+    var giris = { BAGETTA: {}, TAMKOY: {} };
+    var cikis = { BAGETTA: {}, TAMKOY: {} };
+    var varMi = false;
+    if (depoGirisTum) {
+      var tg = Object.keys(depoGirisTum).sort();
+      for (var i = 0; i < tg.length; i++) {
+        if (tg[i] > tarih) break;
+        var gun = depoGirisTum[tg[i]];
+        if (!gun) continue;
+        for (var mk in gun) {
+          var birim = mk === 'BAGETTA' ? 12 : 20;
+          var koliler = gun[mk];
+          if (!koliler) continue;
+          for (var s in koliler) {
+            var adet = (parseFloat(koliler[s]) || 0) * birim;
+            if (!adet) continue;
+            varMi = true;
+            giris[mk][s] = (giris[mk][s] || 0) + adet;
+          }
+        }
+      }
+    }
+    if (dagilimTum) {
+      var tl = Object.keys(dagilimTum).sort();
+      for (var j = 0; j < tl.length; j++) {
+        if (tl[j] > tarih) break;
+        var iller = dagilimTum[tl[j]];
+        if (!iller) continue;
+        for (var ilAd in iller) {
+          var kayitlar = iller[ilAd];
+          if (!kayitlar) continue;
+          for (var anahtar in kayitlar) {
+            var kayit = kayitlar[anahtar];
+            if (!kayit || !kayit.saat || kayit.red || !kayit.urunler) continue;
+            var mk2 = kayit.marka === 'BAGETTA' ? 'BAGETTA' : 'TAMKOY';
+            for (var s2 in kayit.urunler) {
+              var v = parseInt(kayit.urunler[s2], 10);
+              if (v && v > 0) {
+                varMi = true;
+                cikis[mk2][s2] = (cikis[mk2][s2] || 0) + v;
+              }
+            }
+          }
+        }
+      }
+    }
+    return { giris: giris, cikis: cikis, varMi: varMi };
+  }
+
+  function depoStokSatirlar(markaAd, boy, urunler) {
+    var stk = depoStokSay(secilenTarih);
+    var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
+    var t = '<div class="tablo-sar" style="margin-top:8px;"><table><thead><tr><th>' + markaAd + ' · ' + boy + '\'li koli</th><th class="say">GİRİŞ (koli)</th><th class="say">ÇIKIŞ (koli)</th><th class="say">KALAN (koli)</th><th class="say">GİRİŞ (adet)</th><th class="say">ÇIKIŞ (adet)</th><th class="say">KALAN (adet)</th></tr></thead><tbody>';
+    var kgA = 0, kcA = 0, kkA = 0;
+    for (var i = 0; i < urunler.length; i++) {
+      var u = urunler[i], s = u.sutun;
+      var gA = g[s] || 0, cA = c[s] || 0, kalA = gA - cA;
+      if (kalA < 0) kalA = 0;
+      if (!gA && !cA) continue;
+      kgA += gA; kcA += cA; kkA += kalA;
+      var gK = Math.ceil(gA / boy), cK = Math.ceil(cA / boy), kalK = Math.ceil(kalA / boy);
+      t += '<tr><td>' + u.ad + '</td><td class="say">' + gK + '</td><td class="say">' + cK + '</td><td class="say-b">' + kalK + '</td><td class="say">' + gA + '</td><td class="say">' + cA + '</td><td class="say-b">' + kalA + '</td></tr>';
+    }
+    t += '<tr class="toplam"><td>GENEL</td><td class="say">' + Math.ceil(kgA / boy) + '</td><td class="say">' + Math.ceil(kcA / boy) + '</td><td class="say-b">' + Math.ceil(kkA / boy) + '</td><td class="say">' + kgA + '</td><td class="say">' + kcA + '</td><td class="say-b">' + kkA + '</td></tr>';
+    t += '</tbody></table></div>';
+    return t;
+  }
+
+  function depoStokExcelSatirlari(tarih) {
+    var satirlar = [['Marka', 'Ürün', 'Giriş Koli', 'Çıkış Koli', 'Kalan Koli', 'Giriş Adet', 'Çıkış Adet', 'Kalan Adet']];
+    var stk = depoStokSay(tarih);
+    function ekle(markaAd, boy, urunler) {
+      var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
+      for (var i = 0; i < urunler.length; i++) {
+        var u = urunler[i];
+        var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
+        if (kalA < 0) kalA = 0;
+        if (!gA && !cA) continue;
+        satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), Math.ceil(kalA / boy), gA, cA, kalA]);
+      }
+    }
+    ekle('BAGETTA', 12, BAGETTA_URUNLER);
+    ekle('TAMKOY', 20, URUNLER);
+    return satirlar;
   }
 
   function listeSkeleton(adet) {
@@ -1147,6 +1244,10 @@
         var ciro = [['Ürün', 'Fiyat', 'Adet', 'Ciro']].concat(ciroSatirlari());
         adim = 'ciro-sayfa';
         XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(ciro), 'Ciro Raporu');
+        adim = 'stok-satir';
+        var stok = [['Marka', 'Ürün', 'Giriş Koli', 'Çıkış Koli', 'Kalan Koli', 'Giriş Adet', 'Çıkış Adet', 'Kalan Adet']].concat(depoStokExcelSatirlari(exportVeri.tarih).slice(1));
+        adim = 'stok-sayfa';
+        XLSX.utils.book_append_sheet(kitap, XLSX.utils.aoa_to_sheet(stok), 'Depo Stok');
         adim = 'zam-satir';
         var zam = [['Tarih', 'Marka', 'Ürün', 'Eski Fiyat (₺)', 'Yeni Fiyat (₺)']].concat((fiyatGecmisi || []).map(function (k) {
           return [k.tarih, k.marka, k.urun, k.eskifiyat, k.yenifiyat];
@@ -1723,7 +1824,20 @@
     koliH += '<tr class="toplam"><td>GENEL</td><td class="say">' + genelTop + '</td><td class="say"></td><td class="say"></td><td class="say-b">' + genelKoli + ' koli</td></tr>';
     koliH += '</tbody></table></div>';
     koliH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Koli hesabı: Bağetta 12\'li, Tamköy 20\'li koli varsayımıyla üstten yuvarlanır.</div>';
-    k.innerHTML = h + koliH;
+
+    var stokH = '<div style="margin-top:16px; padding-top:12px; border-top:1px dashed rgba(120,140,160,.25);">' +
+      '<div class="ad" style="font-weight:800; color:var(--mavi); padding-bottom:4px;">📦 DEPO STOK — KALAN <span style="font-weight:500; opacity:.7;">(birikimli giriş − dağıtılan · ' + secilenTarih + ' tarihine kadar)</span></div>';
+    var stkVeri = depoStokSay(secilenTarih);
+    if (!stkVeri.varMi) {
+      stokH += '<div class="bos-kap" style="padding:14px;"><div class="ikon">📦</div>Stok kaydı yok<div class="acik">Koli girişinizi Excel makronuzla şu adrese yazın:<br><b>' + FIREBASE_URL + '/depostok/giris/{tarih}.json</b><br>Örnek (değerler koli adedidir):<br>{ "BAGETTA": { "D": 12, "I": 3 }, "TAMKOY": { "E": 5 } }</div></div>';
+    } else {
+      stokH += depoStokSatirlar('BAGETTA', 12, BAGETTA_URUNLER);
+      stokH += depoStokSatirlar('TAMKOY', 20, URUNLER);
+      stokH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Giriş değerleri koli cinsinden yazılır (Bağetta 12\'li, Tamköy 20\'li çarpanı). Çıkış, teslim edilen mağazalardan otomatik toplanır. Kalan = Giriş − Çıkış.</div>';
+    }
+    stokH += '</div>';
+
+    k.innerHTML = h + koliH + stokH;
   }
 
   function ciroPanel(ciroGenel, bagetSutun, tamkoySutun) {
@@ -1991,6 +2105,7 @@
     sonZiyaretGetir().then(function () { yukle(); });
     magazaNotGetir();
     yukle();
+    depoGirisGetir().then(function () { yukle(); });
     yukleGunDurumu();
     yukleKonum();
     yukleRota();
@@ -2002,6 +2117,7 @@
     setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
     setInterval(function () { magazaNotGetir(); }, 30000);
     setInterval(function () { sonZiyaretGetir().then(function () { yukle(); }); }, 60000);
+    setInterval(depoGirisGetir, 60000);
     setInterval(haftalikGetir, 300000);
     mesajlariYukle();
     setInterval(mesajlariYukle, 3000);
