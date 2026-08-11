@@ -1039,7 +1039,6 @@
     for (var i = 0; i < urunler.length; i++) {
       var u = urunler[i], s = u.sutun;
       var gA = g[s] || 0, cA = c[s] || 0, kalA = gA - cA;
-      if (!gA && !cA) continue;
       kgA += gA; kcA += cA; kkA += kalA;
       var gK = Math.ceil(gA / boy), cK = Math.ceil(cA / boy);
       var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
@@ -1063,7 +1062,6 @@
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
-        if (!gA && !cA) continue;
         var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
         satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA].join('\t'));
       }
@@ -1181,7 +1179,6 @@
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
-        if (!gA && !cA) continue;
         var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
         satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA]);
       }
