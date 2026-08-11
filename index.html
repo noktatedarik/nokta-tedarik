@@ -46,6 +46,7 @@
     --golge-buyuk: 0 24px 60px rgba(14, 27, 44, .14);
     --font-baslik: 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-metin: 'Inter', 'Segoe UI', Tahoma, Arial, sans-serif;
+    --kamp-boy: 48px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -65,7 +66,7 @@
 
   /* ===== ÜST BAR (cam) ===== */
   header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    position: fixed; top: var(--kamp-boy, 0px); left: 0; right: 0; z-index: 100;
     background: linear-gradient(180deg, rgba(8, 17, 32, .72), rgba(8, 17, 32, 0));
     color: var(--beyaz);
     transition: background .35s ease, box-shadow .35s ease;
@@ -762,7 +763,44 @@
   .footer-alt { border-top: 1px solid rgba(255, 255, 255, .08); padding: 18px 20px; text-align: center; font-size: .82rem; opacity: .8; }
   .footer-alt span { color: var(--turuncu-acik); font-weight: 700; }
 
+  /* ===== KAMPANYA BANNERI ===== */
+  .kampanya {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+    height: var(--kamp-boy, 48px);
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 0 16px;
+    background: linear-gradient(90deg, var(--turuncu-koyu) 0%, var(--turuncu) 50%, var(--turuncu-acik) 100%);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .28);
+  }
+  .kampanya .kamp-badge {
+    background: var(--mavi); color: var(--turuncu-acik);
+    font-size: .66rem; font-weight: 900; letter-spacing: 2px;
+    padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .kampanya .kamp-yazi { font-size: .95rem; font-weight: 800; letter-spacing: .3px; white-space: nowrap; }
+  .kampanya .kamp-yazi b { color: #fff; }
+  .kampanya .kamp-sure {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(8, 17, 32, .28); border: 1px solid rgba(255, 255, 255, .35);
+    padding: 3px 12px; border-radius: 999px; font-weight: 800;
+  }
+  .kampanya .s-birim { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+  .kampanya .s-birim b { font-size: .95rem; min-width: 20px; text-align: center; }
+  .kampanya .s-birim i { font-style: normal; font-size: .55rem; opacity: .85; letter-spacing: 1px; }
+  .kampanya .kamp-btn {
+    background: #fff; color: var(--turuncu-koyu);
+    font-size: .78rem; font-weight: 900; letter-spacing: .5px;
+    padding: 7px 16px; border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .2); transition: transform .2s ease;
+  }
+  .kampanya .kamp-btn:hover { transform: translateY(-2px); }
+
   @media (max-width: 760px) {
+    :root { --kamp-boy: 60px; }
+    .kampanya { gap: 8px; }
+    .kampanya .kamp-yazi { font-size: .78rem; }
+    .kampanya .kamp-btn { font-size: .68rem; padding: 6px 12px; }
     nav { display: none; width: 100%; flex-direction: column; gap: 14px; padding: 14px 20px 20px; background: rgba(8, 17, 32, .95); backdrop-filter: blur(14px); border-radius: 0 0 16px 16px; }
     nav.acik { display: flex; }
     .menu-ac { display: block; }
@@ -781,6 +819,18 @@
 </style>
 </head>
 <body>
+
+<div class="kampanya" role="banner" aria-label="Toptan alımlarda %10 indirim kampanyası">
+  <span class="kamp-badge">KAMPANYA</span>
+  <span class="kamp-yazi">Toptan Alımlarda <b>%10 İndirim</b></span>
+  <span class="kamp-sure" aria-label="Kampanyaya kalan süre">
+    <span class="s-birim"><b id="k-gun">0</b><i>GÜN</i></span><span>:</span>
+    <span class="s-birim"><b id="k-saat">0</b><i>SAAT</i></span><span>:</span>
+    <span class="s-birim"><b id="k-dak">0</b><i>DAK</i></span><span>:</span>
+    <span class="s-birim"><b id="k-san">0</b><i>SAN</i></span>
+  </span>
+  <a class="kamp-btn" href="https://wa.me/905467606608?text=Merhaba%2C%20toptan%20al%C4%B1mlarda%20%2510%20indirim%20kampanyas%C4%B1ndan%20faydalanmak%20istiyorum." target="_blank" rel="noopener">SİPARİŞ VER</a>
+</div>
 
 <header id="ust">
   <div class="ust-ic">
@@ -1962,6 +2012,28 @@
   }
 
   document.getElementById('yil').textContent = new Date().getFullYear();
+
+  (function () {
+    var hedef = new Date('2026-08-18T23:59:59');
+    function yaz() {
+      var kalan = hedef - new Date();
+      if (kalan <= 0) {
+        var kampanya = document.querySelector('.kampanya');
+        if (kampanya) kampanya.style.display = 'none';
+        return;
+      }
+      function doldur(id, deger) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = (deger < 10 ? '0' : '') + deger;
+      }
+      doldur('k-gun', Math.floor(kalan / 86400000));
+      doldur('k-saat', Math.floor(kalan / 3600000) % 24);
+      doldur('k-dak', Math.floor(kalan / 60000) % 60);
+      doldur('k-san', Math.floor(kalan / 1000) % 60);
+    }
+    yaz();
+    setInterval(yaz, 1000);
+  })();
 </script>
 </body>
 </html>
