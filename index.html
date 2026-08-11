@@ -591,6 +591,12 @@
     transition: transform .25s ease, box-shadow .25s ease;
   }
   .kart:hover .detay-btn { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(247, 127, 0, .5); }
+  .kart .yeni-rozet {
+    position: absolute; top: 14px; left: 14px; z-index: 3;
+    background: linear-gradient(135deg, var(--turuncu-acik), var(--turuncu-koyu)); color: #fff;
+    font-size: .68rem; font-weight: 900; letter-spacing: 1px; padding: 5px 12px; border-radius: 999px;
+    box-shadow: 0 6px 14px rgba(247, 127, 0, .4);
+  }
 
   /* ===== GARANTİ ŞERİDİ ===== */
   .garanti-seridi {
@@ -1204,7 +1210,15 @@
     { ad: 'Kandil Simiti', aciklama: 'Susamlı, geleneksel simit keyfi', detay: 'Susamlı, geleneksel tarifle üretilen kandil simiti.', foto: 'gorseller/kandil-simiti.jpg', ikon: '🥨' },
     { ad: 'Lavaş', aciklama: 'İncecik açılmış, tandır lezzeti', detay: 'İncecik açılmış, tandır lezzetinde lavaş.', foto: 'gorseller/lavas.jpg', ikon: '🌯' },
     { ad: 'Tam Buğday Lavaş', aciklama: 'Sağlıklı ve besleyici alternatif', detay: 'Tam buğday unu ile besleyici lavaş çeşidi.', foto: 'gorseller/tam-bugday-lavas.jpg', ikon: '🥙' },
-    { ad: 'Sac Ekmeği', aciklama: 'Sacda pişen, mis gibi ekmek', detay: 'Geleneksel sac üzerinde pişen, mis gibi ekmek.', foto: 'gorseller/sac-ekmegi.jpg', ikon: '🍞' }
+    { ad: 'Sac Ekmeği', aciklama: 'Sacda pişen, mis gibi ekmek', detay: 'Geleneksel sac üzerinde pişen, mis gibi ekmek.', foto: 'gorseller/sac-ekmegi.jpg', ikon: '🍞' },
+    { ad: 'Tatlı Sade Kurabiye', aciklama: '12 adet (250 g) — yumuşacık, çayın yanında ideal', detay: 'Özel tarifle üretilen, ağızda dağılan tatlı sade kurabiye.', foto: 'gorseller/tatli-sade-kurabiye.png', ikon: '🍪', yeni: true },
+    { ad: 'Tuzlu Kandil Simiti', aciklama: '12 adet (250 g) — susamlı, geleneksel', detay: 'Susamlı, çıtır ve geleneksel tarifle üretilen kandil simiti.', foto: 'gorseller/tuzlu-kandil-simiti.png', ikon: '🥨', yeni: true },
+    { ad: 'Tuzlu Fındıklı ve Yer Fıstıklı Kurabiye', aciklama: '12 adet (250 g) — bol fındık, yer fıstığı', detay: 'Fındık ve yer fıstığıyla zenginleştirilmiş, tuzlu ve çıtır kurabiye.', foto: 'gorseller/tuzlu-findikli-yerfistikli.png', ikon: '🥜', yeni: true },
+    { ad: 'Tuzlu Kraker Kurabiye', aciklama: '12 adet (250 g) — çıtır kraker kıvamı', detay: 'Çıtır kıvamda, atıştırmalık olarak ideal tuzlu kraker kurabiye.', foto: 'gorseller/tuzlu-kraker-kurabiye.png', ikon: '🧂', yeni: true },
+    { ad: 'Damla Çikolatalı Kurabiye', aciklama: '12 adet (250 g) — bol damla çikolata', detay: 'Bol damla çikolatalı, tatlı ve doyurucu kurabiye.', foto: 'gorseller/damla-cikolatali-kurabiye.png', ikon: '🍫', yeni: true },
+    { ad: 'Mozaik Kurabiye', aciklama: '12 adet (250 g) — mozaik desenli', detay: 'Görüntüsüyle ve lezzetiyle fark yaratan mozaik desenli kurabiye.', foto: 'gorseller/mozaik-kurabiye.png', ikon: '🍥', yeni: true },
+    { ad: 'Zebra Kurabiye', aciklama: '12 adet (250 g) — zebra desenli', detay: 'Zebra deseniyle öne çıkan, bir o kadar lezzetli kurabiye.', foto: 'gorseller/zebra-kurabiye.png', ikon: '🦓', yeni: true },
+    { ad: 'Kakao\'lu Kurabiye', aciklama: '12 adet (250 g) — kakao keyfi', detay: 'Kakaolu, yoğun lezzette kurabiye.', foto: 'gorseller/kakaolu-kurabiye.png', ikon: '🍩', yeni: true }
   ];
 
   function siparisLink(urun) {
@@ -1218,6 +1232,7 @@
         ? '<div class="foto-kap"><img class="urun-foto" src="' + u.foto + '" alt="' + u.ad + '" loading="lazy"></div>'
         : '<div class="ikon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18"/></svg></div>';
       return '<div class="kart goster" data-urun="' + i + '" tabindex="0" role="button" aria-label="' + u.ad + ' detayları">' +
+        (u.yeni ? '<span class="yeni-rozet">Yeni</span>' : '') +
         goruntu +
         '<div class="kart-alt">' +
         '<div class="urun-ikon">' + (u.ikon || '🍞') + '</div>' +
