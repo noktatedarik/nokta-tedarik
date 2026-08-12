@@ -12,6 +12,8 @@
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <title>NOKTA TEDARİK — Şoför Paneli</title>
 <style>
   :root {
@@ -144,6 +146,10 @@
   .tip-kap button.aktif { border-color:var(--turuncu); background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; box-shadow:0 3px 10px rgba(247,127,0,.3); }
   .sofor-harita-kap { padding:12px 16px 6px; }
   #sofor-harita { height:200px; width:100%; border-radius:14px; border:1px solid var(--border); box-shadow:var(--golge); overflow:hidden; z-index:0; }
+  .konum-lejant { display:flex; gap:14px; justify-content:center; padding:8px 0 2px; font-size:.62rem; font-weight:800; color:var(--muted); letter-spacing:.5px; }
+  .konum-lejant i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .konum-lejant .lg-turuncu { background:var(--turuncu); box-shadow:0 0 0 2px var(--turuncu-acik); }
+  .konum-lejant .lg-sari { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.35); }
   body[data-tema="koyu"] .maplibregl-canvas-container { filter:brightness(.75) saturate(.85) contrast(1.05); }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib { background:rgba(18,27,46,.85); color:#94a3b8; }
@@ -153,6 +159,10 @@
   .sofor-nokta::before, .sofor-nokta::after { content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; border:2px solid var(--turuncu); animation:soforRadar 2s ease-out infinite; }
   .sofor-nokta::after { animation-delay:1s; }
   @keyframes soforRadar { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(2.2); opacity:0; } }
+  .yonetici-nokta { position:relative; width:24px; height:24px; }
+  .yonetici-nokta .sys-cekirdek { position:absolute; left:50%; top:50%; width:13px; height:13px; margin:-6.5px 0 0 -6.5px; border-radius:50%; background:#f59e0b; border:3px solid #fff; box-shadow:0 2px 8px rgba(245,158,11,.75); }
+  .yonetici-nokta::before, .yonetici-nokta::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid #f59e0b; animation:soforRadar 2s ease-out infinite; }
+  .yonetici-nokta::after { animation-delay:1s; }
   .rozet { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.5px; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle; }
   .rozet.sok { background:var(--yesil-bg); color:#1f8a3d; }
   .rozet.tk { background:var(--turuncu-acik); color:#b35c00; }
@@ -240,7 +250,7 @@
       <button data-tip="D">DİĞER</button>
     </div>
   </div>
-  <div class="sofor-harita-kap"><div id="sofor-harita"></div></div>
+  <div class="sofor-harita-kap"><div id="sofor-harita"></div><div class="konum-lejant"><span><i class="lg-turuncu"></i>Sen</span><span><i class="lg-sari"></i>Yönetici</span></div></div>
   <div class="ozet">
     <div class="ilerleme-ust"><span>Bugünkü ilerleme</span><b id="ozet-ilr">0 / 0</b></div>
     <div class="bar"><div class="bar-dolu" id="ozet-bar"></div></div>
@@ -1316,63 +1326,154 @@
   var konumTimer = null;
   var sonKonum = null;
   var soforHarita = null;
+  var soforHaritaMotoru = null;
   var soforMarker = null;
+  var yoneticiMarker = null;
   var soforHedef = null;
+  var yoneticiTimer = null;
+
+  function soforWebglVarMi() {
+    try {
+      var c = document.createElement('canvas');
+      return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
+    } catch (e) { return false; }
+  }
 
   function soforHaritaKur() {
-    if (soforHarita) { try { soforHarita.resize(); } catch (e) { } return; }
-    if (typeof maplibregl === 'undefined') { setTimeout(soforHaritaKur, 1000); return; }
+    if (soforHarita) { try { if (soforHaritaMotoru === 'leaflet') soforHarita.invalidateSize(); else soforHarita.resize(); } catch (e) { } return; }
+    if (typeof maplibregl !== 'undefined' && soforWebglVarMi()) {
+      soforHaritaMotoru = 'maplibre';
+      try {
+        var konteyner = document.getElementById('sofor-harita');
+        if (!konteyner || konteyner.offsetHeight === 0) { setTimeout(soforHaritaKur, 300); return; }
+        soforHarita = new maplibregl.Map({
+          container: 'sofor-harita',
+          style: 'https://tiles.openfreemap.org/styles/bright',
+          center: [35.0, 39.5],
+          zoom: 6,
+          pitch: 40,
+          bearing: 0,
+          maxPitch: 75,
+          antialias: true,
+          attributionControl: { compact: true },
+          interactive: true
+        });
+        soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+        soforHarita.on('load', function () {
+          try {
+            if (!soforHarita.getLayer('sofor-bina-3d')) {
+              soforHarita.addLayer({
+                id: 'sofor-bina-3d',
+                type: 'fill-extrusion',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                minzoom: 13,
+                paint: {
+                  'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
+                  'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
+                  'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+                  'fill-extrusion-opacity': 0.85
+                }
+              });
+            }
+          } catch (e) { }
+          if (soforHedef) soforKonumIsle();
+          yoneticiKonumYukle();
+        });
+        setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 400);
+        setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 1200);
+        return;
+      } catch (e) { soforHarita = null; }
+    }
+    if (typeof L === 'undefined') { setTimeout(soforHaritaKur, 1000); return; }
+    soforLeaffallback();
+  }
+
+  function soforLeaffallback() {
+    if (soforHarita && soforHaritaMotoru === 'maplibre') return;
+    soforHaritaMotoru = 'leaflet';
     try {
-      soforHarita = new maplibregl.Map({
-        container: 'sofor-harita',
-        style: 'https://tiles.openfreemap.org/styles/bright',
-        center: [35.0, 39.5],
-        zoom: 6,
-        pitch: 40,
-        bearing: 0,
-        maxPitch: 75,
-        antialias: true,
-        attributionControl: { compact: true },
-        interactive: true
-      });
-      soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-      soforHarita.on('load', function () {
-        try {
-          if (!soforHarita.getLayer('sofor-bina-3d')) {
-            soforHarita.addLayer({
-              id: 'sofor-bina-3d',
-              type: 'fill-extrusion',
-              source: 'openmaptiles',
-              'source-layer': 'building',
-              minzoom: 13,
-              paint: {
-                'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
-                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
-                'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                'fill-extrusion-opacity': 0.85
-              }
-            });
-          }
-        } catch (e) { }
-        if (soforHedef) soforKonumIsle();
-      });
-      soforHarita.resize();
+      soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20,
+        maxNativeZoom: 19,
+        updateWhenIdle: false
+      }).addTo(soforHarita);
+      setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 300);
+      setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(soforHaritaKur, 2000); }
+  }
+
+  function soforNoktaEl(sinif, cekirdekSinif) {
+    var dis = document.createElement('div');
+    dis.className = sinif;
+    var ic = document.createElement('div');
+    ic.className = cekirdekSinif;
+    dis.appendChild(ic);
+    return dis;
+  }
+  function yoneticiKonumYukle() {
+    if (!soforHarita) return;
+    fetch(FIREBASE_URL + '/konum/yonetici.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.lat || !d.lng) return;
+        var lng = d.lng, lat = d.lat;
+        var pop = '<b>🧭 Yönetici</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
+        if (soforHaritaMotoru === 'leaflet') {
+          try {
+            if (!yoneticiMarker) {
+              var lIkon = L.divIcon({ className: '', html: '<div class="yonetici-nokta"><div class="sys-cekirdek"></div></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+              yoneticiMarker = L.marker([lat, lng], { icon: lIkon }).addTo(soforHarita).bindPopup(pop);
+            } else {
+              yoneticiMarker.setLatLng([lat, lng]);
+              try { yoneticiMarker.setPopupContent(pop); } catch (e) { }
+            }
+          } catch (e) { }
+          return;
+        }
+        if (!yoneticiMarker) {
+          try {
+            yoneticiMarker = new maplibregl.Marker({ element: soforNoktaEl('yonetici-nokta', 'sys-cekirdek'), anchor: 'center' })
+              .setLngLat([lng, lat])
+              .setPopup(new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(pop))
+              .addTo(soforHarita);
+          } catch (e) { }
+        } else {
+          yoneticiMarker.setLngLat([lng, lat]);
+          try { yoneticiMarker.setPopup(new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(pop)); } catch (e) { }
+        }
+      })
+      .catch(function () { });
   }
 
   function soforKonumIsle() {
     if (!soforHarita || !soforHedef) return;
     var lng = soforHedef.lng, lat = soforHedef.lat;
-    if (!soforMarker) {
-      var dis = document.createElement('div');
-      dis.className = 'sofor-nokta';
-      var ic = document.createElement('div');
-      ic.className = 'cekirdek';
-      dis.appendChild(ic);
+    var myPop = '<b>🚚 Sen buradasın</b><br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
+    if (soforHaritaMotoru === 'leaflet') {
       try {
-        soforMarker = new maplibregl.Marker({ element: dis, anchor: 'center' })
+        if (!soforMarker) {
+          var sIkon = L.divIcon({ className: '', html: '<div class="sofor-nokta"><div class="cekirdek"></div></div>', iconSize: [26, 26], iconAnchor: [13, 13] });
+          soforMarker = L.marker([lat, lng], { icon: sIkon }).addTo(soforHarita).bindPopup(myPop);
+        } else {
+          soforMarker.setLatLng([lat, lng]);
+          try { soforMarker.setPopupContent(myPop); } catch (e) { }
+        }
+        if (!soforKonumMerkezlendi) {
+          soforHarita.flyTo([lat, lng], 14, { duration: 1.2 });
+          soforKonumMerkezlendi = true;
+        }
+      } catch (e) { }
+      return;
+    }
+    if (!soforMarker) {
+      try {
+        soforMarker = new maplibregl.Marker({ element: soforNoktaEl('sofor-nokta', 'cekirdek'), anchor: 'center' })
           .setLngLat([lng, lat])
-          .setPopup(new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML('<b>🚚 Sen buradasın</b><br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>'))
+          .setPopup(new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(myPop))
           .addTo(soforHarita);
       } catch (e) { }
     } else {
@@ -1399,10 +1500,13 @@
     soforHaritaKur();
     konumGonder();
     konumTimer = setInterval(konumGonder, 15000);
+    yoneticiKonumYukle();
+    yoneticiTimer = setInterval(yoneticiKonumYukle, 5000);
   }
   function konumDurdur() {
     konumAktif = false;
     if (konumTimer) { clearInterval(konumTimer); konumTimer = null; }
+    if (yoneticiTimer) { clearInterval(yoneticiTimer); yoneticiTimer = null; }
   }
   function konumGonder() {
     if (!konumAktif) return;

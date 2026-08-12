@@ -751,6 +751,7 @@
       cikisBtn.style.display = '';
       girisAnimasyonu();
       baslat();
+      konumYoneticiBaslat();
     } else {
       hata.textContent = 'Yanlış şifre';
       pinEl.value = '';
@@ -765,6 +766,31 @@
     p.classList.add('giris-anim');
     setTimeout(function () { p.classList.remove('giris-anim'); }, 1200);
   }
+
+  var yoneticiKonumAktif = false;
+  var yoneticiKonumTimer = null;
+  function konumYoneticiBaslat() {
+    if (yoneticiKonumAktif) return;
+    if (!('geolocation' in navigator)) return;
+    yoneticiKonumAktif = true;
+    konumYoneticiGonder();
+    yoneticiKonumTimer = setInterval(konumYoneticiGonder, 15000);
+  }
+  function konumYoneticiDurdur() {
+    yoneticiKonumAktif = false;
+    if (yoneticiKonumTimer) { clearInterval(yoneticiKonumTimer); yoneticiKonumTimer = null; }
+  }
+  function konumYoneticiGonder() {
+    if (!yoneticiKonumAktif) return;
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var veri = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+      };
+      fetch(FIREBASE_URL + '/konum/yonetici.json', { method: 'PUT', body: JSON.stringify(veri) }).catch(function () { });
+    }, function () { }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 8000 });
+  }
   document.getElementById('giris-btn').addEventListener('click', girisYap);
   pinEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') girisYap(); });
   var cikisBtn = document.getElementById('cikis-btn');
@@ -773,6 +799,7 @@
     panel.style.display = 'none';
     cikisBtn.style.display = 'none';
     girisKap.style.display = '';
+    konumYoneticiDurdur();
   });
 
   var harita = null;
@@ -2972,6 +2999,7 @@
     document.getElementById('pin').value = PIN;
     girisAnimasyonu();
     baslat();
+    konumYoneticiBaslat();
   }
 
   if ('serviceWorker' in navigator) {
