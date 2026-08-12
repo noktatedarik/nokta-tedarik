@@ -444,7 +444,7 @@
     <div class="ad" style="font-weight:800; color:var(--mavi); padding:8px 2px 2px;">⬇️ DEPOYA GİREN — KOLİ GİRİŞİ</div>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:6px 2px;">
       <label style="font-size:.72rem; color:#6b7f94;">TARİH<br><input type="date" id="giris-tarih" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
-      <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="giris-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA · 12'li koli</option><option value="TAMKOY">TAMKÖY · 20'li koli</option></select></label>
+      <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="giris-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA</option><option value="TAMKOY">TAMKÖY</option></select></label>
       <label style="font-size:.72rem; color:#6b7f94;">ÜRÜN<br><select id="giris-urun" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></select></label>
       <label style="font-size:.72rem; color:#6b7f94;">KOLİ<br><input type="number" id="giris-koli" min="0" value="1" style="width:80px; padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
       <button id="giris-ekle-btn" style="padding:9px 16px; background:#1faa4c; color:#fff; border:0; border-radius:8px; font-weight:700; font-size:.82rem; cursor:pointer;">+ GİRİŞ EKLE</button>
@@ -454,14 +454,14 @@
     <div class="ad" style="font-weight:800; color:#c0392b; padding:16px 2px 2px;">⬆️ DEPODAN ÇIKAN — DAĞITILAN <span style="font-weight:500; opacity:.8;">(şoför teslimlerinden OTOMATİK · elle girmek isterseniz alt form)</span></div>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:6px 2px;">
       <label style="font-size:.72rem; color:#6b7f94;">TARİH<br><input type="date" id="cikis-tarih" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
-      <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="cikis-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA · 12'li koli</option><option value="TAMKOY">TAMKÖY · 20'li koli</option></select></label>
+      <label style="font-size:.72rem; color:#6b7f94;">MARKA<br><select id="cikis-marka" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"><option value="BAGETTA">BAĞETTA</option><option value="TAMKOY">TAMKÖY</option></select></label>
       <label style="font-size:.72rem; color:#6b7f94;">ÜRÜN<br><select id="cikis-urun" style="padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></select></label>
       <label style="font-size:.72rem; color:#6b7f94;">KOLİ<br><input type="number" id="cikis-koli" min="0" value="1" style="width:80px; padding:8px; border:1px solid rgba(120,140,160,.35); border-radius:8px; font-size:.85rem; background:transparent;"></label>
       <button id="cikis-ekle-btn" style="padding:9px 16px; background:#c0392b; color:#fff; border:0; border-radius:8px; font-weight:700; font-size:.82rem; cursor:pointer;">− ÇIKIŞ EKLE</button>
     </div>
     <div id="cikis-liste"></div>
 
-    <div style="font-size:.68rem; color:#9fb0c3; padding-top:8px;">* Değerler koli cinsindendir (Bağetta 12'li, Tamköy 20'li çarpanı). ÇIKIŞ (dağıtılan) = girdiğiniz sevkiyatlar <b>+</b> şoför teslimleri (otomatik). Kalan = Giriş − Çıkış.</div>
+    <div style="font-size:.68rem; color:#9fb0c3; padding-top:8px;">* Değerler koli cinsindendir (koli hesabı ürün bazlı koli içi adede göre yapılır). ÇIKIŞ (dağıtılan) = girdiğiniz sevkiyatlar <b>+</b> şoför teslimleri (otomatik). Kalan = Giriş − Çıkış.</div>
   </div>
 
   <div class="bolum" id="baslik-ciro"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
@@ -973,10 +973,10 @@
         var gun = depoGirisTum[tg[i]];
         if (!gun) continue;
         for (var mk in gun) {
-          var birim = mk === 'BAGETTA' ? 12 : 20;
           var koliler = gun[mk];
           if (!koliler) continue;
           for (var s in koliler) {
+            var birim = koliIc(mk, s);
             var adet = (parseFloat(koliler[s]) || 0) * birim;
             if (!adet) continue;
             varMi = true;
@@ -992,10 +992,10 @@
         var cgun = depoCikisTum[tc[ci]];
         if (!cgun) continue;
         for (var cmk in cgun) {
-          var cboy = cmk === 'BAGETTA' ? 12 : 20;
           var ckol = cgun[cmk];
           if (!ckol) continue;
           for (var cs in ckol) {
+            var cboy = koliIc(cmk, cs);
             var cadet = (parseFloat(ckol[cs]) || 0) * cboy;
             if (!cadet) continue;
             varMi = true;
@@ -1031,23 +1031,24 @@
     return { giris: giris, cikis: cikis, varMi: varMi };
   }
 
-  function depoStokSatirlar(markaAd, boy, urunler) {
+  function depoStokSatirlar(markaAd, urunler) {
     var stk = depoStokSay(secilenTarih);
     var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
-    var t = '<div class="tablo-sar" style="margin-top:8px;"><table><thead><tr><th>' + markaAd + ' · ' + boy + '\'li koli</th><th class="say">GİRİŞ (koli)</th><th class="say">ÇIKIŞ (koli)</th><th class="say">KALAN (koli)</th><th class="say">GİRİŞ (adet)</th><th class="say">ÇIKIŞ (adet)</th><th class="say">KALAN (adet)</th></tr></thead><tbody>';
-    var kgA = 0, kcA = 0, kkA = 0;
+    var t = '<div class="tablo-sar" style="margin-top:8px;"><table><thead><tr><th>' + markaAd + '</th><th class="say">GİRİŞ (koli)</th><th class="say">ÇIKIŞ (koli)</th><th class="say">KALAN (koli)</th><th class="say">GİRİŞ (adet)</th><th class="say">ÇIKIŞ (adet)</th><th class="say">KALAN (adet)</th></tr></thead><tbody>';
+    var kgA = 0, kcA = 0, kkA = 0, kgK = 0, kcK = 0, kkK = 0;
     for (var i = 0; i < urunler.length; i++) {
       var u = urunler[i], s = u.sutun;
+      var boy = koliIc(markaAd, s);
       var gA = g[s] || 0, cA = c[s] || 0, kalA = gA - cA;
       kgA += gA; kcA += cA; kkA += kalA;
       var gK = Math.ceil(gA / boy), cK = Math.ceil(cA / boy);
       var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
+      kgK += gK; kcK += cK; kkK += kalK;
       var neg = kalA < 0 ? ' style="color:#e74c3c;font-weight:800;"' : '';
-      t += '<tr><td>' + u.ad + '</td><td class="say">' + gK + '</td><td class="say">' + cK + '</td><td class="say-b"' + neg + '>' + kalK + '</td><td class="say">' + gA + '</td><td class="say">' + cA + '</td><td class="say-b"' + neg + '>' + kalA + '</td></tr>';
+      t += '<tr><td>' + u.ad + ' <span style="opacity:.6; font-size:.68rem;">(' + boy + '\'li)</span></td><td class="say">' + gK + '</td><td class="say">' + cK + '</td><td class="say-b"' + neg + '>' + kalK + '</td><td class="say">' + gA + '</td><td class="say">' + cA + '</td><td class="say-b"' + neg + '>' + kalA + '</td></tr>';
     }
-    var kkK = kkA < 0 ? Math.floor(kkA / boy) : Math.ceil(kkA / boy);
     var negT = kkA < 0 ? ' style="color:#e74c3c;font-weight:800;"' : '';
-    t += '<tr class="toplam"><td>GENEL</td><td class="say">' + Math.ceil(kgA / boy) + '</td><td class="say">' + Math.ceil(kcA / boy) + '</td><td class="say-b"' + negT + '>' + kkK + '</td><td class="say">' + kgA + '</td><td class="say">' + kcA + '</td><td class="say-b"' + negT + '>' + kkA + '</td></tr>';
+    t += '<tr class="toplam"><td>GENEL</td><td class="say">' + kgK + '</td><td class="say">' + kcK + '</td><td class="say-b"' + negT + '>' + kkK + '</td><td class="say">' + kgA + '</td><td class="say">' + kcA + '</td><td class="say-b"' + negT + '>' + kkA + '</td></tr>';
     t += '</tbody></table></div>';
     return t;
   }
@@ -1057,17 +1058,18 @@
     var tarih = tarihYaz(new Date());
     var stk = depoStokSay(tarih);
     var satirlar = ['tarih=' + tarih, 'Marka\tÜrün\tGirişKoli\tÇıkışKoli\tKalanKoli\tGirişAdet\tÇıkışAdet\tKalanAdet'];
-    function ekle(markaAd, boy, urunler) {
+    function ekle(markaAd, urunler) {
       var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
+        var boy = koliIc(markaAd, u.sutun);
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
         var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
         satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA].join('\t'));
       }
     }
-    ekle('BAGETTA', 12, BAGETTA_URUNLER);
-    ekle('TAMKOY', 20, URUNLER);
+    ekle('BAGETTA', BAGETTA_URUNLER);
+    ekle('TAMKOY', URUNLER);
     var metin = satirlar.join('\n');
     if (metin === sonStokSnap) return;
     sonStokSnap = metin;
@@ -1111,7 +1113,7 @@
         h += '<div class="tablo-sar"><table><thead><tr><th>MARKA</th><th>ÜRÜN</th><th class="say">KOLİ</th><th class="say">ADET</th><th></th></tr></thead><tbody>';
         for (var i = 0; i < satirlar.length; i++) {
           var sr = satirlar[i];
-          var boy = sr.marka === 'BAGETTA' ? 12 : 20;
+          var boy = koliIc(sr.marka, sr.sutun);
           h += '<tr><td>' + (sr.marka === 'BAGETTA' ? 'BAĞETTA' : 'TAMKÖY') + '</td><td>' + sr.ad + '</td><td class="say">' + sr.koli + '</td><td class="say">' + Math.round(sr.koli * boy) + '</td>' +
             '<td style="text-align:right;"><button class="btn-gecmis" data-stok-sil="1" data-attr="' + silAttr + '" data-node="' + node + '" data-kap="' + kapId + '" data-marka="' + sr.marka + '" data-sutun="' + sr.sutun + '" data-tarih="' + tarih + '" style="background:#e74c3c; color:#fff;">🗑 Sil</button></td></tr>';
         }
@@ -1174,17 +1176,18 @@
   function depoStokExcelSatirlari(tarih) {
     var satirlar = [['Marka', 'Ürün', 'Giriş Koli', 'Çıkış Koli', 'Kalan Koli', 'Giriş Adet', 'Çıkış Adet', 'Kalan Adet']];
     var stk = depoStokSay(tarih);
-    function ekle(markaAd, boy, urunler) {
+    function ekle(markaAd, urunler) {
       var g = stk.giris[markaAd] || {}, c = stk.cikis[markaAd] || {};
       for (var i = 0; i < urunler.length; i++) {
         var u = urunler[i];
+        var boy = koliIc(markaAd, u.sutun);
         var gA = g[u.sutun] || 0, cA = c[u.sutun] || 0, kalA = gA - cA;
         var kalK = kalA < 0 ? Math.floor(kalA / boy) : Math.ceil(kalA / boy);
         satirlar.push([markaAd, u.ad, Math.ceil(gA / boy), Math.ceil(cA / boy), kalK, gA, cA, kalA]);
       }
     }
-    ekle('BAGETTA', 12, BAGETTA_URUNLER);
-    ekle('TAMKOY', 20, URUNLER);
+    ekle('BAGETTA', BAGETTA_URUNLER);
+    ekle('TAMKOY', URUNLER);
     return satirlar;
   }
 
@@ -1598,6 +1601,14 @@
   function markaAdi(tip) {
     return tip === 'T' ? 'BAGETTA' : 'TAMKOY';
   }
+  var KOLI_IC = {
+    TAMKOY: { D: 12, E: 12, F: 12, G: 12, H: 12, I: 20, J: 12, K: 24 },
+    BAGETTA: { D: 12, E: 12, F: 12, G: 12, H: 12, I: 24, J: 12 }
+  };
+  function koliIc(marka, sutun) {
+    var mm = KOLI_IC[marka];
+    return mm && mm[sutun] ? mm[sutun] : (marka === 'BAGETTA' ? 12 : 20);
+  }
 
   function ciz(magazalar, durumlar) {
     var html = '';
@@ -1990,22 +2001,34 @@
     h += '<td class="say-b">' + genelTop + '</td></tr>';
     h += '</tbody></table></div>';
 
-    var koliH = '<div class="tablo-sar" style="margin-top:10px;"><table><thead><tr><th>ÜRÜN</th><th class="say">ADET</th><th class="say">BAĞETTA (12\'li)</th><th class="say">TAMKÖY (20\'li)</th><th class="say">TOPLAM KOLİ</th></tr></thead><tbody>';
+    var koliH = '<div class="tablo-sar" style="margin-top:10px;"><table><thead><tr><th>ÜRÜN</th><th class="say">ADET</th><th class="say">BAĞETTA</th><th class="say">TAMKÖY</th><th class="say">TOPLAM KOLİ</th></tr></thead><tbody>';
     var genelKoli = 0;
     for (var s4 = 0; s4 < sutunlar.length; s4++) {
       var sut2 = sutunlar[s4];
       var adetB = bagetSutun[sut2] || 0;
       var adetT = tamkoySutun[sut2] || 0;
       if (!adetB && !adetT) continue;
-      var koliB = Math.ceil(adetB / 12);
-      var koliT = Math.ceil(adetT / 20);
+      var boyB = koliIc('BAGETTA', sut2), boyT = koliIc('TAMKOY', sut2);
+      var koliB = Math.ceil(adetB / boyB);
+      var koliT = Math.ceil(adetT / boyT);
       var koliTop = koliB + koliT;
       genelKoli += koliTop;
-      koliH += '<tr><td>' + kolonAd[sut2] + '</td><td class="say">' + (adetB + adetT) + '</td><td class="say">' + (adetB || '—') + ' → ' + koliB + '</td><td class="say">' + (adetT || '—') + ' → ' + koliT + '</td><td class="say-b">' + koliTop + '</td></tr>';
+      koliH += '<tr><td>' + kolonAd[sut2] + ' <span style="opacity:.6; font-size:.68rem;">(' + boyB + '\'li / ' + boyT + '\'li)</span></td><td class="say">' + (adetB + adetT) + '</td><td class="say">' + (adetB || '—') + ' → ' + koliB + '</td><td class="say">' + (adetT || '—') + ' → ' + koliT + '</td><td class="say-b">' + koliTop + '</td></tr>';
     }
     koliH += '<tr class="toplam"><td>GENEL</td><td class="say">' + genelTop + '</td><td class="say"></td><td class="say"></td><td class="say-b">' + genelKoli + ' koli</td></tr>';
     koliH += '</tbody></table></div>';
-    koliH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Koli hesabı: Bağetta 12\'li, Tamköy 20\'li koli varsayımıyla üstten yuvarlanır.</div>';
+    var koliNot = '* Koli hesabı ürün bazlı koli içi adedine göre üstten yuvarlanır.';
+    function koliAciklama(markaAd, urunlerListesi) {
+      var kalemler = [];
+      for (var i = 0; i < urunlerListesi.length; i++) {
+        var u = urunlerListesi[i];
+        var ic = KOLI_IC[markaAd] && KOLI_IC[markaAd][u.sutun] ? KOLI_IC[markaAd][u.sutun] : (markaAd === 'BAGETTA' ? 12 : 20);
+        kalemler.push(u.ad + ' ' + ic + '\'li');
+      }
+      return kalemler.join(', ');
+    }
+    koliNot += ' Bağetta: ' + koliAciklama('BAGETTA', BAGETTA_URUNLER) + '; Tamköy: ' + koliAciklama('TAMKOY', URUNLER) + '.';
+    koliH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">' + koliNot + '</div>';
     } else {
       koliH = '';
     }
@@ -2016,9 +2039,9 @@
     if (!stkVeri.varMi) {
       stokH += '<div class="bos-kap" style="padding:14px;"><div class="ikon">📦</div>Stok kaydı yok<div class="acik">Koli girişini paneldaki <b>📥 DEPO GİRİŞİ</b> formuyla ekleyin ya da makronuzla şu adrese yazın:<br><b>' + FIREBASE_URL + '/depostok/giris/{tarih}.json</b><br>Örnek (değerler koli adedidir):<br>{ "BAGETTA": { "D": 12, "I": 3 }, "TAMKOY": { "E": 5 } }</div></div>';
     } else {
-      stokH += depoStokSatirlar('BAGETTA', 12, BAGETTA_URUNLER);
-      stokH += depoStokSatirlar('TAMKOY', 20, URUNLER);
-      stokH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Giriş değerleri koli cinsinden yazılır (Bağetta 12\'li, Tamköy 20\'li çarpanı). Çıkış = girdiğiniz <b>DAĞITILAN</b> kayıtları + şoför teslimleri (otomatik). Kalan = Giriş − Çıkış. <b style="color:#e74c3c;">Kalan negatifse bir hata var</b>: ya bu ürünün stok girişi eksik ya da fazla dağıtım yapıldı.</div>';
+      stokH += depoStokSatirlar('BAGETTA', BAGETTA_URUNLER);
+      stokH += depoStokSatirlar('TAMKOY', URUNLER);
+      stokH += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">* Giriş değerleri koli cinsinden yazılır, kalan koli hesabı ürün bazlı koli içi adede göre yapılır. Çıkış = girdiğiniz <b>DAĞITILAN</b> kayıtları + şoför teslimleri (otomatik). Kalan = Giriş − Çıkış. <b style="color:#e74c3c;">Kalan negatifse bir hata var</b>: ya bu ürünün stok girişi eksik ya da fazla dağıtım yapıldı.</div>';
     }
     stokH += '</div>';
 

@@ -1681,6 +1681,10 @@
       .then(function (r) { return r.json(); })
       .catch(function () { return null; })
       .then(function (kn) {
+        var kasama = gunDurum && gunDurum.asama ? gunDurum.asama : null;
+        var gBitti = !!(gunDurum.tamamlandi || kasama === 'tamamlandi' || (kasama === 'donus' && varisGectiMi()));
+        if (gBitti) { opsAraEl.textContent = 'DEPODA'; opsAraEl.style.color = '#8fb3ff'; return; }
+        if (kasama === 'donus') { opsAraEl.textContent = 'YOLDA'; opsAraEl.style.color = '#7ed957'; return; }
         if (!kn || !kn.saat) { opsAraEl.textContent = '—'; opsAraEl.style.color = ''; return; }
         var par = String(kn.saat).split(':');
         if (par.length !== 2) { opsAraEl.textContent = '—'; opsAraEl.style.color = ''; return; }
@@ -1808,7 +1812,7 @@
                 return fetch(FIREBASE_URL + '/durum/' + tarih + '.json')
                   .then(function (r) { return r.json(); })
                   .then(function (gd) {
-                    gunDurum = gd && (gd.yukleme || gd.baslama) ? gd : {};
+                    gunDurum = gd && (gd.yukleme || gd.baslama || gd.asama || gd.tamamlandi) ? gd : {};
                     return fetch(FIREBASE_URL + '/konum/guncel.json')
                       .then(function (r) { return r.json(); })
                       .then(function (kn) {
@@ -1872,15 +1876,26 @@
     var k = ilKoor[ilT] || merkez;
     return { x: k.x, y: k.y };
   }
+  function varisGectiMi() {
+    if (!aktifDonus || !aktifDonus.varisTahmini) return false;
+    var vp = String(aktifDonus.varisTahmini).split(':');
+    var sp = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }).split(':');
+    if (vp.length !== 2 || sp.length !== 2) return false;
+    return (parseInt(sp[0], 10) * 60 + parseInt(sp[1], 10)) >= (parseInt(vp[0], 10) * 60 + parseInt(vp[1], 10));
+  }
   function canliDurum(t, sehir) {
     var adet = magazaSayisi(sehir);
     var evre = gunDurum && gunDurum.asama ? gunDurum.asama : null;
     var yuklemeV = gunDurum && gunDurum.yukleme;
     var baslamaV = gunDurum && gunDurum.baslama;
     if (!aktifSecim || !sehir) return { tip: 'bekleme', ilerleme: 0, tamam: 0, yolda: 'Şoför henüz bugünün şehrini seçmedi' };
+    if (evre === 'tamamlandi' || gunDurum.tamamlandi) return { tip: 'tamam', ilerleme: 1, tamam: adet, yolda: 'Gün tamamlandı — şoför depoya döndü' };
     if (evre === 'yukleme') return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (evre === 'baslama') return { tip: 'yolda', ilerleme: 0.3, tamam: 0, yolda: 'Şoför yola çıktı — ' + sehir + ' yönünde' };
-    if (evre === 'donus') return { tip: 'donus', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya dönüyor' };
+    if (evre === 'donus') {
+      if (varisGectiMi()) return { tip: 'tamam', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya ulaştı — gün tamamlandı' };
+      return { tip: 'donus', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya dönüyor — varış ' + aktifDonus.varisTahmini };
+    }
     if (!yuklemeV && !baslamaV) return { tip: 'bekleme', ilerleme: 0, tamam: 0, yolda: 'Şoför güne henüz başlamadı — buton bekleniyor' };
     if (yuklemeV && !baslamaV) return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (firebaseTamam === 0) return { tip: 'yolda', ilerleme: 0.3, tamam: 0, yolda: 'Şoför yola çıktı — ' + sehir + ' yönünde' };
