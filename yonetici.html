@@ -1244,10 +1244,11 @@
         }
       }
       ilkYukleme = false;
+      var oncekiScroll = window.scrollY || document.documentElement.scrollTop;
       ciz(magazalar, durumlar);
       var simdiScroll = window.scrollY || document.documentElement.scrollTop;
-      if (Math.abs(simdiScroll - bekleScroll) > window.innerHeight * 0.4) {
-        window.scrollTo(0, Math.min(bekleScroll, document.documentElement.scrollHeight));
+      if (Math.abs(simdiScroll - oncekiScroll) > window.innerHeight * 0.4) {
+        window.scrollTo(0, Math.min(oncekiScroll, document.documentElement.scrollHeight));
       }
     }).catch(function () {
       liste.innerHTML = '<div class="bos-kap"><div class="ikon">⚠️</div>Bağlantı hatası<div class="acik">İnterneti kontrol edin, 5 saniye içinde tekrar denenir</div></div>';
