@@ -840,12 +840,8 @@
         if (harita) {
           if (!aracMarker) {
             aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>');
-            harita.setView(nokta, 13);
           } else {
             aracMarker.setLatLng(nokta);
-            if (!harita.getBounds().contains(L.latLng(nokta[0], nokta[1]))) {
-              harita.panTo(nokta);
-            }
           }
         }
       }).catch(function () {
