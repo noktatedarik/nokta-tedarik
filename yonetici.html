@@ -780,6 +780,8 @@
   var sonImza = '';
   var magazaNotlar = {};
   var gunDurum = {};
+  var sonScrollZamani = 0;
+  document.addEventListener('scroll', function () { sonScrollZamani = Date.now(); }, { passive: true });
   var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
 
   function haritaKur() {
@@ -1095,7 +1097,7 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var h = '<div class="ad" style="font-weight:700; color:var(--mavi); padding:8px 0 4px;">' + baslik + ' · ' + tarih + '</div>';
-        if (!d) { kap.innerHTML = h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte kayıt yok</div></div>'; return; }
+        if (!d) { setHtml(kap, h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte kayıt yok</div></div>'); return; }
         var kolonAd = urunKolonAdi();
         var satirlar = [];
         for (var mk in d) {
@@ -1109,7 +1111,7 @@
           }
         }
         satirlar.sort(function (a, b) { return a.marka === b.marka ? (a.ad < b.ad ? -1 : 1) : (a.marka < b.marka ? -1 : 1); });
-        if (!satirlar.length) { kap.innerHTML = h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte kayıt yok</div></div>'; return; }
+        if (!satirlar.length) { setHtml(kap, h + '<div class="bos-kap" style="padding:14px;"><div class="acik">Bu tarihte kayıt yok</div></div>'); return; }
         h += '<div class="tablo-sar"><table><thead><tr><th>MARKA</th><th>ÜRÜN</th><th class="say">KOLİ</th><th class="say">ADET</th><th></th></tr></thead><tbody>';
         for (var i = 0; i < satirlar.length; i++) {
           var sr = satirlar[i];
@@ -1118,7 +1120,7 @@
             '<td style="text-align:right;"><button class="btn-gecmis" data-stok-sil="1" data-attr="' + silAttr + '" data-node="' + node + '" data-kap="' + kapId + '" data-marka="' + sr.marka + '" data-sutun="' + sr.sutun + '" data-tarih="' + tarih + '" style="background:#e74c3c; color:#fff;">🗑 Sil</button></td></tr>';
         }
         h += '</tbody></table></div>';
-        kap.innerHTML = h;
+        setHtml(kap, h);
         var silBtns = kap.querySelectorAll('[data-stok-sil]');
         for (var b = 0; b < silBtns.length; b++) {
           silBtns[b].addEventListener('click', function () {
@@ -1249,13 +1251,7 @@
         }
       }
       ilkYukleme = false;
-      var oncekiScroll = window.scrollY || document.documentElement.scrollTop;
-      var oncekiBoy = document.documentElement.scrollHeight;
       ciz(magazalar, durumlar);
-      var simdiScroll = window.scrollY || document.documentElement.scrollTop;
-      if (simdiScroll !== oncekiScroll) {
-        window.scrollTo(0, Math.min(oncekiScroll, document.documentElement.scrollHeight));
-      }
     }).catch(function () {
       liste.innerHTML = '<div class="bos-kap"><div class="ikon">⚠️</div>Bağlantı hatası<div class="acik">İnterneti kontrol edin, 5 saniye içinde tekrar denenir</div></div>';
     });
@@ -1877,15 +1873,12 @@
 
   function redPanel(redler) {
     var k = document.getElementById('red-panel');
-    if (!redler.length) {
-      k.innerHTML = '<div class="bos-kap" style="padding:18px;"><div class="ikon">✅</div>Red kaydı yok<div class="acik">Bugün tüm teslimatlar sorunsuz</div></div>';
-      return;
-    }
+    if (!redler.length) { setHtml(k, '<div class="bos-kap" style="padding:18px;"><div class="ikon">✅</div>Red kaydı yok<div class="acik">Bugün tüm teslimatlar sorunsuz</div></div>'); return; }
     var h = '<div class="ad" style="font-weight:700; color:var(--mavi); padding-bottom:8px;">' + redler.length + ' RED</div>';
     for (var i = 0; i < redler.length; i++) {
       h += '<div class="satir-red"><div><span class="red-ad">' + redler[i].ad + '</span> <span class="red-saat">' + redler[i].ilce + '</span></div><div><span class="red-neden">✗ ' + redler[i].neden + '</span> · <span class="red-saat">' + redler[i].saat + '</span></div></div>';
     }
-    k.innerHTML = h;
+    setHtml(k, h);
   }
 
   function istatistikPanel(bagetToplam, tamkoyToplam, magazaSay, teslimSay, redSay, markaSay) {
@@ -1912,7 +1905,7 @@
     h += '</tbody></table></div>';
     h += '<div style="font-size:.72rem; color:#6b7f94; padding-top:8px;">Mağaza: ' + magazaSay + ' · Teslim: ' + teslimSay + ' · Red: ' + redSay + ' · Bağetta: ' + (markaSay.BAGETTA || 0) + ' mağaza · Tamköy: ' + (markaSay.TAMKOY || 0) + ' mağaza</div>';
     h += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:4px;">* Kolilerdeki adetler makro ile depo sayfasına yazılır (20\'li / 12\'li çarpanı).</div>';
-    k.innerHTML = h;
+    setHtml(k, h);
   }
 
   var ciroFmt = function (n) { return (n || 0).toLocaleString('tr-TR') + ' ₺'; };
@@ -2049,7 +2042,7 @@
     }
     stokH += '</div>';
 
-    k.innerHTML = h + koliH + stokH;
+    setHtml(k, h + koliH + stokH);
   }
 
   function ciroPanel(ciroGenel, bagetSutun, tamkoySutun) {
@@ -2079,7 +2072,7 @@
     h += '<tr class="toplam"><td>GENEL TOPLAM</td><td class="say"></td><td class="say"></td><td class="say-b">' + (genelCiro || 0).toLocaleString('tr-TR') + ' ₺</td></tr>';
     h += '</tbody></table></div>';
     h += '<div style="font-size:.68rem; color:#9fb0c3; padding-top:6px;">Fiyatlar fiyatlar.js dosyasından okunur · ' + (FIYATLAR.guncelleme || '') + '</div>';
-    k.innerHTML = h;
+    setHtml(k, h);
   }
 
   var grafikUrun = null, grafikIl = null, grafikHafta = null;
@@ -2236,7 +2229,7 @@
 
     var gecikme = sureUyari(saatler, gunDurum);
     if (gecikme) h += '<div class="uyari">' + gecikme + '</div>';
-    k.innerHTML = h;
+    setHtml(k, h);
   }
 
   function dakikaFark(a, b) {
