@@ -1826,6 +1826,8 @@
   function gecmisButonlar() {
     var btns = document.querySelectorAll('.btn-gecmis');
     for (var b = 0; b < btns.length; b++) {
+      if (btns[b].getAttribute('data-bagli') === '1') continue;
+      btns[b].setAttribute('data-bagli', '1');
       btns[b].addEventListener('click', function () {
         var kod = this.getAttribute('data-kod');
         var ad = this.getAttribute('data-ad');
