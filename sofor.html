@@ -1069,6 +1069,8 @@
     setInterval(yukle, 2000);
     duyuruOku();
     setInterval(duyuruOku, 10000);
+    yoneticiGirisUyari();
+    setInterval(yoneticiGirisUyari, 5000);
     mesajlariYukle();
     setInterval(mesajlariYukle, 3000);
     sosKontrol();
@@ -1283,6 +1285,35 @@
         ekran.dataset.anahtar = enId;
         document.getElementById('duyuru-metin').textContent = enYeni.metin;
         ekran.style.display = 'flex';
+      })
+      .catch(function () { });
+  }
+
+  var yoneticiGirisSonId = null;
+  var yoneticiGirisIlk = true;
+  function yoneticiGirisUyari() {
+    fetch(FIREBASE_URL + '/yoneticiGiris.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var enYeni = null, enId = null;
+        for (var id in (d || {})) {
+          var k = d[id];
+          if (!k) continue;
+          if (!enYeni || id > enId) { enYeni = k; enId = id; }
+        }
+        if (!enId) { yoneticiGirisSonId = null; return; }
+        if (yoneticiGirisIlk) {
+          yoneticiGirisIlk = false;
+          yoneticiGirisSonId = enId;
+          return;
+        }
+        if (enId !== yoneticiGirisSonId) {
+          yoneticiGirisSonId = enId;
+          var metin = enYeni && enYeni.metin ? enYeni.metin : 'Yönetici panele giriş yaptı 🧑‍💻';
+          toast('🔔 ' + metin + ' (' + (enYeni.s || '') + ')', 'ok');
+          sesCal(MESAJ_SESI);
+          bildirimGonder(metin);
+        }
       })
       .catch(function () { });
   }

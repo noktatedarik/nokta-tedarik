@@ -752,6 +752,7 @@
       girisAnimasyonu();
       baslat();
       konumYoneticiBaslat();
+      yoneticiGirisBildir();
     } else {
       hata.textContent = 'Yanlış şifre';
       pinEl.value = '';
@@ -765,6 +766,16 @@
     void p.offsetWidth;
     p.classList.add('giris-anim');
     setTimeout(function () { p.classList.remove('giris-anim'); }, 1200);
+  }
+
+  function yoneticiGirisBildir() {
+    var id = new Date().toISOString() + '-' + Math.random().toString(36).slice(2, 7);
+    var veri = {
+      metin: 'Yönetici panele giriş yaptı 👨‍💼',
+      t: new Date().toLocaleDateString('tr-TR'),
+      s: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    };
+    fetch(FIREBASE_URL + '/yoneticiGiris/' + id + '.json', { method: 'PUT', body: JSON.stringify(veri) }).catch(function () { });
   }
 
   var yoneticiKonumAktif = false;
@@ -3000,6 +3011,7 @@
     girisAnimasyonu();
     baslat();
     konumYoneticiBaslat();
+    yoneticiGirisBildir();
   }
 
   if ('serviceWorker' in navigator) {
