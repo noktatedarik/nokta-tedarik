@@ -151,7 +151,6 @@
   .bar-metin { font-size:.64rem; color:var(--soluk); font-weight:700; letter-spacing:.5px; margin-top:6px; display:flex; justify-content:space-between; }
   .harita-kap { padding:0 16px 14px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
   #harita { height:340px; width:100%; border-radius:16px; border:1px solid var(--cizgi); box-shadow:var(--golge); overflow:hidden; z-index:0; }
-  body[data-tema="koyu"] .maplibregl-canvas-container { filter:brightness(.72) saturate(.85) contrast(1.08); }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#121b2e; color:#e2e8f0; border-color:#22304a; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib { background:rgba(18,27,46,.85); color:#94a3b8; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib a { color:#e2e8f0; }
@@ -810,11 +809,13 @@
         bearing: 0,
         maxPitch: 75,
         antialias: true,
+        failIfMajorPerformanceCaveat: false,
         attributionControl: { compact: true }
       });
       harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
       harita.on('load', function () { harita3DBina(); });
-      harita.resize();
+      setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
+      setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(haritaKur, 2000); }
   }
 
@@ -2398,7 +2399,8 @@
 
   function baslat() {
     haritaKur();
-    window.addEventListener('resize', function () { if (harita) harita.resize(); });
+    window.addEventListener('resize', function () { if (harita) { try { harita.resize(); } catch (e) { } } });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && harita) { try { harita.resize(); } catch (e) { } } });
     secimKur();
     aramaEl = document.getElementById('arama');
     aramaEl.addEventListener('input', function () { yukle(); });
