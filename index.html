@@ -1926,11 +1926,11 @@
     document.getElementById('canli-cikis').innerHTML = haftaIci && (gunDurum.yukleme || gunDurum.baslama)
       ? 'Tokat Merkez — DEPO YÜKLEME ' + (gunDurum.yukleme || '—') + '<br>Tokat Merkez — ÇIKIŞ ' + (gunDurum.baslama || '—') : '—';
 
-    if (!haftaIci) {
+    if (gun === 0) {
       etiket.textContent = 'KAPALI';
       baslik.textContent = 'Bugün Kapalıyız';
       for (var i = 0; i < 5; i++) durumlar[i] = { aktif: false, txt: 'Kapalı', cls: '' };
-      bilgi = { tamam: '—', yolda: 'Hafta içi ve Cumartesi hizmet veriyoruz', varis: '—' };
+      bilgi = { tamam: '—', yolda: 'Pazar günü hizmet verilmiyor — hafta içi ve Cumartesi ulaşabilirsiniz', varis: '—' };
     } else {
       d = canliDurum(t, sehir);
       ilerleme = d.ilerleme;
@@ -1989,7 +1989,7 @@
     } else {
       heroArac.style.display = 'none';
       if (heroHat) heroHat.classList.remove('hat-aktif');
-      heroDurum.textContent = 'Kapalı';
+      heroDurum.textContent = gun === 0 ? 'Kapalı' : 'Beklemede';
     }
   }
   canliGuncelle();
