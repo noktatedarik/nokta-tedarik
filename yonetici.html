@@ -15,6 +15,8 @@
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" id="leaflet-css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -774,6 +776,7 @@
   });
 
   var harita = null;
+  var haritaMotoru = null;
   var aracMarker = null;
   var rotaCizgi = null;
   var sonKonum = null;
@@ -792,35 +795,69 @@
     dis.appendChild(ic);
     return dis;
   }
+  function webglVarMi() {
+    try {
+      var c = document.createElement('canvas');
+      return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
+    } catch (e) { return false; }
+  }
 
   function haritaKur() {
-    if (harita) { try { harita.resize(); } catch (e) { } return; }
-    if (typeof maplibregl === 'undefined') {
+    if (harita) { try { if (haritaMotoru === 'leaflet') harita.invalidateSize(); else harita.resize(); } catch (e) { } return; }
+    if (typeof maplibregl !== 'undefined' && webglVarMi()) {
+      haritaMotoru = 'maplibre';
+      try {
+        var haritaKapsam = document.getElementById('harita');
+        if (!haritaKapsam || haritaKapsam.offsetHeight === 0) { setTimeout(haritaKur, 300); return; }
+        harita = new maplibregl.Map({
+          container: 'harita',
+          style: 'https://tiles.openfreemap.org/styles/bright',
+          center: [36.5, 40.5],
+          zoom: 7,
+          pitch: 40,
+          bearing: 0,
+          maxPitch: 75,
+          antialias: true,
+          failIfMajorPerformanceCaveat: false,
+          attributionControl: { compact: true }
+        });
+        harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+        harita.on('load', function () { harita3DBina(); });
+        harita.on('error', function (hby) {
+          var msg = hby && hby.error && hby.error.message ? hby.error.message : '';
+          if (msg.indexOf('WebGL') !== -1) { try { harita.remove(); } catch (e) { } harita = null; leaffallback(); }
+        });
+        setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
+        setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
+        return;
+      } catch (e) { /* Leaflet'e diş */ }
+    }
+    if (typeof L === 'undefined') {
       setTimeout(haritaKur, 1000);
       return;
     }
+    leaffallback();
+  }
+
+  function leaffallback() {
+    if (harita && (typeof L === 'undefined' || haritaMotoru === 'maplibre')) return;
+    haritaMotoru = 'leaflet';
     try {
-      harita = new maplibregl.Map({
-        container: 'harita',
-        style: 'https://tiles.openfreemap.org/styles/bright',
-        center: [36.5, 40.5],
-        zoom: 7,
-        pitch: 40,
-        bearing: 0,
-        maxPitch: 75,
-        antialias: true,
-        failIfMajorPerformanceCaveat: false,
-        attributionControl: { compact: true }
-      });
-      harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-      harita.on('load', function () { harita3DBina(); });
-      setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
-      setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
+      harita = L.map('harita', { zoomControl: true, preferCanvas: false }).setView([40.5, 36.5], 7);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20,
+        maxNativeZoom: 19,
+        updateWhenIdle: false
+      }).addTo(harita);
+      setTimeout(function () { try { harita.invalidateSize(); } catch (e) { } }, 400);
+      setTimeout(function () { try { harita.invalidateSize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(haritaKur, 2000); }
   }
 
   function harita3DBina() {
-    if (!harita || !harita.getSource || !harita.getSource('openmaptiles')) return;
+    if (!harita || haritaMotoru !== 'maplibre' || !harita.getSource || !harita.getSource('openmaptiles')) return;
     try {
       if (!harita.getLayer('bina-3d')) {
         harita.addLayer({
@@ -865,8 +902,18 @@
   }
 
   function cizgiGuncelle(kaynakId, katmanId, puanlar, renk, kalinlik, opaklik, kesikli) {
-    if (!harita || !harita.getSource) return;
+    if (!harita) return;
     try {
+      if (haritaMotoru === 'leaflet') {
+        if (harita[kaynakId + '-poly']) harita.removeLayer(harita[kaynakId + '-poly']);
+        if (puanlar.length >= 2) {
+          var koor = [];
+          for (var inx = 0; inx < puanlar.length; inx++) koor.push([puanlar[inx][0], puanlar[inx][1]]);
+          harita[kaynakId + '-poly'] = L.polyline(koor, { color: renk, weight: kalinlik, opacity: opaklik, dashArray: kesikli ? kesikli.join(' ') : null }).addTo(harita);
+        }
+        return;
+      }
+      if (!harita.getSource) return;
       if (!harita.getSource(kaynakId)) {
         harita.addSource(kaynakId, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
       }
@@ -923,6 +970,18 @@
         }
         if (harita) {
           var popHtml = '<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
+          if (haritaMotoru === 'leaflet') {
+            var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+            if (!aracMarker) {
+              try {
+                aracMarker = L.marker([d.lat, d.lng], { icon: aracIkon }).addTo(harita).bindPopup(popHtml);
+              } catch (e2) { }
+            } else {
+              aracMarker.setLatLng([d.lat, d.lng]);
+              try { aracMarker.setPopupContent(popHtml); } catch (e2) { }
+            }
+            return;
+          }
           if (!aracMarker) {
             try {
               aracMarker = new maplibregl.Marker({ element: aracIkonEl(), anchor: 'bottom' })
@@ -1725,8 +1784,11 @@
     sonImza = imza;
 
     if (haritaDegisti) {
+      for (var iz = 0; iz < magazaMarkers.length; iz++) {
+        if (haritaMotoru === 'leaflet' && magazaMarkers[iz] && magazaMarkers[iz].remove) { try { magazaMarkers[iz].remove(); } catch (e) { } }
+      }
       magazaMarkers = [];
-      if (harita && harita.getSource && harita.getSource('magazalar')) {
+      if (harita && haritaMotoru !== 'leaflet' && harita.getSource && harita.getSource('magazalar')) {
         try { harita.getSource('magazalar').setData({ type: 'FeatureCollection', features: [] }); } catch (e) { }
       }
     }
@@ -1815,14 +1877,22 @@
         var renk = durumTipi === 'teslim' ? '#1faa4c' : (durumTipi === 'red' ? '#c0392b' : '#c7d3e0');
         var yaricap = mTip === 'T' ? 8 : 6;
         var popHtml = '<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : '');
-        magazaMarkers.push({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [koord[1], koord[0]] },
-          properties: { renk: renk, yaricap: yaricap, popup: popHtml }
-        });
+        if (haritaMotoru === 'leaflet') {
+          try {
+            var jjj = L.circleMarker([koord[0], koord[1]], { radius: yaricap, color: '#fff', weight: 2, fillColor: renk, fillOpacity: 0.95 })
+              .addTo(harita).bindPopup(popHtml);
+            magazaMarkers.push(jjj);
+          } catch (e3) { }
+        } else {
+          magazaMarkers.push({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [koord[1], koord[0]] },
+            properties: { renk: renk, yaricap: yaricap, popup: popHtml }
+          });
+        }
       }
     }
-    if (harita && harita.getSource && harita.getSource('magazalar')) {
+    if (harita && haritaMotoru !== 'leaflet' && harita.getSource && harita.getSource('magazalar')) {
       try { harita.getSource('magazalar').setData({ type: 'FeatureCollection', features: magazaMarkers }); } catch (e) { }
     }
 
@@ -1883,6 +1953,27 @@
   var teslimRotaCizgi = null;
   function teslimRotasiCiz(kayitlar, magazalar) {
     teslimRotaCizgi = null;
+    if (harita && haritaMotoru === 'leaflet') {
+      cizgiGuncelle('teslim-rota-katmani', 'teslim-rota-cizgi', [], '#1faa4c', 3, 0.8, [6, 6]);
+      if (harita['teslim-rota-katmani-poly']) { try { harita.removeLayer(harita['teslim-rota-katmani-poly']); } catch (e) { } harita['teslim-rota-katmani-poly'] = null; }
+      if (!kayitlar.length) return;
+      kayitlar.sort(function (a, b) { return (a.saat < b.saat) ? -1 : (a.saat > b.saat) ? 1 : 0; });
+      var puanlar = [];
+      for (var i = 0; i < kayitlar.length; i++) {
+        var mk = null;
+        for (var j = 0; j < magazalar.length; j++) {
+          if (normalize(magazalar[j].sehir) + '-' + magazalar[j].sira === kayitlar[i].anahtar) {
+            mk = magazaKoordinat(magazalar[j].sehir, magazalar[j].m.i, magazalar[j].m.k);
+            break;
+          }
+        }
+        if (mk) puanlar.push(mk);
+      }
+      if (puanlar.length < 2) return;
+      cizgiGuncelle('teslim-rota-katmani', 'teslim-rota-cizgi', puanlar, '#1faa4c', 3, 0.8, [6, 6]);
+      teslimRotaCizgi = true;
+      return;
+    }
     if (!harita || !harita.getSource || !kayitlar.length) {
       if (harita && harita.getSource && harita.getSource('teslim-rota-katmani')) {
         try { harita.getSource('teslim-rota-katmani').setData({ type: 'FeatureCollection', features: [] }); } catch (e) { }
@@ -2399,8 +2490,8 @@
 
   function baslat() {
     haritaKur();
-    window.addEventListener('resize', function () { if (harita) { try { harita.resize(); } catch (e) { } } });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && harita) { try { harita.resize(); } catch (e) { } } });
+    window.addEventListener('resize', function () { if (harita) { try { if (haritaMotoru === 'leaflet') harita.invalidateSize(); else harita.resize(); } catch (e) { } } });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && harita) { try { if (haritaMotoru === 'leaflet') harita.invalidateSize(); else harita.resize(); } catch (e) { } } });
     secimKur();
     aramaEl = document.getElementById('arama');
     aramaEl.addEventListener('input', function () { yukle(); });
