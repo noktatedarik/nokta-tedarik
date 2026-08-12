@@ -1200,11 +1200,16 @@
   }
 
   var ilkYukleme = true;
-  var bekleScroll = 0;
+
+  function setHtml(el, html) {
+    if (!el) return;
+    if (el.innerHTML === html) return false;
+    el.innerHTML = html;
+    return true;
+  }
 
   function yukle() {
     if (!secilenTarih) return;
-    bekleScroll = window.scrollY || document.documentElement.scrollTop;
     var magazalar = magazaListesiGetir();
     if (!magazalar.length) { liste.innerHTML = '<div class="bos-kap"><div class="ikon">🏬</div>Mağaza listesi yok<div class="acik">İl seçiminizi kontrol edin</div></div>'; return; }
     if (ilkYukleme) {
@@ -1245,9 +1250,10 @@
       }
       ilkYukleme = false;
       var oncekiScroll = window.scrollY || document.documentElement.scrollTop;
+      var oncekiBoy = document.documentElement.scrollHeight;
       ciz(magazalar, durumlar);
       var simdiScroll = window.scrollY || document.documentElement.scrollTop;
-      if (Math.abs(simdiScroll - oncekiScroll) > window.innerHeight * 0.4) {
+      if (simdiScroll !== oncekiScroll) {
         window.scrollTo(0, Math.min(oncekiScroll, document.documentElement.scrollHeight));
       }
     }).catch(function () {
@@ -1735,7 +1741,7 @@
       }
     }
 
-    liste.innerHTML = html;
+    setHtml(liste, html);
     var tamam = 0, red = 0;
     for (var k in durumlar) {
       if (durumlar[k].red) red++; else tamam++;
@@ -1756,11 +1762,11 @@
       var acil = gecSaat >= 17;
       uyari.className = acil ? 'uyari acil' : 'uyari';
       var adlar = eksikler.slice(0, 12).map(function (x) { return escapeHtml(x.ad); }).join(', ');
-      uyari.innerHTML = '⚠ <b>' + eksikler.length + '</b> mağaza henüz teslim edilmedi' + (acil ? ' — <b>GÜN SONU UYARISI!</b>' : '') + ': ' + adlar + (eksikler.length > 12 ? ' …' : '') + (acil ? '<button class="ses-btn" id="ses-alarm-btn" onclick="alarmCal()">🔊 SESLİ ALARM</button>' : '');
+      setHtml(uyari, '⚠ <b>' + eksikler.length + '</b> mağaza henüz teslim edilmedi' + (acil ? ' — <b>GÜN SONU UYARISI!</b>' : '') + ': ' + adlar + (eksikler.length > 12 ? ' …' : '') + (acil ? '<button class="ses-btn" id="ses-alarm-btn" onclick="alarmCal()">🔊 SESLİ ALARM</button>' : ''));
     } else {
       uyari.style.display = '';
       uyari.className = 'uyari ok';
-      uyari.innerHTML = '✓ Bugün tüm mağazalar tamam';
+      setHtml(uyari, '✓ Bugün tüm mağazalar tamam');
     }
 
     canliPanel(canliKayitlar);
@@ -1812,16 +1818,13 @@
 
   function canliPanel(kayitlar) {
     var k = document.getElementById('canli-panel');
-    if (!kayitlar.length) {
-      k.innerHTML = '<div class="bos-kap" style="padding:22px;"><div class="ikon">🚚</div>Seçili gün/tarihte teslimat yok<div class="acik">Şoför teslim yaptığında burada görünür</div></div>';
-      return;
-    }
+    if (!kayitlar.length) { setHtml(k, '<div class="bos-kap" style="padding:22px;"><div class="ikon">🚚</div>Seçili gün/tarihte teslimat yok<div class="acik">Şoför teslim yaptığında burada görünür</div></div>'); return; }
     kayitlar.sort(function (a, b) { return (a.saat < b.saat) ? -1 : (a.saat > b.saat) ? 1 : 0; });
     var h = '';
     for (var i = 0; i < kayitlar.length; i++) {
       h += '<div class="canli-kayit"><div><span class="canli-magaza">' + kayitlar[i].ad + '</span> <span class="canli-il">(' + kayitlar[i].sehir + ')</span></div><div style="display:flex; gap:10px; align-items:center;"><span class="marka-' + (kayitlar[i].marka === 'BAGETTA' ? 'baget' : 'tamkoy') + '" style="font-size:.6rem; padding:2px 8px;">' + kayitlar[i].marka + '</span><span class="canli-saat">🕓 ' + kayitlar[i].saat + '</span></div></div>';
     }
-    k.innerHTML = h;
+    setHtml(k, h);
   }
 
   function gecmisButonlar() {
