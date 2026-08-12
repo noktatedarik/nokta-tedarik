@@ -13,9 +13,8 @@
 <meta http-equiv="Expires" content="0">
 <title>NOKTA TEDARİK — Yönetici Paneli</title>
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -152,10 +151,13 @@
   .bar-metin { font-size:.64rem; color:var(--soluk); font-weight:700; letter-spacing:.5px; margin-top:6px; display:flex; justify-content:space-between; }
   .harita-kap { padding:0 16px 14px; background:var(--kart); border-bottom:1px solid var(--cizgi); }
   #harita { height:340px; width:100%; border-radius:16px; border:1px solid var(--cizgi); box-shadow:var(--golge); overflow:hidden; z-index:0; }
-  body[data-tema="koyu"] .leaflet-tile-pane { filter:brightness(.68) saturate(.85) contrast(1.08); }
-  body[data-tema="koyu"] .leaflet-control-zoom a { background:#121b2e; color:#e2e8f0; border-color:#22304a; }
-  body[data-tema="koyu"] .leaflet-control-attribution { background:rgba(18,27,46,.85); color:#94a3b8; }
-  body[data-tema="koyu"] .leaflet-control-attribution a { color:#e2e8f0; }
+  body[data-tema="koyu"] .maplibregl-canvas-container { filter:brightness(.72) saturate(.85) contrast(1.08); }
+  body[data-tema="koyu"] .maplibregl-ctrl button { background:#121b2e; color:#e2e8f0; border-color:#22304a; }
+  body[data-tema="koyu"] .maplibregl-ctrl-attrib { background:rgba(18,27,46,.85); color:#94a3b8; }
+  body[data-tema="koyu"] .maplibregl-ctrl-attrib a { color:#e2e8f0; }
+  body[data-tema="koyu"] .maplibregl-popup-content { background:#121b2e; color:#e2e8f0; }
+  body[data-tema="koyu"] .maplibregl-popup-tip { border-top-color:#121b2e; }
+  .maplibregl-popup-content { border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
   .konum-bar { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.78rem; color:var(--soluk); display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:600; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .canli-nokta { width:9px; height:9px; border-radius:50%; background:var(--yesil); display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; box-shadow:0 0 0 4px rgba(16,185,129,.18); }
   @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.35; } }
@@ -213,7 +215,7 @@
   td.say-b { text-align:right; font-weight:800; color:var(--yesil); }
   td.say-t { text-align:right; font-weight:800; color:#d97706; }
   tr.toplam td { background:rgba(245,158,11,.1); border-top:2px solid var(--turuncu); border-bottom:none; font-weight:800; color:var(--turuncu-koyu); }
-  .marker-arac { background:var(--turuncu); border:3px solid #fff; border-radius:50% 50% 50% 0; width:24px; height:24px; transform:rotate(-45deg); box-shadow:0 4px 12px rgba(245,158,11,.55); }
+  .marker-arac { position:relative; background:var(--turuncu); border:3px solid #fff; border-radius:50% 50% 50% 0; width:24px; height:24px; transform:rotate(-45deg); box-shadow:0 4px 12px rgba(245,158,11,.55); }
   .marker-arac::before, .marker-arac::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid var(--turuncu-acik); animation:radar 2s ease-out infinite; }
   .marker-arac::after { animation-delay:1s; }
   @keyframes radar { 0% { transform:rotate(-45deg) scale(.5); opacity:.9; } 100% { transform:rotate(-45deg) scale(2.4); opacity:0; } }
@@ -782,25 +784,107 @@
   var gunDurum = {};
   var sonScrollZamani = 0;
   document.addEventListener('scroll', function () { sonScrollZamani = Date.now(); }, { passive: true });
-  var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+
+  function aracIkonEl() {
+    var dis = document.createElement('div');
+    dis.style.cssText = 'width:28px;height:28px;';
+    var ic = document.createElement('div');
+    ic.className = 'marker-arac';
+    dis.appendChild(ic);
+    return dis;
+  }
 
   function haritaKur() {
-    if (harita) { harita.invalidateSize(); return; }
-    if (typeof L === 'undefined') {
+    if (harita) { try { harita.resize(); } catch (e) { } return; }
+    if (typeof maplibregl === 'undefined') {
       setTimeout(haritaKur, 1000);
       return;
     }
     try {
-      harita = L.map('harita', { zoomControl: true, preferCanvas: false }).setView([40.5, 36.5], 7);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 20,
-        maxNativeZoom: 19,
-        updateWhenIdle: false
-      }).addTo(harita);
-      harita.invalidateSize();
+      harita = new maplibregl.Map({
+        container: 'harita',
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        center: [36.5, 40.5],
+        zoom: 7,
+        pitch: 40,
+        bearing: 0,
+        maxPitch: 75,
+        antialias: true,
+        attributionControl: { compact: true }
+      });
+      harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+      harita.on('load', function () { harita3DBina(); });
+      harita.resize();
     } catch (e) { setTimeout(haritaKur, 2000); }
+  }
+
+  function harita3DBina() {
+    if (!harita || !harita.getSource || !harita.getSource('openmaptiles')) return;
+    try {
+      if (!harita.getLayer('bina-3d')) {
+        harita.addLayer({
+          id: 'bina-3d',
+          type: 'fill-extrusion',
+          source: 'openmaptiles',
+          'source-layer': 'building',
+          minzoom: 13,
+          paint: {
+            'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
+            'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
+            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            'fill-extrusion-opacity': 0.85
+          }
+        });
+      }
+      if (!harita.getSource('magazalar')) {
+        harita.addSource('magazalar', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      }
+      if (!harita.getLayer('magaza-cizim')) {
+        harita.addLayer({
+          id: 'magaza-cizim',
+          type: 'circle',
+          source: 'magazalar',
+          paint: {
+            'circle-radius': ['get', 'yaricap'],
+            'circle-color': ['get', 'renk'],
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2,
+            'circle-opacity': 0.95
+          }
+        });
+        var magazaPopup = null;
+        harita.on('click', 'magaza-cizim', function (e) {
+          var f = e.features && e.features[0];
+          if (!f || !f.properties || !f.properties.popup) return;
+          if (magazaPopup) magazaPopup.remove();
+          magazaPopup = new maplibregl.Popup({ offset: 12, closeButton: false }).setLngLat(e.lngLat).setHTML(f.properties.popup).addTo(harita);
+        });
+      }
+    } catch (e) { }
+  }
+
+  function cizgiGuncelle(kaynakId, katmanId, puanlar, renk, kalinlik, opaklik, kesikli) {
+    if (!harita || !harita.getSource) return;
+    try {
+      if (!harita.getSource(kaynakId)) {
+        harita.addSource(kaynakId, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      }
+      if (!harita.getLayer(katmanId)) {
+        var paint = { 'line-color': renk, 'line-width': kalinlik, 'line-opacity': opaklik };
+        if (kesikli) paint['line-dasharray'] = kesikli;
+        harita.addLayer({
+          id: katmanId,
+          type: 'line',
+          source: kaynakId,
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: paint
+        });
+      }
+      var coords = [];
+      for (var i = 0; i < puanlar.length; i++) coords.push([puanlar[i][1], puanlar[i][0]]);
+      var ozellikler = coords.length ? [{ type: 'Feature', geometry: { type: 'LineString', coordinates: coords } }] : [];
+      harita.getSource(kaynakId).setData({ type: 'FeatureCollection', features: ozellikler });
+    } catch (e) { }
   }
 
   function magazaKoordinat(sehir, ilce, kod) {
@@ -826,7 +910,6 @@
           else document.getElementById('ozet-durum').textContent = '—';
           return;
         }
-        var nokta = [d.lat, d.lng];
         var m = mesafe(sonKonum, { lat: d.lat, lng: d.lng });
         sonKonum = { lat: d.lat, lng: d.lng };
         document.getElementById('konum-metin').textContent = 'Son konum: ' + (d.saat || '—') + ' · ' + (d.sehir || '');
@@ -838,10 +921,17 @@
           document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
         }
         if (harita) {
+          var popHtml = '<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
           if (!aracMarker) {
-            aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>');
+            try {
+              aracMarker = new maplibregl.Marker({ element: aracIkonEl(), anchor: 'bottom' })
+                .setLngLat([d.lng, d.lat])
+                .setPopup(new maplibregl.Popup({ offset: 16 }).setHTML(popHtml))
+                .addTo(harita);
+            } catch (e2) { }
           } else {
-            aracMarker.setLatLng(nokta);
+            aracMarker.setLngLat([d.lng, d.lat]);
+            try { aracMarker.setPopup(new maplibregl.Popup({ offset: 16 }).setHTML(popHtml)); } catch (e2) { }
           }
         }
       }).catch(function () {
@@ -882,8 +972,8 @@
           if (p && p.lat && p.lng) puanlar.push([p.lat, p.lng]);
         }
         if (puanlar.length < 2) return;
-        if (rotaCizgi) harita.removeLayer(rotaCizgi);
-        rotaCizgi = L.polyline(puanlar, { color: '#f77f00', weight: 4, opacity: .7 }).addTo(harita);
+        cizgiGuncelle('rota-katmani', 'rota-cizgi', puanlar, '#f77f00', 4, 0.7, null);
+        rotaCizgi = true;
       }).catch(function () { });
   }
 
@@ -1634,10 +1724,10 @@
     sonImza = imza;
 
     if (haritaDegisti) {
-      for (var t0 = 0; t0 < magazaMarkers.length; t0++) {
-        if (harita) harita.removeLayer(magazaMarkers[t0]);
-      }
       magazaMarkers = [];
+      if (harita && harita.getSource && harita.getSource('magazalar')) {
+        try { harita.getSource('magazalar').setData({ type: 'FeatureCollection', features: [] }); } catch (e) { }
+      }
     }
 
     for (var i = 0; i < magazalar.length; i++) {
@@ -1722,15 +1812,17 @@
       var koord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
       if (koord && harita && haritaDegisti) {
         var renk = durumTipi === 'teslim' ? '#1faa4c' : (durumTipi === 'red' ? '#c0392b' : '#c7d3e0');
-        var cember = L.circleMarker(koord, {
-          radius: mTip === 'T' ? 8 : 6,
-          color: '#fff',
-          weight: 2,
-          fillColor: renk,
-          fillOpacity: .95
-        }).addTo(harita).bindPopup('<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : ''));
-        magazaMarkers.push(cember);
+        var yaricap = mTip === 'T' ? 8 : 6;
+        var popHtml = '<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : '');
+        magazaMarkers.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [koord[1], koord[0]] },
+          properties: { renk: renk, yaricap: yaricap, popup: popHtml }
+        });
       }
+    }
+    if (harita && harita.getSource && harita.getSource('magazalar')) {
+      try { harita.getSource('magazalar').setData({ type: 'FeatureCollection', features: magazaMarkers }); } catch (e) { }
     }
 
     setHtml(liste, html);
@@ -1789,9 +1881,13 @@
 
   var teslimRotaCizgi = null;
   function teslimRotasiCiz(kayitlar, magazalar) {
-    if (teslimRotaCizgi && harita) harita.removeLayer(teslimRotaCizgi);
     teslimRotaCizgi = null;
-    if (!harita || !kayitlar.length) return;
+    if (!harita || !harita.getSource || !kayitlar.length) {
+      if (harita && harita.getSource && harita.getSource('teslim-rota-katmani')) {
+        try { harita.getSource('teslim-rota-katmani').setData({ type: 'FeatureCollection', features: [] }); } catch (e) { }
+      }
+      return;
+    }
     kayitlar.sort(function (a, b) { return (a.saat < b.saat) ? -1 : (a.saat > b.saat) ? 1 : 0; });
     var puanlar = [];
     for (var i = 0; i < kayitlar.length; i++) {
@@ -1805,7 +1901,8 @@
       if (mk) puanlar.push(mk);
     }
     if (puanlar.length < 2) return;
-    teslimRotaCizgi = L.polyline(puanlar, { color: '#1faa4c', weight: 3, dashArray: '6 6', opacity: .8 }).addTo(harita);
+    cizgiGuncelle('teslim-rota-katmani', 'teslim-rota-cizgi', puanlar, '#1faa4c', 3, 0.8, [6, 6]);
+    teslimRotaCizgi = true;
   }
 
   function canliPanel(kayitlar) {
@@ -2301,7 +2398,7 @@
 
   function baslat() {
     haritaKur();
-    window.addEventListener('resize', function () { if (harita) harita.invalidateSize(); });
+    window.addEventListener('resize', function () { if (harita) harita.resize(); });
     secimKur();
     aramaEl = document.getElementById('arama');
     aramaEl.addEventListener('input', function () { yukle(); });
