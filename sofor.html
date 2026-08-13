@@ -354,6 +354,7 @@
 </script>
 <script src="magazalar.js"></script>
 <script src="magaza_konum.js"></script>
+<script src="rut_sirasi.js"></script>
 <script>
 
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
@@ -672,9 +673,10 @@
         var m = il.magazalar[i];
         if (seciliIlceler.length && seciliIlceler.indexOf(m.i) === -1) continue;
         if (seciliTip !== 'TUMU' && (m.t || 'S') !== seciliTip) continue;
-        sonuc.push({ ilAd: il.sehir, magaza: m, sira: i + 1 });
+        sonuc.push({ ilAd: il.sehir, magaza: m, sira: RUT_SIRASI[m.k] || 99999 });
       }
     }
+    sonuc.sort(function (a, b) { return a.sira - b.sira; });
     return sonuc;
   }
 
