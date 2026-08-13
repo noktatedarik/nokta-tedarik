@@ -149,7 +149,7 @@
   .konum-lejant { display:flex; gap:14px; justify-content:center; padding:8px 0 2px; font-size:.62rem; font-weight:800; color:var(--muted); letter-spacing:.5px; }
   .konum-lejant i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
   .konum-lejant .lg-turuncu { background:var(--turuncu); box-shadow:0 0 0 2px var(--turuncu-acik); }
-  .konum-lejant .lg-sari { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.35); }
+  .konum-lejant .lg-mavi { background:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.35); }
   body[data-tema="koyu"] .maplibregl-canvas-container { filter:brightness(.75) saturate(.85) contrast(1.05); }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib { background:rgba(18,27,46,.85); color:#94a3b8; }
@@ -160,8 +160,8 @@
   .sofor-nokta::after { animation-delay:1s; }
   @keyframes soforRadar { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(2.2); opacity:0; } }
   .yonetici-nokta { position:relative; width:24px; height:24px; }
-  .yonetici-nokta .sys-cekirdek { position:absolute; left:50%; top:50%; width:13px; height:13px; margin:-6.5px 0 0 -6.5px; border-radius:50%; background:#f59e0b; border:3px solid #fff; box-shadow:0 2px 8px rgba(245,158,11,.75); }
-  .yonetici-nokta::before, .yonetici-nokta::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid #f59e0b; animation:soforRadar 2s ease-out infinite; }
+  .yonetici-nokta .sys-cekirdek { position:absolute; left:50%; top:50%; width:13px; height:13px; margin:-6.5px 0 0 -6.5px; border-radius:50%; background:#3b82f6; border:3px solid #fff; box-shadow:0 2px 8px rgba(59,130,246,.75); }
+  .yonetici-nokta::before, .yonetici-nokta::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid #3b82f6; animation:soforRadar 2s ease-out infinite; }
   .yonetici-nokta::after { animation-delay:1s; }
   .rozet { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.5px; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle; }
   .rozet.sok { background:var(--yesil-bg); color:#1f8a3d; }
@@ -250,7 +250,7 @@
       <button data-tip="D">DİĞER</button>
     </div>
   </div>
-  <div class="sofor-harita-kap"><div id="sofor-harita"></div><div class="konum-lejant"><span><i class="lg-turuncu"></i>Sen</span><span><i class="lg-sari"></i>Yönetici</span></div></div>
+  <div class="sofor-harita-kap"><div id="sofor-harita"></div><div class="konum-lejant"><span><i class="lg-turuncu"></i>Sen</span><span><i class="lg-mavi"></i>Yönetici</span></div></div>
   <div class="ozet">
     <div class="ilerleme-ust"><span>Bugünkü ilerleme</span><b id="ozet-ilr">0 / 0</b></div>
     <div class="bar"><div class="bar-dolu" id="ozet-bar"></div></div>
