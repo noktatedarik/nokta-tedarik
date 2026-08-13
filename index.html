@@ -1262,7 +1262,11 @@
     { ad: 'Damla Çikolatalı Kurabiye', aciklama: '200 gr — bol damla çikolata', detay: 'Bol damla çikolatalı, tatlı ve doyurucu kurabiye.', foto: 'gorseller/damla-cikolatali-kurabiye.jpg', ikon: '🍫', yeni: true },
     { ad: 'Mozaik Kurabiye', aciklama: '250 gr — mozaik desenli', detay: 'Görüntüsüyle ve lezzetiyle fark yaratan mozaik desenli kurabiye.', foto: 'gorseller/mozaik-kurabiye.jpg', ikon: '🍥', yeni: true },
     { ad: 'Zebra Kurabiye', aciklama: '250 gr — zebra desenli', detay: 'Zebra deseniyle öne çıkan, bir o kadar lezzetli kurabiye.', foto: 'gorseller/zebra-kurabiye.jpg', ikon: '🦓', yeni: true },
-    { ad: 'Kakao\'lu Kurabiye', aciklama: '250 gr — kakao keyfi', detay: 'Kakaolu, yoğun lezzette kurabiye.', foto: 'gorseller/kakaolu-kurabiye.jpg', ikon: '🍩', yeni: true }
+    { ad: 'Kakao\'lu Kurabiye', aciklama: '250 gr — kakao keyfi', detay: 'Kakaolu, yoğun lezzette kurabiye.', foto: 'gorseller/kakaolu-kurabiye.jpg', ikon: '🍩', yeni: true },
+    { ad: 'Tamköy Konya Çöreği', aciklama: '250 gr — susamlı, çörek otlu', detay: 'Susam ve çörek otuyla zenginleştirilmiş, geleneksel tarifle üretilen Konya çöreği.', foto: 'gorseller/tamkoy-konya-coregi.jpg', ikon: '🥨', yeni: true },
+    { ad: 'Bagetta Susamlı Çörek', aciklama: '250 gr — susamlı, tahinli', detay: 'Susam ve tahinle üretilen, çıtır ve lezzetli susamlı çörek.', foto: 'gorseller/bagetta-susamli-corek.jpg', ikon: '🥯', yeni: true },
+    { ad: 'Tarsus Çöreği', aciklama: '250 gr — tahinli, pekmezli', detay: 'Tahin, susam ve pekmezle zenginleştirilmiş, geleneksel tarifle üretilen Tarsus çöreği.', foto: 'gorseller/tarsus-coregi.jpg', ikon: '🥯', yeni: true },
+    { ad: 'Ünye Çöreği', aciklama: '250 gr — yumurtalı, geleneksel', detay: 'Yumurtalı, özel tarifle üretilen geleneksel Ünye çöreği.', foto: 'gorseller/unye-coregi.jpg', ikon: '🥖', yeni: true }
   ];
 
   function siparisLink(urun) {
@@ -1681,6 +1685,10 @@
       .then(function (r) { return r.json(); })
       .catch(function () { return null; })
       .then(function (kn) {
+        var kasama = gunDurum && gunDurum.asama ? gunDurum.asama : null;
+        var gBitti = !!(gunDurum.tamamlandi || kasama === 'tamamlandi' || (kasama === 'donus' && varisGectiMi()));
+        if (gBitti) { opsAraEl.textContent = 'DEPODA'; opsAraEl.style.color = '#8fb3ff'; return; }
+        if (kasama === 'donus') { opsAraEl.textContent = 'YOLDA'; opsAraEl.style.color = '#7ed957'; return; }
         if (!kn || !kn.saat) { opsAraEl.textContent = '—'; opsAraEl.style.color = ''; return; }
         var par = String(kn.saat).split(':');
         if (par.length !== 2) { opsAraEl.textContent = '—'; opsAraEl.style.color = ''; return; }
@@ -1808,7 +1816,7 @@
                 return fetch(FIREBASE_URL + '/durum/' + tarih + '.json')
                   .then(function (r) { return r.json(); })
                   .then(function (gd) {
-                    gunDurum = gd && (gd.yukleme || gd.baslama) ? gd : {};
+                    gunDurum = gd && (gd.yukleme || gd.baslama || gd.asama || gd.tamamlandi) ? gd : {};
                     return fetch(FIREBASE_URL + '/konum/guncel.json')
                       .then(function (r) { return r.json(); })
                       .then(function (kn) {
@@ -1872,15 +1880,26 @@
     var k = ilKoor[ilT] || merkez;
     return { x: k.x, y: k.y };
   }
+  function varisGectiMi() {
+    if (!aktifDonus || !aktifDonus.varisTahmini) return false;
+    var vp = String(aktifDonus.varisTahmini).split(':');
+    var sp = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }).split(':');
+    if (vp.length !== 2 || sp.length !== 2) return false;
+    return (parseInt(sp[0], 10) * 60 + parseInt(sp[1], 10)) >= (parseInt(vp[0], 10) * 60 + parseInt(vp[1], 10));
+  }
   function canliDurum(t, sehir) {
     var adet = magazaSayisi(sehir);
     var evre = gunDurum && gunDurum.asama ? gunDurum.asama : null;
     var yuklemeV = gunDurum && gunDurum.yukleme;
     var baslamaV = gunDurum && gunDurum.baslama;
     if (!aktifSecim || !sehir) return { tip: 'bekleme', ilerleme: 0, tamam: 0, yolda: 'Şoför henüz bugünün şehrini seçmedi' };
+    if (evre === 'tamamlandi' || gunDurum.tamamlandi) return { tip: 'tamam', ilerleme: 1, tamam: adet, yolda: 'Gün tamamlandı — şoför depoya döndü' };
     if (evre === 'yukleme') return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (evre === 'baslama') return { tip: 'yolda', ilerleme: 0.3, tamam: 0, yolda: 'Şoför yola çıktı — ' + sehir + ' yönünde' };
-    if (evre === 'donus') return { tip: 'donus', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya dönüyor' };
+    if (evre === 'donus') {
+      if (varisGectiMi()) return { tip: 'tamam', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya ulaştı — gün tamamlandı' };
+      return { tip: 'donus', ilerleme: 1, tamam: adet, yolda: 'Şoför depoya dönüyor — varış ' + aktifDonus.varisTahmini };
+    }
     if (!yuklemeV && !baslamaV) return { tip: 'bekleme', ilerleme: 0, tamam: 0, yolda: 'Şoför güne henüz başlamadı — buton bekleniyor' };
     if (yuklemeV && !baslamaV) return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (firebaseTamam === 0) return { tip: 'yolda', ilerleme: 0.3, tamam: 0, yolda: 'Şoför yola çıktı — ' + sehir + ' yönünde' };
@@ -1926,11 +1945,11 @@
     document.getElementById('canli-cikis').innerHTML = haftaIci && (gunDurum.yukleme || gunDurum.baslama)
       ? 'Tokat Merkez — DEPO YÜKLEME ' + (gunDurum.yukleme || '—') + '<br>Tokat Merkez — ÇIKIŞ ' + (gunDurum.baslama || '—') : '—';
 
-    if (gun === 0) {
+    if (!haftaIci) {
       etiket.textContent = 'KAPALI';
       baslik.textContent = 'Bugün Kapalıyız';
       for (var i = 0; i < 5; i++) durumlar[i] = { aktif: false, txt: 'Kapalı', cls: '' };
-      bilgi = { tamam: '—', yolda: 'Pazar günü hizmet verilmiyor — hafta içi ve Cumartesi ulaşabilirsiniz', varis: '—' };
+      bilgi = { tamam: '—', yolda: 'Hafta içi ve Cumartesi hizmet veriyoruz', varis: '—' };
     } else {
       d = canliDurum(t, sehir);
       ilerleme = d.ilerleme;
@@ -1989,7 +2008,7 @@
     } else {
       heroArac.style.display = 'none';
       if (heroHat) heroHat.classList.remove('hat-aktif');
-      heroDurum.textContent = gun === 0 ? 'Kapalı' : 'Beklemede';
+      heroDurum.textContent = 'Kapalı';
     }
   }
   canliGuncelle();
