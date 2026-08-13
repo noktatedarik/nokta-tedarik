@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0e1b2c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NOKTA TEDARİK — Konum Takip</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:#0e1b2c; color:#e6edf5; overflow:hidden; user-select:none; -webkit-user-select:none; }
+  .kap { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px; text-align:center; }
+  .nokta { width:14px; height:14px; border-radius:50%; background:#3b82f6; display:inline-block; margin-right:8px; animation:yanip 1.2s infinite; vertical-align:middle; }
+  @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  h1 { font-size:1.05rem; letter-spacing:2px; font-weight:800; }
+  .alt { font-size:.78rem; color:#8ea3bd; margin-top:4px; letter-spacing:.5px; }
+  .durum { font-size:.85rem; background:#13233a; border:1px solid #223652; border-radius:12px; padding:10px 18px; color:#cfe0f2; min-width:230px; }
+  .durum.hata { border-color:#7a1f1f; color:#ffb4b4; }
+  .satir { font-size:.72rem; color:#8ea3bd; margin-top:10px; line-height:1.6; }
+  .btn { background:#f77f00; color:#fff; border:none; border-radius:999px; padding:10px 20px; font-size:.8rem; font-weight:800; cursor:pointer; letter-spacing:.5px; }
+  .btn:disabled { opacity:.4; }
+  .sessiz { font-size:.68rem; color:#5c7391; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="kap">
+  <div>
+    <h1><span class="nokta" id="ind">·</span>NOKTA TEDARİK</h1>
+    <div class="alt">KONUM TAKİP AKTİF</div>
+  </div>
+  <div class="durum" id="durum">Konum izni bekleniyor...</div>
+  <div>
+    <button class="btn" id="btn-baslat">▶ Başlat</button>
+    <div class="sessiz">Bu sayfa açık kaldığı sürece konum otomatik gönderilir.</div>
+  </div>
+  <div class="satir" id="ayrinti">Son gönderim: —</div>
+</div>
+
+<script>
+  var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
+  var aktif = false;
+  var izleyici = null;
+  var sonKonum = null;
+  var wakelock = null;
+  var durumEl = document.getElementById('durum');
+  var ayrintiEl = document.getElementById('ayrinti');
+  var btn = document.getElementById('btn-baslat');
+
+  function durumSet(metin, hata) {
+    durumEl.textContent = metin;
+    durumEl.classList.toggle('hata', !!hata);
+  }
+
+  function saatSimdi() {
+    return new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function gonder(poz) {
+    if (!aktif) return;
+    var veri = {
+      lat: poz.coords.latitude,
+      lng: poz.coords.longitude,
+      saat: saatSimdi(),
+      son: Date.now()
+    };
+    fetch(FIREBASE_URL + '/konum/yonetici.json', {
+      method: 'PUT',
+      body: JSON.stringify(veri),
+      keepalive: true
+    }).then(function () {
+      ayrintiEl.textContent = 'Son gönderim: ' + veri.saat;
+    }).catch(function () { });
+  }
+
+  function basla() {
+    if (aktif) return;
+    if (!('geolocation' in navigator)) {
+      durumSet('Bu cihaz konum desteklemiyor', true);
+      return;
+    }
+    aktif = true;
+    btn.disabled = true;
+    durumSet('Konum alınıyor...');
+    if (navigator.wakeLock && navigator.wakeLock.request) {
+      navigator.wakeLock.request('screen').then(function (wl) {
+        wakelock = wl;
+      }).catch(function () { });
+    }
+    izleyici = navigator.geolocation.watchPosition(function (poz) {
+      sonKonum = poz;
+      gonder(poz);
+      durumSet('Aktif · ' + poz.coords.latitude.toFixed(5) + ', ' + poz.coords.longitude.toFixed(5));
+    }, function (err) {
+      var mesaj = err.code === 1 ? 'Konum izni yok — tarayıcı ayarlarından konum izni verin' :
+                 err.code === 2 ? 'Konum alınamadı — sinyal kontrolü' : 'Konum zaman aşımı';
+      durumSet(mesaj, true);
+      if (err.code !== 1) {
+        izleyici = navigator.geolocation.watchPosition(function (poz) {
+          sonKonum = poz;
+          gonder(poz);
+          durumSet('Aktif · ' + poz.coords.latitude.toFixed(5) + ', ' + poz.coords.longitude.toFixed(5));
+        }, function () { }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 });
+      }
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 });
+    setInterval(function () {
+      if (aktif && sonKonum) gonder(sonKonum);
+    }, 10000);
+  }
+
+  btn.addEventListener('click', basla);
+  basla();
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && aktif && sonKonum) gonder(sonKonum);
+  });
+</script>
+</body>
+</html>

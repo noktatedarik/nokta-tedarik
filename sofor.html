@@ -1469,7 +1469,8 @@
       .then(function (d) {
         if (!d || !d.lat || !d.lng) return;
         var lng = d.lng, lat = d.lat;
-        var pop = '<b>🧭 Yönetici</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
+        var eski = (d.son && Date.now() - d.son > 80000);
+        var pop = '<b>🧭 Yönetici</b><br>Son konum: ' + (d.saat || '—') + (eski ? ' <span style="color:#b91c1c;font-weight:700;">(işaret eski)</span>' : '') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
         if (soforHaritaMotoru === 'leaflet') {
           try {
             if (!yoneticiMarker) {
