@@ -840,13 +840,20 @@
     } catch (e) { return false; }
   }
 
-  function haritaKur() {
+function haritaKur() {
     if (harita) { try { if (haritaMotoru === 'leaflet') harita.invalidateSize(); else harita.resize(); } catch (e) { } return; }
     if (typeof maplibregl !== 'undefined' && webglVarMi()) {
       haritaMotoru = 'maplibre';
       try {
         var haritaKapsam = document.getElementById('harita');
         if (!haritaKapsam || haritaKapsam.offsetHeight === 0) { setTimeout(haritaKur, 300); return; }
+        var maplibreYuklendi = false;
+        var watchdog = setTimeout(function () {
+          if (!maplibreYuklendi && harita && haritaMotoru === 'maplibre') {
+            try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
+            leaffallback();
+          }
+        }, 8000);
         harita = new maplibregl.Map({
           container: 'harita',
           style: 'https://tiles.openfreemap.org/styles/bright',
@@ -860,15 +867,20 @@
           attributionControl: { compact: true }
         });
         harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-        harita.on('load', function () { harita3DBina(); });
+        harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3DBina(); });
         harita.on('error', function (hby) {
+          if (maplibreYuklendi) return;
           var msg = hby && hby.error && hby.error.message ? hby.error.message : '';
-          if (msg.indexOf('WebGL') !== -1) { try { harita.remove(); } catch (e) { } harita = null; leaffallback(); }
+          var kritik = msg.indexOf('WebGL') !== -1 || msg.indexOf('style') !== -1 || msg.indexOf('Style') !== -1 || msg.indexOf('Failed to fetch') !== -1;
+          if (!kritik) return;
+          clearTimeout(watchdog);
+          try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
+          leaffallback();
         });
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
         return;
-      } catch (e) { /* Leaflet'e diş */ }
+      } catch (e) { harita = null; }
     }
     if (typeof L === 'undefined') {
       setTimeout(haritaKur, 1000);

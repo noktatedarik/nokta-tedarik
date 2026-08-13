@@ -1377,6 +1377,13 @@
       try {
         var konteyner = document.getElementById('sofor-harita');
         if (!konteyner || konteyner.offsetHeight === 0) { setTimeout(soforHaritaKur, 300); return; }
+        var soforYuklendi = false;
+        var soforWatchdog = setTimeout(function () {
+          if (!soforYuklendi && soforHarita && soforHaritaMotoru === 'maplibre') {
+            try { try { soforHarita.remove(); } catch (e) { } soforHarita = null; } catch (e) { }
+            soforLeaffallback();
+          }
+        }, 8000);
         soforHarita = new maplibregl.Map({
           container: 'sofor-harita',
           style: 'https://tiles.openfreemap.org/styles/bright',
@@ -1391,6 +1398,7 @@
         });
         soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         soforHarita.on('load', function () {
+          soforYuklendi = true; clearTimeout(soforWatchdog);
           try {
             if (!soforHarita.getLayer('sofor-bina-3d')) {
               soforHarita.addLayer({
@@ -1410,6 +1418,15 @@
           } catch (e) { }
           if (soforHedef) soforKonumIsle();
           yoneticiKonumYukle();
+        });
+        soforHarita.on('error', function (hby) {
+          if (soforYuklendi) return;
+          var msg = hby && hby.error && hby.error.message ? hby.error.message : '';
+          var kritik = msg.indexOf('WebGL') !== -1 || msg.indexOf('style') !== -1 || msg.indexOf('Style') !== -1 || msg.indexOf('Failed to fetch') !== -1;
+          if (!kritik) return;
+          clearTimeout(soforWatchdog);
+          try { try { soforHarita.remove(); } catch (e) { } soforHarita = null; } catch (e) { }
+          soforLeaffallback();
         });
         setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 400);
         setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 1200);
