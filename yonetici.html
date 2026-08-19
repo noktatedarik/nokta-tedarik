@@ -434,6 +434,34 @@
   thead th { background:linear-gradient(180deg,#0a1730,#152a4d,#1b3a6b); }
   .altnav { background:rgba(8,15,30,.94); }
   .altnav-sek.aktif { background:rgba(245,158,11,.12); }
+
+  /* ============ PRO v3 ============ */
+  #panel { max-width:1280px; margin:0 auto; }
+  .ust::before { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.09),transparent 55%); }
+  .bolum { border-left:1px solid transparent; }
+  .bolum::before { width:4px; border-radius:0 4px 4px 0; background:linear-gradient(180deg,var(--bolum,#3b82f6),var(--bolum2,#38bdf8)); }
+  .bolum.acik::before { background:linear-gradient(180deg,var(--bolum,#3b82f6),var(--bolum2,#38bdf8)); }
+  .bolum .ad .ikon { background:linear-gradient(135deg,var(--bolum,#1d4ed8),var(--bolum2,#3b82f6)); }
+  .bolum .ad .ikon { box-shadow:0 4px 12px rgba(59,130,246,.3); }
+  .bolum .ad .ikon { box-shadow:0 4px 12px color-mix(in srgb, var(--bolum,#3b82f6) 35%, transparent); }
+  .tekrar-bar { height:5px; border-radius:999px; background:var(--cizgi); margin-top:6px; overflow:hidden; max-width:230px; }
+  .tekrar-bar i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#2563eb,#38bdf8); transition:width .6s ease; }
+  .tekrar-bar i.t-acil { background:linear-gradient(90deg,#d97706,#fbbf24); }
+  .tekrar-bar i.t-sure { background:linear-gradient(90deg,#dc2626,#ef4444); }
+  .btn { position:relative; overflow:hidden; }
+  .btn::after { content:''; position:absolute; top:0; left:-80%; width:40%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent); transform:skewX(-20deg); transition:left .55s ease; }
+  .btn:hover::after { left:120%; }
+  body { scroll-behavior:smooth; }
+  :focus-visible { outline:2px solid #f59e0b; outline-offset:2px; }
+  .ozet .kup b { font-variant-numeric:tabular-nums; }
+  .tablo-sar { overflow-y:auto; scrollbar-width:thin; }
+  tbody tr { transition:background .15s; }
+  tbody tr:hover td { background:rgba(245,158,11,.06); }
+  tr.toplam td { box-shadow:0 -2px 0 var(--turuncu), 0 2px 10px rgba(245,158,11,.15); position:relative; }
+  .icerik { transition:opacity .2s; }
+  .altnav-sek .sekme-ad { letter-spacing:.6px; }
+  .marker-arac { cursor:pointer; }
+  .filtre select, .filtre input { cursor:pointer; }
 </style>
 </head>
 <body>
@@ -516,22 +544,22 @@
 
   <div class="uyari ok" id="eksik-uyari" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-canli"><span class="ad"><span class="ikon">🚚</span>BUGÜNKÜ AKTİF TESLİMATLAR</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-canli" style="--bolum:#10b981;--bolum2:#34d399;"><span class="ad"><span class="ikon">🚚</span>BUGÜNKÜ AKTİF TESLİMATLAR</span><span class="ok">▾</span></div>
   <div class="icerik" id="canli-panel" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-liste"><span class="ad"><span class="ikon">🏬</span>MAĞAZALAR</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-liste" style="--bolum:#2563eb;--bolum2:#60a5fa;"><span class="ad"><span class="ikon">🏬</span>MAĞAZALAR</span><span class="ok">▾</span></div>
   <div class="liste" id="liste" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-red"><span class="ad"><span class="ikon">🚫</span>RED RAPORU</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-red" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🚫</span>RED RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="red-panel" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-istatistik"><span class="ad"><span class="ikon">📊</span>ÜRÜN İSTATİSTİK &amp; DEPO ÇIKIŞI</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-istatistik" style="--bolum:#7c3aed;--bolum2:#a78bfa;"><span class="ad"><span class="ikon">📊</span>ÜRÜN İSTATİSTİK &amp; DEPO ÇIKIŞI</span><span class="ok">▾</span></div>
   <div class="icerik" id="istatistik-panel" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-depo"><span class="ad"><span class="ikon">🏭</span>SEVKİYAT &amp; KOLİ HESABI</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-depo" style="--bolum:#d97706;--bolum2:#fbbf24;"><span class="ad"><span class="ikon">🏭</span>SEVKİYAT &amp; KOLİ HESABI</span><span class="ok">▾</span></div>
   <div class="icerik" id="depo-panel" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-giris"><span class="ad"><span class="ikon">📥</span>DEPO GİRİŞİ &amp; DAĞITILAN (ÇIKIŞ)</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-giris" style="--bolum:#0891b2;--bolum2:#22d3ee;"><span class="ad"><span class="ikon">📥</span>DEPO GİRİŞİ &amp; DAĞITILAN (ÇIKIŞ)</span><span class="ok">▾</span></div>
   <div class="icerik" id="giris-panel" style="display:none;">
     <div class="ad" style="font-weight:800; color:var(--mavi); padding:8px 2px 2px;">⬇️ DEPOYA GİREN — KOLİ GİRİŞİ</div>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:6px 2px;">
@@ -556,10 +584,10 @@
     <div style="font-size:.68rem; color:#9fb0c3; padding-top:8px;">* Değerler koli cinsindendir (koli hesabı ürün bazlı koli içi adede göre yapılır). ÇIKIŞ (dağıtılan) = girdiğiniz sevkiyatlar <b>+</b> şoför teslimleri (otomatik). Kalan = Giriş − Çıkış.</div>
   </div>
 
-  <div class="bolum" id="baslik-ciro"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-ciro" style="--bolum:#059669;--bolum2:#34d399;"><span class="ad"><span class="ikon">💰</span>CİRO RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="ciro-panel" style="display:none;"></div>
 
-  <div class="bolum" id="baslik-grafik"><span class="ad"><span class="ikon">📈</span>GRAFİKLER</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-grafik" style="--bolum:#0d9488;--bolum2:#2dd4bf;"><span class="ad"><span class="ikon">📈</span>GRAFİKLER</span><span class="ok">▾</span></div>
   <div class="grafik-kap" id="grafik-panel" style="display:none;">
     <div class="grafik-satir">
       <div class="grafik-kutu kap"><div class="grafik-baslik">ÜRÜN DAĞILIMI <b id="grafik-urun-toplam">—</b></div><canvas id="grafik-urun"></canvas></div>
@@ -568,7 +596,7 @@
     <div class="grafik-kutu tam" style="margin-top:10px;"><div class="grafik-baslik">SON 7 GÜN TESLİMAT <b id="grafik-hafta-toplam">—</b></div><canvas id="grafik-hafta"></canvas></div>
   </div>
 
-  <div class="bolum" id="baslik-sure"><span class="ad"><span class="ikon">⏱</span>SÜRE &amp; ROTA TAKİBİ</span><span class="ok">▾</span></div>
+  <div class="bolum" id="baslik-sure" style="--bolum:#ea580c;--bolum2:#fb923c;"><span class="ad"><span class="ikon">⏱</span>SÜRE &amp; ROTA TAKİBİ</span><span class="ok">▾</span></div>
   <div class="icerik" id="sure-panel" style="display:none;"></div>
 
   <div style="padding:0 16px 14px; text-align:center; font-size:.7rem; color:#9fb0c3;">Canlı takip 5 saniyede bir yenilenir · Konum şoför paneli açıkken gelir · "Tümü" seçimi tüm illeri toplar</div>
@@ -2122,6 +2150,12 @@ function haritaKur() {
         if (kalanGun > 0) tekrarYazi = '<div class="tekrar' + (kalanGun <= 7 ? ' acil' : '') + '">⏳ Tekrar ziyaret: <b>' + kalanGun + ' gün</b></div>';
         else tekrarYazi = '<div class="tekrar suresi-doldu">⚠ Ziyaret süresi doldu' + (gz > 60 ? ' (' + (gz - 60) + ' gün gecikti)' : '') + ' — tekrar gerekli</div>';
       }
+      var tekrarBar = '';
+      if (sonKayit) {
+        var kalanYuz = Math.max(0, Math.min(100, Math.round((gz / 60) * 100)));
+        var tRenk = kalanGun <= 0 ? 't-sure' : (kalanGun <= 7 ? 't-acil' : 't-iyi');
+        tekrarBar = '<div class="tekrar-bar" title="60 günlük sürenin %' + kalanYuz + ' i geçti"><i style="width:' + kalanYuz + '%" class="' + tRenk + '"></i></div>';
+      }
       var son3Yazi = '';
       var gec = ziyaretGecmisi ? ziyaretGecmisi[anahtar] : null;
       if (gec && gec.length) {
@@ -2138,7 +2172,7 @@ function haritaKur() {
       var mIkon = durumTipi === 'teslim' ? '✅' : (durumTipi === 'red' ? '⛔' : '🏬');
       var mRenkK = durumTipi === 'teslim' ? 'yesil' : (durumTipi === 'red' ? 'kirmizi' : 'bekliyor');
       html += '<div class="magaza m-' + mRenkK + '" data-gecmis="' + anahtar + '">' +
-        '<div class="m-sol"><div class="m-tile">' + mIkon + '</div><div class="m-bilgi"><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + '</div></div>' +
+        '<div class="m-sol"><div class="m-tile">' + mIkon + '</div><div class="m-bilgi"><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + tekrarBar + '</div></div>' +
         '<div class="m-sag">' + rozet +
         '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
         '</div>';
