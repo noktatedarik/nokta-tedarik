@@ -176,6 +176,24 @@
   @keyframes hbyanip { 0%,100% { opacity:1; } 50% { opacity:.3; } }
   .nav-link { display:inline-block; margin-top:7px; background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff !important; text-decoration:none; font-weight:700; padding:6px 13px; border-radius:999px; font-size:.72rem; box-shadow:0 3px 10px rgba(37,99,235,.35); }
   .maplibregl-popup-content b, .leaflet-popup-content-wrapper b { font-size:.82rem; }
+  .pp { min-width:195px; }
+  .pp-ad { font-size:.85rem; font-weight:800; color:#1e293b; display:flex; align-items:center; gap:6px; }
+  .pp-ilce { font-size:.68rem; color:#64748b; margin:2px 0 6px; }
+  .pp-satir { font-size:.72rem; color:#334155; margin-top:5px; }
+  .pp-satir b { color:#0f172a; }
+  .pp-satir.not { color:#7c3aed; font-weight:600; }
+  .pp-durum { display:inline-block; font-size:.66rem; font-weight:800; padding:3px 10px; border-radius:999px; margin:4px 0 2px; }
+  .pp-durum.yesil { background:rgba(16,185,129,.14); color:#059669; }
+  .pp-durum.kirmizi { background:rgba(239,68,68,.14); color:#dc2626; }
+  .pp-durum.gri { background:rgba(100,116,139,.14); color:#64748b; }
+  .pp-satir.tekrar { color:#1d6fa5; font-weight:700; }
+  .pp-satir.tekrar.acil { color:#b45309; }
+  .pp-satir.tekrar.suresi-doldu { color:#b91c1c; font-weight:800; }
+  .pp .nav-link { display:block; margin-top:10px; width:100%; text-align:center; }
+  body[data-tema="koyu"] .pp-ad { color:#cbd5e1; }
+  body[data-tema="koyu"] .pp-satir { color:#cbd5e1; }
+  body[data-tema="koyu"] .pp-satir b { color:#f1f5f9; }
+  body[data-tema="koyu"] .pp-ilce { color:#94a3b8; }
   .konum-bar { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.78rem; color:var(--soluk); display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:600; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .canli-nokta { width:9px; height:9px; border-radius:50%; background:var(--yesil); display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; box-shadow:0 0 0 4px rgba(16,185,129,.18); }
   @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.35; } }
@@ -2082,7 +2100,18 @@ function haritaKur() {
           renk = (60 - gz0) <= 7 ? '#e74c3c' : '#1faa4c';
         }
         var yaricap = mTip === 'T' ? 8 : 6;
-        var popHtml = '<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : '');
+        var popDurum = durumTipi === 'teslim'
+          ? '<span class="pp-durum yesil">✓ Bugün teslim ' + (d ? (d.saat || '') : '') + '</span>'
+          : (durumTipi === 'red' ? '<span class="pp-durum kirmizi">✗ ' + d.red + '</span>' : '<span class="pp-durum gri">Bugün bekleniyor</span>');
+        var popSon = sonKayit
+          ? '<div class="pp-satir">📅 Son ziyaret: <b>' + sonKayit.split(' ')[0].split('-').reverse().join('.') + ' ' + (sonKayit.split(' ')[1] || '') + '</b></div>'
+          : '<div class="pp-satir">HİÇ ZİYARET YOK</div>';
+        var popTekrar = '';
+        if (sonKayit) {
+          if (kalanGun > 0) popTekrar = '<div class="pp-satir tekrar' + (kalanGun <= 7 ? ' acil' : '') + '">⏳ Tekrar ziyaret: <b>' + kalanGun + ' gün</b></div>';
+          else popTekrar = '<div class="pp-satir tekrar suresi-doldu">⚠ Ziyaret süresi doldu' + (gz > 60 ? ' (' + (gz - 60) + ' gün gecikti)' : '') + ' — tekrar gerekli</div>';
+        }
+        var popHtml = '<div class="pp"><div class="pp-ad">' + ad + markaRozet + '</div>' + (alt ? '<div class="pp-ilce">📍 ' + alt + '</div>' : '') + popDurum + popSon + popTekrar + (notBilgi ? '<div class="pp-satir not">📝 ' + notBilgi + '</div>' : '') + '<a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + koord[0] + ',' + koord[1] + '&travelmode=driving">🧭 Yol Tarifi</a></div>';
         if (haritaMotoru === 'leaflet') {
           try {
             var jjj = L.circleMarker([koord[0], koord[1]], { radius: yaricap, color: '#fff', weight: 2, fillColor: renk, fillOpacity: 0.95 })
