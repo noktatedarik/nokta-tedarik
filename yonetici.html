@@ -480,6 +480,47 @@
   body[data-tema="koyu"] .tacil-chip.sure-doldu { color:#fca5a5; background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.3); }
   body[data-tema="koyu"] .tacil-chip span { color:#fbbf24; }
   body[data-tema="koyu"] .tacil-chip.sure-doldu span { color:#ef4444; }
+
+  /* ============ PRO v5: Workspace duzeni ============ */
+  body { background:#eef2f7; }
+  body[data-tema="koyu"] { background:#0a1322; }
+  body::before { animation:none; background:
+    radial-gradient(900px 480px at 88% -10%, rgba(59,130,246,.10), transparent 60%),
+    radial-gradient(700px 460px at 4% 14%, rgba(245,158,11,.07), transparent 55%),
+    radial-gradient(820px 600px at 12% 96%, rgba(139,92,246,.07), transparent 62%),
+    radial-gradient(720px 520px at 90% 84%, rgba(16,185,129,.07), transparent 60%); }
+  body[data-tema="koyu"]::before { background:
+    radial-gradient(900px 480px at 88% -10%, rgba(59,130,246,.16), transparent 60%),
+    radial-gradient(700px 460px at 4% 14%, rgba(245,158,11,.12), transparent 55%),
+    radial-gradient(820px 600px at 12% 96%, rgba(139,92,246,.14), transparent 62%),
+    radial-gradient(720px 520px at 90% 84%, rgba(16,185,129,.12), transparent 60%); }
+  body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5; background-image:radial-gradient(circle, rgba(100,116,139,.16) 1px, transparent 1px); background-size:26px 26px; }
+  body[data-tema="koyu"]::after { opacity:.55; }
+  .ust { min-height:65px; background:linear-gradient(120deg,#0a1730,#15294d,#1b3a6b,#0d1b33); background-size:200% 100%; animation:none; }
+  .ust-logo img { animation:none; box-shadow:0 2px 8px rgba(0,0,0,.25); border-color:rgba(255,255,255,.22); }
+  .ozet .kup::after { display:none; }
+  .ozet .kup .kup-ikon { animation:none; }
+  .bolum.acik .ad .ikon { animation:none; }
+  .bolum .ad .ikon { width:28px; height:28px; border-radius:9px; font-size:.84rem; }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  .kenar { display:none; position:fixed; left:0; top:65px; bottom:0; width:224px; z-index:6; background:rgba(255,255,255,.78); border-right:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); flex-direction:column; padding:14px 12px; overflow-y:auto; box-shadow:2px 0 20px rgba(15,23,42,.07); }
+  body[data-tema="koyu"] .kenar { background:rgba(13,22,40,.86); border-color:rgba(34,48,74,.9); }
+  .kenar-grup { font-size:.58rem; letter-spacing:1.5px; font-weight:800; text-transform:uppercase; color:var(--soluk); padding:10px 12px 6px; }
+  .kenar .altnav-sek { flex:0 0 auto; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border-radius:12px; color:var(--soluk); font-size:.76rem; font-weight:700; letter-spacing:.3px; }
+  .kenar .altnav-sek .sekme-ikon { font-size:1rem; filter:none; opacity:.8; }
+  .kenar .altnav-sek:hover { background:var(--cizgi2); color:var(--metin); }
+  .kenar .altnav-sek.aktif { background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.07)); color:#b45309; }
+  .kenar .altnav-sek.aktif .sekme-ikon { filter:none; opacity:1; transform:none; }
+  .kenar .altnav-sek.aktif::before { display:none; }
+  .kenar-alt { margin-top:auto; padding:10px 12px 4px; font-size:.7rem; color:var(--soluk); border-top:1px solid var(--cizgi2); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .kenar-saat { font-variant-numeric:tabular-nums; font-weight:800; }
+  @media (min-width:960px) {
+    .kenar { display:flex; }
+    #panel { margin-left:224px; margin-right:auto; max-width:1100px; }
+    .altnav { display:none; }
+    #giris-kap { margin-left:224px; }
+    .filtre { top:65px; }
+  }
 </style>
 </head>
 <body>
@@ -507,6 +548,21 @@
     <button class="ust-btn" id="cikis-btn" style="display:none;">Çıkış</button>
   </div>
 </div>
+
+<nav class="kenar" id="kenar">
+  <div class="kenar-grup">GENEL BAKIŞ</div>
+  <button class="altnav-sek sekme-aktif" data-hedef="panel"><span class="sekme-ikon">🏠</span><span class="sekme-ad">Ana Sayfa</span></button>
+  <button class="altnav-sek" data-hedef="baslik-canli"><span class="sekme-ikon">🚚</span><span class="sekme-ad">Teslimatlar</span></button>
+  <button class="altnav-sek" data-hedef="baslik-liste"><span class="sekme-ikon">🏬</span><span class="sekme-ad">Mağazalar</span></button>
+  <button class="altnav-sek" data-hedef="baslik-red"><span class="sekme-ikon">🚫</span><span class="sekme-ad">Red Raporu</span></button>
+  <button class="altnav-sek" data-hedef="baslik-ciro"><span class="sekme-ikon">💰</span><span class="sekme-ad">Ciro Raporu</span></button>
+  <button class="altnav-sek" data-hedef="baslik-grafik"><span class="sekme-ikon">📈</span><span class="sekme-ad">Grafikler</span></button>
+  <button class="altnav-sek" data-hedef="baslik-sure"><span class="sekme-ikon">⏱</span><span class="sekme-ad">Süre &amp; Rota</span></button>
+  <div class="kenar-alt">
+    <span><span class="canli-nokta"></span>CANLI</span>
+    <span class="kenar-saat" id="kenar-saat">--:--:--</span>
+  </div>
+</nav>
 
 <div class="giris" id="giris-kap">
   <img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" class="giris-logo" onerror="this.style.display='none';">
@@ -2830,10 +2886,12 @@ function haritaKur() {
 
   function canliSaatBaslat() {
     var el = document.getElementById('canli-saat');
+    var kenarEl = document.getElementById('kenar-saat');
     if (!el) return;
     function guncelle() {
       var s = new Date();
       el.textContent = ('0' + s.getHours()).slice(-2) + ':' + ('0' + s.getMinutes()).slice(-2) + ':' + ('0' + s.getSeconds()).slice(-2);
+      if (kenarEl) kenarEl.textContent = el.textContent;
     }
     guncelle();
     setInterval(guncelle, 1000);
