@@ -144,24 +144,35 @@
   .tip-kap { display:flex; gap:6px; }
   .tip-kap button { flex:1; border:2px solid var(--border); background:var(--card); border-radius:999px; padding:9px 4px; font-size:.7rem; font-weight:800; cursor:pointer; color:var(--muted); }
   .tip-kap button.aktif { border-color:var(--turuncu); background:linear-gradient(135deg,#f77f00,#e06f00); color:#fff; box-shadow:0 3px 10px rgba(247,127,0,.3); }
-  .sofor-harita-kap { padding:12px 16px 6px; }
-  #sofor-harita { height:200px; width:100%; border-radius:14px; border:1px solid var(--border); box-shadow:var(--golge); overflow:hidden; z-index:0; }
-  .konum-lejant { display:flex; gap:14px; justify-content:center; padding:8px 0 2px; font-size:.62rem; font-weight:800; color:var(--muted); letter-spacing:.5px; }
-  .konum-lejant i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
-  .konum-lejant .lg-turuncu { background:var(--turuncu); box-shadow:0 0 0 2px var(--turuncu-acik); }
-  .konum-lejant .lg-mavi { background:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.35); }
-  body[data-tema="koyu"] .maplibregl-canvas-container { filter:brightness(.75) saturate(.85) contrast(1.05); }
+  .sofor-harita-kap { position:relative; padding:12px 16px 6px; }
+  #sofor-harita { height:260px; width:100%; border-radius:18px; border:1px solid var(--border); box-shadow:0 10px 30px rgba(15,23,42,.18); overflow:hidden; z-index:0; background:#e8ecf2; }
+  .konum-lejant { position:absolute; left:12px; bottom:20px; z-index:1; display:flex; gap:6px; padding:6px 12px; border-radius:999px; background:rgba(15,23,42,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); font-size:.62rem; font-weight:800; color:#e2e8f0; letter-spacing:.5px; pointer-events:none; box-shadow:0 4px 14px rgba(0,0,0,.28); }
+  .konum-lejant i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+  .konum-lejant .lg-turuncu { background:linear-gradient(135deg,#ffb84d,#f77f00); box-shadow:0 0 0 2px rgba(247,127,0,.55); }
+  .konum-lejant .lg-mavi { background:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.55); }
+  .maplibregl-ctrl-group, .leaflet-bar { border-radius:12px !important; box-shadow:0 6px 18px rgba(15,23,42,.22) !important; overflow:hidden; }
+  .maplibregl-ctrl button, .leaflet-bar a { width:34px; height:34px; font-size:15px; }
+  .sofor-mercek-btn { width:34px; height:34px; border:none; background:var(--card); color:var(--turuncu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  body[data-tema="koyu"] .sofor-mercek-btn { background:#16212e !important; color:#fbbf24 !important; }
+  .maplibregl-scale-control { background:rgba(248,250,252,.85); border-radius:4px; padding:2px 6px; font-size:10px; color:#334155; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+  body[data-tema="koyu"] .maplibregl-scale-control { background:rgba(18,27,46,.8); color:#cbd5e1; }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib { background:rgba(18,27,46,.85); color:#94a3b8; }
   body[data-tema="koyu"] .maplibregl-ctrl-attrib a { color:#e2e8f0; }
-  .sofor-nokta { position:relative; width:26px; height:26px; }
-  .sofor-nokta .cekirdek { position:absolute; left:50%; top:50%; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:var(--turuncu); border:3px solid #fff; box-shadow:0 2px 8px rgba(247,127,0,.7); }
-  .sofor-nokta::before, .sofor-nokta::after { content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; border:2px solid var(--turuncu); animation:soforRadar 2s ease-out infinite; }
+  .maplibregl-popup-content, .leaflet-popup-content-wrapper { border-radius:14px !important; box-shadow:0 10px 30px rgba(15,23,42,.3) !important; padding:14px 16px; font-family:inherit; }
+  .leaflet-popup-content { margin:14px 16px !important; font-family:inherit; }
+  body[data-tema="koyu"] .maplibregl-popup-content { background:#121b2e; color:#e2e8f0; }
+  body[data-tema="koyu"] .maplibregl-popup-tip { border-top-color:#121b2e; }
+  body[data-tema="koyu"] .leaflet-popup-content-wrapper { background:#121b2e; color:#e2e8f0; }
+  body[data-tema="koyu"] .leaflet-popup-tip { background:#121b2e; }
+  .sofor-nokta { position:relative; width:34px; height:34px; }
+  .sofor-nokta .cekirdek { position:absolute; left:50%; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; background:linear-gradient(135deg,#ffb84d,#f77f00); border:2.5px solid #fff; box-shadow:0 3px 10px rgba(247,127,0,.75); }
+  .sofor-nokta::before, .sofor-nokta::after { content:''; position:absolute; left:50%; top:50%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; border:2px solid rgba(247,127,0,.5); animation:soforRadar 2s ease-out infinite; }
   .sofor-nokta::after { animation-delay:1s; }
-  @keyframes soforRadar { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(2.2); opacity:0; } }
-  .yonetici-nokta { position:relative; width:24px; height:24px; }
-  .yonetici-nokta .sys-cekirdek { position:absolute; left:50%; top:50%; width:13px; height:13px; margin:-6.5px 0 0 -6.5px; border-radius:50%; background:#3b82f6; border:3px solid #fff; box-shadow:0 2px 8px rgba(59,130,246,.75); }
-  .yonetici-nokta::before, .yonetici-nokta::after { content:''; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; border:2px solid #3b82f6; animation:soforRadar 2s ease-out infinite; }
+  @keyframes soforRadar { 0% { transform:scale(.35); opacity:1; } 100% { transform:scale(2.4); opacity:0; } }
+  .yonetici-nokta { position:relative; width:32px; height:32px; }
+  .yonetici-nokta .sys-cekirdek { position:absolute; left:50%; top:50%; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:linear-gradient(135deg,#60a5fa,#2563eb); border:2.5px solid #fff; box-shadow:0 3px 10px rgba(37,99,235,.7); }
+  .yonetici-nokta::before, .yonetici-nokta::after { content:''; position:absolute; left:50%; top:50%; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; border:2px solid rgba(37,99,235,.45); animation:soforRadar 2s ease-out infinite; }
   .yonetici-nokta::after { animation-delay:1s; }
   .rozet { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.5px; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle; }
   .rozet.sok { background:var(--yesil-bg); color:#1f8a3d; }
@@ -519,6 +530,7 @@
   var temaBtn = document.getElementById('tema-btn');
   function temaUygula(koyu) {
     document.body.setAttribute('data-tema', koyu ? 'koyu' : 'acik');
+    soforHaritaTemaDegis();
     if (temaBtn) temaBtn.textContent = koyu ? '☀️' : '🌙';
     try { localStorage.setItem('sofor-tema', koyu ? 'koyu' : 'acik'); } catch (e) { }
   }
@@ -1365,6 +1377,13 @@
   var soforHedef = null;
   var yoneticiTimer = null;
 
+  var SOFOR_STIL_ACIK = 'https://tiles.openfreemap.org/styles/liberty';
+  var SOFOR_STIL_KOYU = 'https://tiles.openfreemap.org/styles/dark';
+  var SOFOR_TILE_ACIK = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  var SOFOR_TILE_KOYU = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  function soforStilKoyu() { return document.body.getAttribute('data-tema') === 'koyu'; }
+  function soforStilUrl() { return soforStilKoyu() ? SOFOR_STIL_KOYU : SOFOR_STIL_ACIK; }
+
   function soforWebglVarMi() {
     try {
       var c = document.createElement('canvas');
@@ -1388,7 +1407,7 @@
         }, 8000);
         soforHarita = new maplibregl.Map({
           container: 'sofor-harita',
-          style: 'https://tiles.openfreemap.org/styles/bright',
+          style: soforStilUrl(),
           center: [35.0, 39.5],
           zoom: 6,
           pitch: 40,
@@ -1399,25 +1418,11 @@
           interactive: true
         });
         soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+        soforHarita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+        soforMercekKontrolleri();
         soforHarita.on('load', function () {
           soforYuklendi = true; clearTimeout(soforWatchdog);
-          try {
-            if (!soforHarita.getLayer('sofor-bina-3d')) {
-              soforHarita.addLayer({
-                id: 'sofor-bina-3d',
-                type: 'fill-extrusion',
-                source: 'openmaptiles',
-                'source-layer': 'building',
-                minzoom: 13,
-                paint: {
-                  'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
-                  'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
-                  'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                  'fill-extrusion-opacity': 0.85
-                }
-              });
-            }
-          } catch (e) { }
+          soforHarita3D();
           if (soforHedef) soforKonumIsle();
           yoneticiKonumYukle();
         });
@@ -1444,16 +1449,76 @@
     soforHaritaMotoru = 'leaflet';
     try {
       soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      soforHarita.tileKatman = L.tileLayer(soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 20,
         maxNativeZoom: 19,
         updateWhenIdle: false
       }).addTo(soforHarita);
+      L.control.scale({ imperial: false }).addTo(soforHarita);
       setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 300);
       setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(soforHaritaKur, 2000); }
+  }
+
+  function soforHarita3D() {
+    if (!soforHarita || soforHaritaMotoru !== 'maplibre' || !soforHarita.getLayer) return;
+    try {
+      if (!soforHarita.getLayer('sofor-bina-3d')) {
+        soforHarita.addLayer({
+          id: 'sofor-bina-3d',
+          type: 'fill-extrusion',
+          source: 'openmaptiles',
+          'source-layer': 'building',
+          minzoom: 13,
+          paint: {
+            'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
+            'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
+            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            'fill-extrusion-opacity': 0.85
+          }
+        });
+      }
+    } catch (e) { }
+  }
+
+  function soforMercekKontrolleri() {
+    if (soforHaritaMotoru !== 'maplibre' || !soforHarita) return;
+    var btn = document.createElement('button');
+    btn.className = 'sofor-mercek-btn';
+    btn.innerHTML = '◎';
+    btn.title = 'Konumuma dön';
+    btn.addEventListener('click', function () {
+      if (soforHedef) {
+        soforHarita.flyTo({ center: [soforHedef.lng, soforHedef.lat], zoom: 15, duration: 700 });
+      } else {
+        soforKonumMerkezlendi = false;
+      }
+    });
+    soforHarita.addControl({
+      onAdd: function () { var k = document.createElement('div'); k.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k.appendChild(btn); return k; },
+      onRemove: function () { btn.remove(); }
+    }, 'top-right');
+  }
+
+  function soforHaritaTemaDegis() {
+    if (!soforHarita) return;
+    try {
+      if (soforHaritaMotoru === 'leaflet') {
+        if (soforHarita.tileKatman) { try { soforHarita.removeLayer(soforHarita.tileKatman); } catch (e) { } }
+        soforHarita.tileKatman = L.tileLayer(soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK, {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 20,
+          maxNativeZoom: 19,
+          updateWhenIdle: false
+        }).addTo(soforHarita);
+        return;
+      }
+      soforHarita.setStyle(soforStilUrl());
+      soforHarita.once('styledata', function () { soforHarita3D(); });
+    } catch (e) { }
   }
 
   function soforNoktaEl(sinif, cekirdekSinif) {
