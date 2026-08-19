@@ -383,6 +383,57 @@
   .chat-alt input { flex:1; padding:11px 13px; border:2px solid var(--cizgi); border-radius:999px; background:var(--kart); color:var(--metin); font-size:.86rem; outline:none; }
   .chat-alt input:focus { border-color:var(--turuncu); }
   .chat-alt button { background:linear-gradient(135deg,#059669,#10b981); color:#fff; border:none; border-radius:999px; padding:0 18px; font-weight:800; cursor:pointer; font-size:.78rem; }
+
+  /* ============ PRO v2 ============ */
+  body { text-rendering:optimizeLegibility; }
+  .filtre { gap:12px; padding:14px 16px; background:rgba(255,255,255,.72); box-shadow:0 4px 18px rgba(15,23,42,.06); }
+  body[data-tema="koyu"] .filtre { background:rgba(18,27,46,.66); }
+  .filtre label { position:relative; padding-bottom:2px; }
+  .filtre label::after { content:''; position:absolute; left:2px; right:2px; bottom:-4px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--turuncu),var(--turuncu-acik)); opacity:0; transition:.25s; }
+  .filtre label:focus-within::after { opacity:1; }
+  .filtre select, .filtre input { border-radius:12px; background:var(--kart); box-shadow:inset 0 1px 3px rgba(15,23,42,.06); }
+  .ozet { grid-template-columns:repeat(auto-fit,minmax(116px,1fr)); gap:12px; padding:16px; }
+  .ozet .kup { border-radius:18px; padding:15px 8px 13px; background:rgba(255,255,255,.8); border-color:rgba(226,232,240,.9); box-shadow:0 6px 22px rgba(15,23,42,.07); }
+  body[data-tema="koyu"] .ozet .kup { background:rgba(24,35,57,.74); border-color:rgba(42,58,86,.7); box-shadow:0 6px 22px rgba(0,0,0,.28); }
+  .ozet .kup::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:44%; height:3px; border-radius:0 0 6px 6px; background:linear-gradient(90deg,#2563eb,#38bdf8); opacity:.9; }
+  .ozet .kup.yesil::before { background:linear-gradient(90deg,#059669,#34d399); }
+  .ozet .kup.kirmizi::before { background:linear-gradient(90deg,#dc2626,#f87171); }
+  .ozet .kup.lacivert::before { background:linear-gradient(90deg,#2563eb,#38bdf8); }
+  .ozet .kup.mor::before { background:linear-gradient(90deg,#7c3aed,#c4b5fd); }
+  .ozet .kup.altin::before { background:linear-gradient(90deg,#b45309,#fbbf24); }
+  .ozet .kup b { font-size:1.4rem; }
+  .ozet .kup:hover { border-color:var(--turuncu-acik); box-shadow:0 16px 36px rgba(15,23,42,.16); }
+  .bar-alan { padding:14px 16px 16px; }
+  .bar-kap { height:10px; background:var(--cizgi); box-shadow:inset 0 1px 3px rgba(15,23,42,.1); }
+  .harita-kap { padding:14px 16px 16px; }
+  #harita { height:420px; border-radius:20px; border-color:rgba(148,163,184,.45); box-shadow:0 16px 44px rgba(15,23,42,.24); }
+  .harita-baslik { top:12px; left:12px; padding:8px 15px; font-size:.66rem; letter-spacing:1.5px; background:rgba(8,15,30,.84); border:1px solid rgba(255,255,255,.16); box-shadow:0 6px 20px rgba(0,0,0,.35); }
+  .lejant { gap:16px; padding:12px 16px; }
+  .lejant span { background:var(--bg); border:1px solid var(--cizgi); border-radius:999px; padding:5px 12px; font-size:.63rem; display:inline-flex; align-items:center; box-shadow:var(--golge); }
+  .konum-bar { padding:12px 16px; }
+  .bolum { padding:14px 16px; }
+  .bolum .ad .ikon { width:30px; height:30px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; font-size:.9rem; box-shadow:0 4px 12px rgba(59,130,246,.32); }
+  .bolum.acik:not([id]) .ad .ikon { animation:ikonnbz 1.8s ease infinite; }
+  .liste { padding:12px 16px 18px; gap:12px; }
+  .magaza { border-radius:18px; padding:12px 14px; align-items:stretch; gap:12px; position:relative; overflow:hidden; }
+  .magaza::before { content:''; position:absolute; left:0; top:12px; bottom:12px; width:4px; border-radius:0 4px 4px 0; background:linear-gradient(180deg,#94a3b8,#cbd5e1); }
+  .magaza.m-yesil::before { background:linear-gradient(180deg,#10b981,#34d399); }
+  .magaza.m-kirmizi::before { background:linear-gradient(180deg,#ef4444,#f87171); }
+  .m-sol { display:flex; align-items:flex-start; gap:11px; min-width:0; flex:1; }
+  .m-tile { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; background:linear-gradient(135deg,#64748b,#94a3b8); box-shadow:0 6px 14px rgba(100,116,139,.3); }
+  .magaza.m-yesil .m-tile { background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 6px 14px rgba(16,185,129,.32); }
+  .magaza.m-kirmizi .m-tile { background:linear-gradient(135deg,#dc2626,#ef4444); box-shadow:0 6px 14px rgba(239,68,68,.32); }
+  .m-bilgi { min-width:0; flex:1; }
+  .m-sag { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+  .magaza .ad { font-size:.9rem; }
+  .rozet.bekliyor { background:rgba(100,116,139,.1); color:#64748b; border:1px solid rgba(100,116,139,.24); }
+  .btn-gecmis { border-radius:12px; }
+  body[data-tema="koyu"] .m-tile { box-shadow:0 6px 14px rgba(0,0,0,.4); }
+  body[data-tema="koyu"] .filtre select, body[data-tema="koyu"] .filtre input { background:#121b2e; }
+  .tablo-sar { border-radius:16px; }
+  thead th { background:linear-gradient(180deg,#0a1730,#152a4d,#1b3a6b); }
+  .altnav { background:rgba(8,15,30,.94); }
+  .altnav-sek.aktif { background:rgba(245,158,11,.12); }
 </style>
 </head>
 <body>
@@ -2084,9 +2135,11 @@ function haritaKur() {
         son3Yazi = '<div class="son3">SON 3: ' + parcalar.join(' · ') + '</div>';
       }
       var notYazi = notBilgi ? '<div class="magaza-not" title="Şoför notu">📝 ' + notBilgi + '</div>' : '';
-      html += '<div class="magaza" data-gecmis="' + anahtar + '">' +
-        '<div><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + '</div>' +
-        '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">' + rozet +
+      var mIkon = durumTipi === 'teslim' ? '✅' : (durumTipi === 'red' ? '⛔' : '🏬');
+      var mRenkK = durumTipi === 'teslim' ? 'yesil' : (durumTipi === 'red' ? 'kirmizi' : 'bekliyor');
+      html += '<div class="magaza m-' + mRenkK + '" data-gecmis="' + anahtar + '">' +
+        '<div class="m-sol"><div class="m-tile">' + mIkon + '</div><div class="m-bilgi"><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + '</div></div>' +
+        '<div class="m-sag">' + rozet +
         '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
         '</div>';
 
