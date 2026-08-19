@@ -577,6 +577,33 @@
   .bar-dolu { background:linear-gradient(90deg,#1d4ed8,#3b82f6); animation:none; }
   .giris::after { background:linear-gradient(90deg,#2563eb,#3b82f6,#1d4ed8); }
   .giris::before { background:conic-gradient(from var(--aci),#3b82f6,#1d4ed8,#64748b,#3b82f6); }
+
+  /* ============ PRO v6: Kullanılabilirlik ============ */
+  @media (min-width:960px) { .liste { grid-template-columns:1fr 1fr; gap:10px; } }
+  .ozet-mini { position:fixed; top:61px; left:224px; right:0; z-index:9; display:none; align-items:center; gap:12px; padding:7px 16px; background:rgba(255,255,255,.94); border-bottom:1px solid var(--cizgi); box-shadow:0 4px 14px rgba(15,23,42,.08); font-size:.66rem; font-weight:800; color:var(--metin); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+  body[data-tema="koyu"] .ozet-mini { background:rgba(17,28,49,.96); }
+  .ozet-mini.goster { display:flex; animation:girKart .18s ease; }
+  .ozet-mini .om-item { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .ozet-mini .om-teslim { color:#059669; }
+  .ozet-mini .om-red { color:#dc2626; }
+  .ozet-mini .om-bekleyen { color:#d97706; }
+  .ozet-mini .om-ciro { color:#0d9488; }
+  .ozet-mini .om-bar-kap { flex:1; min-width:70px; height:6px; border-radius:999px; background:var(--cizgi); overflow:hidden; }
+  .ozet-mini .om-bar { height:100%; border-radius:999px; background:linear-gradient(90deg,#1d4ed8,#3b82f6); transition:width .4s ease; }
+  @media (max-width:959px) { .ozet-mini { left:0; } }
+  .hizli { display:flex; flex-wrap:wrap; gap:8px; padding:10px 16px; background:#fff; border-bottom:1px solid var(--cizgi); }
+  body[data-tema="koyu"] .hizli { background:#111c31; }
+  .hizli-btn { border:1px solid var(--cizgi); background:var(--bg); color:var(--metin); border-radius:9px; padding:6px 12px; font-size:.64rem; font-weight:800; cursor:pointer; transition:.15s; box-shadow:var(--golge); }
+  .hizli-btn:hover { border-color:#2563eb; color:#2563eb; transform:translateY(-1px); }
+  .m-aks { display:flex; gap:6px; align-items:center; }
+  .m-yol { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f1f5f9; border:1px solid var(--cizgi); font-size:.82rem; text-decoration:none; transition:.15s; }
+  .m-yol:hover { border-color:#2563eb; transform:scale(1.08); }
+  body[data-tema="koyu"] .m-yol { background:#1e2c47; }
+  .yukari-btn { position:fixed; right:14px; bottom:86px; z-index:16; width:38px; height:38px; border:none; border-radius:12px; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; font-size:1rem; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(37,99,235,.35); opacity:0; pointer-events:none; transform:translateY(8px); transition:.25s; }
+  .yukari-btn.goster { opacity:1; pointer-events:auto; transform:none; }
+  @media (min-width:960px) { .yukari-btn { right:18px; bottom:20px; } }
+  @keyframes icerikGir { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .icerik.acilim, .liste.acilim, .grafik-kap.acilim { animation:icerikGir .22s ease; }
 </style>
 </head>
 <body>
@@ -603,6 +630,15 @@
     <button class="ust-btn" id="tema-btn" title="Tema değiştir">🌙</button>
     <button class="ust-btn" id="cikis-btn" style="display:none;">Çıkış</button>
   </div>
+</div>
+
+<div class="ozet-mini" id="ozet-mini">
+  <span class="om-item">🏬 <b id="mozet-toplam">0 / 0</b></span>
+  <span class="om-item om-teslim">✅ <b id="mozet-tamam">0</b></span>
+  <span class="om-item om-red">🚫 <b id="mozet-red">0</b></span>
+  <span class="om-item om-bekleyen">⏳ <b id="mozet-eksik">0</b></span>
+  <span class="om-item om-ciro">💰 <b id="mozet-ciro">0 ₺</b></span>
+  <div class="om-bar-kap"><div class="om-bar" id="mozet-bar"></div></div>
 </div>
 
 <nav class="kenar" id="kenar">
@@ -643,6 +679,14 @@
     <label style="flex:1; min-width:160px;">Ara
       <input type="search" id="arama" placeholder="Mağaza adı / kod ara..." style="width:100%;">
     </label>
+  </div>
+  <div class="hizli">
+    <button class="hizli-btn" data-hizli="rapor-btn">📥 Rapor</button>
+    <button class="hizli-btn" data-hizli="duyuru-gonder-btn">📢 Duyuru</button>
+    <button class="hizli-btn" data-hizli="fiyat-btn">💶 Fiyat</button>
+    <button class="hizli-btn" data-hizli="mesaj-ac-btn">💬 Mesaj</button>
+    <button class="hizli-btn" data-hizli="sos-durum-btn">🆘 SOS</button>
+    <button class="hizli-btn" data-hizli="pin-degistir">🔒 Şoför PIN</button>
   </div>
   <div class="ozet">
     <div class="kup"><div class="kup-ikon">📦</div><div class="kup-bilgi"><b id="ozet-tamam">0</b><span>Teslim</span></div><div class="kup-cizgi"></div></div>
@@ -828,6 +872,7 @@
 </div>
 
 <div id="toast"></div>
+<button class="yukari-btn" id="yukari-btn" title="Yukarı dön">↑</button>
 
 <script>
   var PIN = '441177';
@@ -2126,8 +2171,17 @@ function haritaKur() {
     if (!sekmeler.length) return;
     sekmeler.forEach(function (s) {
       s.addEventListener('click', function () {
-        var hedef = document.getElementById(s.getAttribute('data-hedef'));
+        var hid = s.getAttribute('data-hedef');
+        var hedef = document.getElementById(hid);
         if (!hedef) return;
+        if (hid !== 'panel' && hid.indexOf('baslik-') === 0) {
+          var pnlId = hid === 'baslik-liste' ? 'liste' : hid.replace('baslik-', '') + '-panel';
+          var p = document.getElementById(pnlId);
+          if (p && p.style.display === 'none') {
+            hedef.classList.add('acik');
+            p.style.display = '';
+          }
+        }
         hedef.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
@@ -2308,10 +2362,12 @@ function haritaKur() {
       var notYazi = notBilgi ? '<div class="magaza-not" title="Şoför notu">📝 ' + notBilgi + '</div>' : '';
       var mIkon = durumTipi === 'teslim' ? '✅' : (durumTipi === 'red' ? '⛔' : '🏬');
       var mRenkK = durumTipi === 'teslim' ? 'yesil' : (durumTipi === 'red' ? 'kirmizi' : 'bekliyor');
+      var kord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
+      var yolBtn = kord ? '<a class="m-yol" target="_blank" rel="noopener" title="Yol tarifi" href="https://www.google.com/maps/dir/?api=1&destination=' + kord[0] + ',' + kord[1] + '&travelmode=driving">🧭</a>' : '';
       html += '<div class="magaza m-' + mRenkK + '" data-gecmis="' + anahtar + '">' +
         '<div class="m-sol"><div class="m-tile">' + mIkon + '</div><div class="m-bilgi"><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + tekrarBar + '</div></div>' +
         '<div class="m-sag">' + rozet +
-        '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
+        '<div class="m-aks">' + yolBtn + '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div></div>' +
         '</div>';
 
       var koord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
@@ -2369,6 +2425,20 @@ function haritaKur() {
     document.getElementById('ozet-bar').style.width = oran + '%';
     document.getElementById('ozet-bar-metin').textContent = oran + '% tamamlandı';
     document.getElementById('ozet-bar-detay').textContent = (tamam + red) + ' / ' + magazalar.length + ' işlendi';
+    var omEl = document.getElementById('ozet-mini');
+    if (omEl) {
+      document.getElementById('mozet-toplam').textContent = tamam + ' / ' + magazalar.length;
+      var omT = document.getElementById('mozet-tamam');
+      var omR = document.getElementById('mozet-red');
+      var omE = document.getElementById('mozet-eksik');
+      var omC = document.getElementById('mozet-ciro');
+      var omB = document.getElementById('mozet-bar');
+      if (omT) omT.textContent = tamam;
+      if (omR) omR.textContent = red;
+      if (omE) omE.textContent = eksikler.length;
+      if (omC) omC.textContent = ciroFmt(ciroGenel);
+      if (omB) omB.style.width = oran + '%';
+    }
 
     var uyari = document.getElementById('eksik-uyari');
     if (eksikler.length) {
@@ -2992,6 +3062,7 @@ function haritaKur() {
     canliSaatBaslat();
     baglantiDurum();
     altnavKur();
+    kullanislikKur();
     fiyatYukle();
     setInterval(function () { yukle(); yukleKonum(); yukleRota(); yukleGunDurumu(); }, 5000);
     setInterval(function () { magazaNotGetir(); }, 30000);
@@ -3004,12 +3075,42 @@ function haritaKur() {
     setInterval(sosKontrol, 3000);
   }
 
+  function kullanislikKur() {
+    var ozetEl = document.querySelector('.ozet');
+    var omEl = document.getElementById('ozet-mini');
+    if (ozetEl && omEl && 'IntersectionObserver' in window) {
+      var ioM = new IntersectionObserver(function (en) {
+        en.forEach(function (e) { omEl.classList.toggle('goster', !e.isIntersecting); });
+      }, { threshold: 0 });
+      ioM.observe(ozetEl);
+    }
+    var hizliBtns = document.querySelectorAll('.hizli-btn');
+    for (var hz = 0; hz < hizliBtns.length; hz++) {
+      hizliBtns[hz].addEventListener('click', function () {
+        var hedef = document.getElementById(this.getAttribute('data-hizli'));
+        if (hedef) hedef.click();
+      });
+    }
+    var yukari = document.getElementById('yukari-btn');
+    if (yukari) {
+      function yukariGuncelle() { yukari.classList.toggle('goster', window.scrollY > 320); }
+      window.addEventListener('scroll', yukariGuncelle, { passive: true });
+      yukariGuncelle();
+      yukari.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    }
+  }
+
   function bolumAc(kapamaId, panelId) {
     var baslik = document.getElementById(kapamaId);
     var p = document.getElementById(panelId);
     var kapali = p.style.display === 'none';
     p.style.display = kapali ? '' : 'none';
     if (kapali) baslik.classList.add('acik'); else baslik.classList.remove('acik');
+    if (kapali) {
+      p.classList.remove('acilim');
+      void p.offsetWidth;
+      p.classList.add('acilim');
+    }
   }
   document.getElementById('baslik-red').addEventListener('click', function () { bolumAc('baslik-red', 'red-panel'); });
   document.getElementById('baslik-istatistik').addEventListener('click', function () { bolumAc('baslik-istatistik', 'istatistik-panel'); });
