@@ -521,6 +521,62 @@
     #giris-kap { margin-left:224px; }
     .filtre { top:65px; }
   }
+
+  /* ============ KURUMSAL — Kurumsal Yönetim Paneli Görünümü ============ */
+  body { background:#e9edf3; }
+  body[data-tema="koyu"] { background:#0c1522; }
+  .ust { min-height:60px; padding:10px 16px; background:#0b1f3a; background-image:none; box-shadow:0 1px 0 rgba(255,255,255,.06), 0 2px 14px rgba(15,23,42,.22); }
+  .ust::after { height:3px; background:linear-gradient(90deg,transparent,#3b82f6 40%,#2563eb 60%,transparent); animation:none; opacity:1; }
+  .ust-logo img { border-radius:8px; border:1px solid rgba(255,255,255,.25); }
+  .ust-logo h1 { font-size:.84rem; letter-spacing:2.5px; }
+  .ust-btn { background:transparent; border:1px solid rgba(255,255,255,.16); }
+  .ust-btn:hover { background:rgba(255,255,255,.12); }
+  .rapor-btn { animation:none; }
+  .kenar { background:#0b1f3a; border-right:1px solid rgba(255,255,255,.06); box-shadow:none; }
+  body[data-tema="koyu"] .kenar { background:#0a1322; }
+  .kenar-grup { color:#64748b; }
+  .kenar .altnav-sek { color:#9aa8bd; }
+  .kenar .altnav-sek:hover { background:rgba(255,255,255,.06); color:#fff; }
+  .kenar .altnav-sek.aktif { background:linear-gradient(90deg,rgba(59,130,246,.24),rgba(59,130,246,.04)); color:#fff; box-shadow:inset 3px 0 0 #3b82f6; }
+  .kenar-alt { border-top-color:rgba(255,255,255,.08); color:#64748b; }
+  .filtre { background:rgba(255,255,255,.82); }
+  body[data-tema="koyu"] .filtre { background:rgba(17,28,49,.72); }
+  .icerik, .bar-alan, .harita-kap, .lejant, .konum-bar, .grafik-kap { background:#fff; }
+  body[data-tema="koyu"] .icerik, body[data-tema="koyu"] .bar-alan, body[data-tema="koyu"] .harita-kap, body[data-tema="koyu"] .lejant, body[data-tema="koyu"] .konum-bar, body[data-tema="koyu"] .grafik-kap { background:#111c31; }
+  .ozet { gap:10px; padding:12px 16px; }
+  .ozet .kup { background:#fff; border:1px solid #e3e8f0; border-radius:10px; padding:12px 10px; box-shadow:none; }
+  body[data-tema="koyu"] .ozet .kup { background:#111c31; border-color:#1e2c47; box-shadow:none; }
+  .ozet .kup::before { width:100%; left:0; right:0; transform:none; height:2px; border-radius:2px 2px 0 0; }
+  .ozet .kup .kup-ikon { background:transparent !important; box-shadow:none !important; color:#64748b; font-size:1.05rem; width:auto; height:auto; margin:0 0 4px; }
+  body[data-tema="koyu"] .ozet .kup .kup-ikon { color:#94a3b8; }
+  .ozet .kup b { font-size:1.28rem; }
+  .ozet .kup:hover { box-shadow:0 4px 14px rgba(15,23,42,.09); border-color:#cbd5e1; transform:none; }
+  .liste { gap:8px; padding:10px 16px 14px; }
+  .magaza { border-radius:10px; padding:10px 12px; border:1px solid #e3e8f0; background:#fff; box-shadow:none; }
+  body[data-tema="koyu"] .magaza { background:#111c31; border-color:#1e2c47; }
+  .magaza:hover { transform:none; box-shadow:0 4px 14px rgba(15,23,42,.08); border-color:#cbd5e1; }
+  .m-tile { width:30px; height:30px; border-radius:8px; font-size:.82rem; background:#f1f5f9 !important; color:#64748b; box-shadow:none !important; }
+  body[data-tema="koyu"] .m-tile { background:#1e2c47 !important; color:#94a3b8; }
+  .magaza.m-yesil .m-tile { background:#ecfdf5 !important; color:#059669; }
+  body[data-tema="koyu"] .magaza.m-yesil .m-tile { background:rgba(5,150,105,.14) !important; }
+  .magaza.m-kirmizi .m-tile { background:#fef2f2 !important; color:#dc2626; }
+  body[data-tema="koyu"] .magaza.m-kirmizi .m-tile { background:rgba(220,38,38,.14) !important; }
+  .magaza::before { top:0; bottom:0; width:3px; border-radius:0; }
+  .magaza .ad { font-size:.84rem; }
+  .rozet { font-size:.66rem; padding:4px 10px; }
+  .bolum { padding:11px 14px; }
+  .bolum .ad { letter-spacing:.6px; font-size:.78rem; }
+  .bolum .ad .ikon { width:24px; height:24px; border-radius:6px; font-size:.74rem; background:#f1f5f9 !important; color:#64748b !important; box-shadow:none !important; }
+  body[data-tema="koyu"] .bolum .ad .ikon { background:#1e2c47 !important; color:#94a3b8 !important; }
+  .bolum .ok { color:#94a3b8; font-size:.74rem; }
+  th { font-size:.61rem; letter-spacing:.6px; }
+  td { padding:7px 10px; }
+  .modal-kap { border-radius:14px; }
+  .btn { border-radius:8px; background:linear-gradient(180deg,#2563eb,#1d4ed8); box-shadow:none; }
+  .btn:hover { box-shadow:0 4px 12px rgba(37,99,235,.28); }
+  .bar-dolu { background:linear-gradient(90deg,#1d4ed8,#3b82f6); animation:none; }
+  .giris::after { background:linear-gradient(90deg,#2563eb,#3b82f6,#1d4ed8); }
+  .giris::before { background:conic-gradient(from var(--aci),#3b82f6,#1d4ed8,#64748b,#3b82f6); }
 </style>
 </head>
 <body>
