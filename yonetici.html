@@ -428,10 +428,9 @@
   </div>
   <div class="harita-kap"><div class="harita-baslik"><span>🚚 Canlı Takip</span><span class="hb-live"><span class="hb-nokta"></span>AKTİF</span></div><div id="harita"></div></div>
   <div class="lejant">
-    <span><i style="background:#1faa4c;"></i>Teslim</span>
-    <span><i style="background:#e74c3c;"></i>Red</span>
-    <span><i style="background:#c7d3e0;"></i>Bekliyor</span>
-    <span><i style="background:#8e44ad;"></i>Bağetta mağazası</span>
+    <span><i style="background:#1faa4c; box-shadow:0 0 0 2px rgba(31,170,76,.25);"></i>Uğranmış</span>
+    <span><i style="background:#c7d3e0;"></i>Hiç uğranmamış</span>
+    <span>Büyük nokta: Bağetta</span>
     <span><span class="ara-nokta"></span>Araç</span>
   </div>
   <div class="konum-bar">
@@ -2051,7 +2050,8 @@ function haritaKur() {
 
       var koord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
       if (koord && harita && haritaDegisti) {
-        var renk = durumTipi === 'teslim' ? '#1faa4c' : (durumTipi === 'red' ? '#c0392b' : '#c7d3e0');
+        var ziyaretVar = !!(sonZiyaretler && sonZiyaretler[anahtar]);
+        var renk = ziyaretVar ? '#1faa4c' : '#c7d3e0';
         var yaricap = mTip === 'T' ? 8 : 6;
         var popHtml = '<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : '');
         if (haritaMotoru === 'leaflet') {
