@@ -170,6 +170,12 @@
   .tam-ekran-btn { width:34px; height:34px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .tam-ekran-btn { background:#121b2e !important; color:#fbbf24 !important; }
   .harita-tam { position:fixed !important; inset:10px; z-index:70; height:auto !important; width:auto !important; box-shadow:0 20px 60px rgba(15,23,42,.5) !important; border-radius:18px !important; }
+  .harita-baslik { position:absolute; top:10px; left:10px; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 13px; border-radius:999px; background:rgba(15,23,42,.74); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; font-size:.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,.28); }
+  .harita-baslik .hb-live { display:flex; align-items:center; gap:6px; color:#22c55e; }
+  .harita-baslik .hb-nokta { width:8px; height:8px; border-radius:50%; background:#22c55e; animation:hbyanip 1.1s infinite; box-shadow:0 0 0 4px rgba(34,197,94,.25); }
+  @keyframes hbyanip { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+  .nav-link { display:inline-block; margin-top:7px; background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff !important; text-decoration:none; font-weight:700; padding:6px 13px; border-radius:999px; font-size:.72rem; box-shadow:0 3px 10px rgba(37,99,235,.35); }
+  .maplibregl-popup-content b, .leaflet-popup-content-wrapper b { font-size:.82rem; }
   .konum-bar { padding:10px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); font-size:.78rem; color:var(--soluk); display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:600; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .canli-nokta { width:9px; height:9px; border-radius:50%; background:var(--yesil); display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; box-shadow:0 0 0 4px rgba(16,185,129,.18); }
   @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.35; } }
@@ -420,7 +426,7 @@
     <div class="bar-kap"><div class="bar-dolu" id="ozet-bar"></div></div>
     <div class="bar-metin"><span id="ozet-bar-metin">0% tamamlandı</span><span id="ozet-bar-detay"></span></div>
   </div>
-  <div class="harita-kap"><div id="harita"></div></div>
+  <div class="harita-kap"><div class="harita-baslik"><span>🚚 Canlı Takip</span><span class="hb-live"><span class="hb-nokta"></span>AKTİF</span></div><div id="harita"></div></div>
   <div class="lejant">
     <span><i style="background:#1faa4c;"></i>Teslim</span>
     <span><i style="background:#e74c3c;"></i>Red</span>
@@ -997,6 +1003,31 @@ function haritaKur() {
           if (magazaPopup) magazaPopup.remove();
           magazaPopup = new maplibregl.Popup({ offset: 12, closeButton: false }).setLngLat(e.lngLat).setHTML(f.properties.popup).addTo(harita);
         });
+        if (!harita.getLayer('magaza-sayi')) {
+          harita.addLayer({
+            id: 'magaza-sayi',
+            type: 'symbol',
+            source: 'magazalar',
+            minzoom: 11.5,
+            layout: {
+              'text-field': ['get', 'sira'],
+              'text-size': 9.5,
+              'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+              'text-allow-overlap': false
+            },
+            paint: {
+              'text-color': '#ffffff',
+              'text-halo-color': 'rgba(15,23,42,.85)',
+              'text-halo-width': 1.6
+            }
+          });
+          harita.on('click', 'magaza-sayi', function (e) {
+            var f2 = e.features && e.features[0];
+            if (!f2 || !f2.properties || !f2.properties.popup) return;
+            if (magazaPopup) magazaPopup.remove();
+            magazaPopup = new maplibregl.Popup({ offset: 12, closeButton: false }).setLngLat(e.lngLat).setHTML(f2.properties.popup).addTo(harita);
+          });
+        }
       }
     } catch (e) { }
   }
@@ -2033,7 +2064,7 @@ function haritaKur() {
           magazaMarkers.push({
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [koord[1], koord[0]] },
-            properties: { renk: renk, yaricap: yaricap, popup: popHtml }
+            properties: { renk: renk, yaricap: yaricap, popup: popHtml, sira: magazalar[i].sira }
           });
         }
       }
