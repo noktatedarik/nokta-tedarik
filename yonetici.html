@@ -198,6 +198,9 @@
   .magaza .son { font-size:.68rem; color:var(--soluk); opacity:.9; margin-top:3px; }
   .magaza .son b { color:var(--mor); }
   .magaza .son3 { font-size:.66rem; color:var(--soluk); margin-top:3px; }
+  .magaza .tekrar { font-size:.68rem; color:var(--lacivert); font-weight:800; margin-top:3px; }
+  .magaza .tekrar.acil { color:#b45309; }
+  .magaza .tekrar.suresi-doldu { color:var(--kirmizi); font-weight:800; animation:uyaricil 1.1s ease infinite; }
   .magaza .magaza-not { font-size:.7rem; color:#92400e; background:#fef3c7; border:1px solid #fde68a; padding:4px 9px; border-radius:8px; margin-top:5px; display:inline-block; max-width:100%; }
   .btn-gecmis { background:var(--bg); border:1px solid var(--cizgi); color:var(--lacivert); border-radius:999px; padding:5px 12px; font-size:.66rem; cursor:pointer; font-weight:700; transition:.2s; }
   .btn-gecmis:hover { background:rgba(59,130,246,.1); border-color:var(--lacivert); }
@@ -429,6 +432,7 @@
   <div class="harita-kap"><div class="harita-baslik"><span>🚚 Canlı Takip</span><span class="hb-live"><span class="hb-nokta"></span>AKTİF</span></div><div id="harita"></div></div>
   <div class="lejant">
     <span><i style="background:#1faa4c; box-shadow:0 0 0 2px rgba(31,170,76,.25);"></i>Uğranmış</span>
+    <span><i style="background:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.25);"></i>Tekrar süresi ≤ 7 gün</span>
     <span><i style="background:#c7d3e0;"></i>Hiç uğranmamış</span>
     <span>Büyük nokta: Bağetta</span>
     <span><span class="ara-nokta"></span>Araç</span>
@@ -1121,6 +1125,18 @@ function haritaKur() {
     var la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
     var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
     return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  function tekrarKalanGun(son) {
+    if (!son) return null;
+    var p = String(son).split(' ');
+    var ds = (p[0] || '').split('-');
+    if (ds.length !== 3) return null;
+    var t = new Date(parseInt(ds[0], 10), parseInt(ds[1], 10) - 1, parseInt(ds[2], 10));
+    var bug = new Date();
+    bug = new Date(bug.getFullYear(), bug.getMonth(), bug.getDate());
+    var fark = Math.round((bug - t) / 86400000);
+    return fark < 0 ? 0 : fark;
   }
 
   function yukleKonum() {
@@ -2029,6 +2045,14 @@ function haritaKur() {
       var sonYazi = sonKayit
         ? '<div class="son">SON ZİYARET: <b>' + sonKayit.split(' ')[0].split('-').reverse().join('.') + ' ' + (sonKayit.split(' ')[1] || '') + '</b></div>'
         : '<div class="son">HİÇ ZİYARET YOK</div>';
+      var tekrarYazi = '';
+      if (sonKayit) {
+        var gz = tekrarKalanGun(sonKayit);
+        if (gz === null) gz = 0;
+        var kalanGun = 60 - gz;
+        if (kalanGun > 0) tekrarYazi = '<div class="tekrar' + (kalanGun <= 7 ? ' acil' : '') + '">⏳ Tekrar ziyaret: <b>' + kalanGun + ' gün</b></div>';
+        else tekrarYazi = '<div class="tekrar suresi-doldu">⚠ Ziyaret süresi doldu' + (gz > 60 ? ' (' + (gz - 60) + ' gün gecikti)' : '') + ' — tekrar gerekli</div>';
+      }
       var son3Yazi = '';
       var gec = ziyaretGecmisi ? ziyaretGecmisi[anahtar] : null;
       if (gec && gec.length) {
@@ -2043,7 +2067,7 @@ function haritaKur() {
       }
       var notYazi = notBilgi ? '<div class="magaza-not" title="Şoför notu">📝 ' + notBilgi + '</div>' : '';
       html += '<div class="magaza" data-gecmis="' + anahtar + '">' +
-        '<div><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + '</div>' +
+        '<div><div class="ad">' + ad + markaRozet + '</div><div class="saat">' + (altSaat || '') + '</div>' + notYazi + sonYazi + son3Yazi + tekrarYazi + '</div>' +
         '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">' + rozet +
         '<button class="btn-gecmis" data-kod="' + anahtar + '" data-ad="' + ad + '">🕓 Geçmiş</button></div>' +
         '</div>';
@@ -2051,7 +2075,12 @@ function haritaKur() {
       var koord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
       if (koord && harita && haritaDegisti) {
         var ziyaretVar = !!(sonZiyaretler && sonZiyaretler[anahtar]);
-        var renk = ziyaretVar ? '#1faa4c' : '#c7d3e0';
+        var renk = '#c7d3e0';
+        if (ziyaretVar) {
+          var gz0 = tekrarKalanGun(sonZiyaretler[anahtar]);
+          if (gz0 === null) gz0 = 0;
+          renk = (60 - gz0) <= 7 ? '#e74c3c' : '#1faa4c';
+        }
         var yaricap = mTip === 'T' ? 8 : 6;
         var popHtml = '<b>' + ad + '</b><br>' + (alt || '') + '<br>' + (durumTipi === 'teslim' ? '✓ Teslim ' + (d ? d.saat : '') : (durumTipi === 'red' ? '✗ ' + d.red : 'Bekliyor')) + (notBilgi ? '<br>📝 ' + notBilgi : '');
         if (haritaMotoru === 'leaflet') {
