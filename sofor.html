@@ -248,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v11</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v12</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1484,7 +1484,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           pitch: 40,
           bearing: 0,
           maxPitch: 75,
-          maxZoom: 15,
+          maxZoom: 20,
           antialias: true,
           attributionControl: { compact: true },
           interactive: true
@@ -1560,16 +1560,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           }
         });
       }
-      if (!soforHarita.getSource('sofor-dem')) {
-        soforHarita.addSource('sofor-dem', {
-          type: 'raster-dem',
-          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-          encoding: 'terrarium',
-          tileSize: 256,
-          maxzoom: 15
-        });
-      }
-      soforHarita.setTerrain({ source: 'sofor-dem', exaggeration: 1.2 });
     } catch (e) { }
     soforEskiMahalleKapat();
     try {
