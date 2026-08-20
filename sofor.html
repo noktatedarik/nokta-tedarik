@@ -159,6 +159,9 @@
   .map3d-btn { width:38px; height:38px; border:none; background:var(--card); color:var(--turuncu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .map3d-btn { background:#16212e !important; color:#fbbf24 !important; }
   @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
+  .surum { display:inline-block; font-size:.55rem; font-weight:800; letter-spacing:1px; color:#b45309; background:rgba(0,0,0,.18); border:1px solid rgba(0,0,0,.22); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
+  body[data-tema="koyu"] .surum { color:#fbbf24; }
+  .harita-2d-notu { position:absolute; z-index:500; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(15,23,42,.85); color:#fca5a5; font-size:.68rem; font-weight:700; padding:6px 12px; border-radius:999px; pointer-events:none; box-shadow:0 4px 14px rgba(0,0,0,.3); }
   .maplibregl-scale-control { background:rgba(248,250,252,.85); border-radius:4px; padding:2px 6px; font-size:10px; color:#334155; box-shadow:0 1px 4px rgba(0,0,0,.15); }
   body[data-tema="koyu"] .maplibregl-scale-control { background:rgba(18,27,46,.8); color:#cbd5e1; }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
@@ -245,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ</h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v9</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1515,6 +1518,14 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
     if (soforHarita && soforHaritaMotoru === 'maplibre') return;
     soforHaritaMotoru = 'leaflet';
     try {
+      var konteyner2 = document.getElementById('sofor-harita');
+      if (konteyner2 && !document.getElementById('sofor-harita-2d-notu')) {
+        var notu2 = document.createElement('div');
+        notu2.id = 'sofor-harita-2d-notu';
+        notu2.className = 'harita-2d-notu';
+        notu2.textContent = '2D görünüm — tarayıcınız 3D desteklemiyor';
+        konteyner2.appendChild(notu2);
+      }
       soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
       soforHarita.tileKatman = L.tileLayer(soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',

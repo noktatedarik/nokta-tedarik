@@ -172,6 +172,9 @@
   .map3d-btn { width:38px; height:38px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .map3d-btn { background:#121b2e !important; color:#fbbf24 !important; }
   @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
+  .surum { display:inline-block; font-size:.55rem; font-weight:800; letter-spacing:1px; color:#b45309; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
+  body[data-tema="koyu"] .surum { color:#fbbf24; }
+  .harita-2d-notu { position:absolute; z-index:500; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(15,23,42,.85); color:#fca5a5; font-size:.68rem; font-weight:700; padding:6px 12px; border-radius:999px; pointer-events:none; box-shadow:0 4px 14px rgba(0,0,0,.3); }
   .harita-tam { position:fixed !important; inset:10px; z-index:70; height:auto !important; width:auto !important; box-shadow:0 20px 60px rgba(15,23,42,.5) !important; border-radius:18px !important; }
   .harita-baslik { position:absolute; top:10px; left:10px; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 13px; border-radius:999px; background:rgba(15,23,42,.74); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; font-size:.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,.28); }
   .harita-baslik .hb-live { display:flex; align-items:center; gap:6px; color:#22c55e; }
@@ -663,7 +666,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v9</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1314,6 +1317,14 @@ function haritaKur() {
     if (harita && (typeof L === 'undefined' || haritaMotoru === 'maplibre')) return;
     haritaMotoru = 'leaflet';
     try {
+      var kapsam2 = document.getElementById('harita');
+      if (kapsam2 && !document.getElementById('harita-2d-notu')) {
+        var notu = document.createElement('div');
+        notu.id = 'harita-2d-notu';
+        notu.className = 'harita-2d-notu';
+        notu.textContent = '2D görünüm — tarayıcınız 3D desteklemiyor';
+        kapsam2.appendChild(notu);
+      }
       harita = L.map('harita', { zoomControl: true, preferCanvas: false }).setView([40.5, 36.5], 7);
       harita.tileKatman = L.tileLayer(haritaStilKoyu() ? HARITA_TILE_KOYU : HARITA_TILE_ACIK, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
