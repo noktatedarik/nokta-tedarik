@@ -666,7 +666,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v12</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v13</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1421,24 +1421,34 @@ function haritaKur() {
   function haritaDetayRaster() {
     if (!harita || haritaMotoru !== 'maplibre' || !harita.getSource) return;
     try {
-      try { if (harita.getLayer('detay-raster-katman')) harita.removeLayer('detay-raster-katman'); } catch (e) { }
-      try { if (harita.getSource('detay-raster')) harita.removeSource('detay-raster'); } catch (e) { }
-      harita.addSource('detay-raster', {
+      var st1 = harita.getStyle();
+      var kat1 = st1 && st1.layers ? st1.layers : [];
+      for (var i1 = 0; i1 < kat1.length; i1++) {
+        if (kat1[i1] && kat1[i1].type === 'background') {
+          try { harita.setPaintProperty(kat1[i1].id, 'background-opacity', 0); } catch (e) { }
+          break;
+        }
+      }
+      try { if (harita.getLayer('taban-raster')) harita.removeLayer('taban-raster'); } catch (e) { }
+      try { if (harita.getSource('taban-raster-kaynak')) harita.removeSource('taban-raster-kaynak'); } catch (e) { }
+      harita.addSource('taban-raster-kaynak', {
         type: 'raster',
         tiles: [haritaStilKoyu() ? HARITA_TILE_KOYU : HARITA_TILE_ACIK],
         tileSize: 256,
         maxzoom: 20
       });
-      var stil2 = harita.getStyle();
-      var ilkKat = stil2 && stil2.layers && stil2.layers.length ? stil2.layers[0].id : undefined;
+      var ustId1 = undefined;
+      for (var j1 = 0; j1 < kat1.length; j1++) {
+        if (kat1[j1] && kat1[j1].type !== 'background' && kat1[j1].id !== 'taban-raster') { ustId1 = kat1[j1].id; break; }
+      }
       harita.addLayer({
-        id: 'detay-raster-katman',
+        id: 'taban-raster',
         type: 'raster',
-        source: 'detay-raster',
-        minzoom: 15,
+        source: 'taban-raster-kaynak',
+        minzoom: 0,
         maxzoom: 22,
-        paint: { 'raster-opacity': 0.97, 'raster-fade-duration': 0 }
-      }, ilkKat);
+        paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 }
+      }, ustId1);
     } catch (e) { }
   }
 

@@ -248,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v12</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v13</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1595,24 +1595,34 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   function soforDetayRaster() {
     if (!soforHarita || soforHaritaMotoru !== 'maplibre' || !soforHarita.getSource) return;
     try {
-      try { if (soforHarita.getLayer('sofor-detay-raster-katman')) soforHarita.removeLayer('sofor-detay-raster-katman'); } catch (e) { }
-      try { if (soforHarita.getSource('sofor-detay-raster')) soforHarita.removeSource('sofor-detay-raster'); } catch (e) { }
-      soforHarita.addSource('sofor-detay-raster', {
+      var sSt1 = soforHarita.getStyle();
+      var sKt1 = sSt1 && sSt1.layers ? sSt1.layers : [];
+      for (var k1 = 0; k1 < sKt1.length; k1++) {
+        if (sKt1[k1] && sKt1[k1].type === 'background') {
+          try { soforHarita.setPaintProperty(sKt1[k1].id, 'background-opacity', 0); } catch (e) { }
+          break;
+        }
+      }
+      try { if (soforHarita.getLayer('sofor-taban-raster')) soforHarita.removeLayer('sofor-taban-raster'); } catch (e) { }
+      try { if (soforHarita.getSource('sofor-taban-raster-kaynak')) soforHarita.removeSource('sofor-taban-raster-kaynak'); } catch (e) { }
+      soforHarita.addSource('sofor-taban-raster-kaynak', {
         type: 'raster',
         tiles: [soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK],
         tileSize: 256,
         maxzoom: 20
       });
-      var sStil = soforHarita.getStyle();
-      var sIlk = sStil && sStil.layers && sStil.layers.length ? sStil.layers[0].id : undefined;
+      var sUst1 = undefined;
+      for (var k2 = 0; k2 < sKt1.length; k2++) {
+        if (sKt1[k2] && sKt1[k2].type !== 'background' && sKt1[k2].id !== 'sofor-taban-raster') { sUst1 = sKt1[k2].id; break; }
+      }
       soforHarita.addLayer({
-        id: 'sofor-detay-raster-katman',
+        id: 'sofor-taban-raster',
         type: 'raster',
-        source: 'sofor-detay-raster',
-        minzoom: 15,
+        source: 'sofor-taban-raster-kaynak',
+        minzoom: 0,
         maxzoom: 22,
-        paint: { 'raster-opacity': 0.97, 'raster-fade-duration': 0 }
-      }, sIlk);
+        paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 }
+      }, sUst1);
     } catch (e) { }
   }
 
