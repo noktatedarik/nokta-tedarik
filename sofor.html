@@ -248,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v10</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v11</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1484,6 +1484,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           pitch: 40,
           bearing: 0,
           maxPitch: 75,
+          maxZoom: 15,
           antialias: true,
           attributionControl: { compact: true },
           interactive: true
@@ -1597,6 +1598,31 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           minzoom: 12
         });
       }
+    } catch (e) { }
+    soforDetayRaster();
+  }
+
+  function soforDetayRaster() {
+    if (!soforHarita || soforHaritaMotoru !== 'maplibre' || !soforHarita.getSource) return;
+    try {
+      try { if (soforHarita.getLayer('sofor-detay-raster-katman')) soforHarita.removeLayer('sofor-detay-raster-katman'); } catch (e) { }
+      try { if (soforHarita.getSource('sofor-detay-raster')) soforHarita.removeSource('sofor-detay-raster'); } catch (e) { }
+      soforHarita.addSource('sofor-detay-raster', {
+        type: 'raster',
+        tiles: [soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK],
+        tileSize: 256,
+        maxzoom: 20
+      });
+      var sStil = soforHarita.getStyle();
+      var sIlk = sStil && sStil.layers && sStil.layers.length ? sStil.layers[0].id : undefined;
+      soforHarita.addLayer({
+        id: 'sofor-detay-raster-katman',
+        type: 'raster',
+        source: 'sofor-detay-raster',
+        minzoom: 15,
+        maxzoom: 22,
+        paint: { 'raster-opacity': 0.97, 'raster-fade-duration': 0 }
+      }, sIlk);
     } catch (e) { }
   }
 
