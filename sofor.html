@@ -156,6 +156,9 @@
   .maplibregl-ctrl button, .leaflet-bar a { width:34px; height:34px; font-size:15px; }
   .sofor-mercek-btn { width:34px; height:34px; border:none; background:var(--card); color:var(--turuncu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .sofor-mercek-btn { background:#16212e !important; color:#fbbf24 !important; }
+  .map3d-btn { width:38px; height:38px; border:none; background:var(--card); color:var(--turuncu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  body[data-tema="koyu"] .map3d-btn { background:#16212e !important; color:#fbbf24 !important; }
+  @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
   .maplibregl-scale-control { background:rgba(248,250,252,.85); border-radius:4px; padding:2px 6px; font-size:10px; color:#334155; box-shadow:0 1px 4px rgba(0,0,0,.15); }
   body[data-tema="koyu"] .maplibregl-scale-control { background:rgba(18,27,46,.8); color:#cbd5e1; }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
@@ -1617,6 +1620,19 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       onAdd: function () { var k = document.createElement('div'); k.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k.appendChild(btn); return k; },
       onRemove: function () { btn.remove(); }
     }, 'top-right');
+    var btn3 = document.createElement('button');
+    btn3.className = 'map3d-btn';
+    btn3.innerHTML = '🏔';
+    btn3.title = '3D görünüm';
+    btn3.addEventListener('click', function () {
+      var egrilik = soforHarita.getPitch ? soforHarita.getPitch() : 0;
+      if (egrilik > 10) soforHarita.easeTo({ pitch: 0, duration: 500 });
+      else soforHarita.easeTo({ pitch: 55, duration: 500 });
+    });
+    soforHarita.addControl({
+      onAdd: function () { var k2 = document.createElement('div'); k2.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k2.appendChild(btn3); return k2; },
+      onRemove: function () { btn3.remove(); }
+    }, 'bottom-left');
   }
 
   function soforHaritaTemaDegis() {

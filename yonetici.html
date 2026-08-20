@@ -169,6 +169,9 @@
   .leaflet-popup-content { margin:14px 16px !important; }
   .tam-ekran-btn { width:34px; height:34px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .tam-ekran-btn { background:#121b2e !important; color:#fbbf24 !important; }
+  .map3d-btn { width:38px; height:38px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  body[data-tema="koyu"] .map3d-btn { background:#121b2e !important; color:#fbbf24 !important; }
+  @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
   .harita-tam { position:fixed !important; inset:10px; z-index:70; height:auto !important; width:auto !important; box-shadow:0 20px 60px rgba(15,23,42,.5) !important; border-radius:18px !important; }
   .harita-baslik { position:absolute; top:10px; left:10px; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 13px; border-radius:999px; background:rgba(15,23,42,.74); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; font-size:.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,.28); }
   .harita-baslik .hb-live { display:flex; align-items:center; gap:6px; color:#22c55e; }
@@ -1284,6 +1287,7 @@ function haritaKur() {
         harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         harita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         tamEkranKontrol();
+        harita3DButon();
         harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3D(); });
         harita.on('error', function (hby) {
           if (maplibreYuklendi) return;
@@ -1462,6 +1466,23 @@ function haritaKur() {
         });
       }
     } catch (e) { }
+  }
+
+  function harita3DButon() {
+    if (haritaMotoru !== 'maplibre' || !harita) return;
+    var btn = document.createElement('button');
+    btn.className = 'map3d-btn';
+    btn.innerHTML = '🏔';
+    btn.title = '3D görünüm';
+    btn.addEventListener('click', function () {
+      var egrilik = harita.getPitch ? harita.getPitch() : 0;
+      if (egrilik > 10) harita.easeTo({ pitch: 0, duration: 500 });
+      else harita.easeTo({ pitch: 55, duration: 500 });
+    });
+    harita.addControl({
+      onAdd: function () { var d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group'; d.appendChild(btn); return d; },
+      onRemove: function () { btn.remove(); }
+    }, 'bottom-left');
   }
 
   function tamEkranKontrol() {
