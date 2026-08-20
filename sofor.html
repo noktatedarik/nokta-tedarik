@@ -249,7 +249,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v15</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v16</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1691,13 +1691,17 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           if (Math.abs(simdiki - hedef) > 2) soforHarita.easeTo({ pitch: hedef, duration: 260 });
         } catch (e) { }
       });
+      soforHarita.on('webglcontextlost', function () {
+        try { sofor2DGec('3D grafik motoru cihazınızda kilitlendi — 2D haritaya geçildi.'); } catch (e) { }
+      });
       setInterval(function () {
         try {
+          if (soforHaritaMotoru !== 'maplibre' || !soforHarita) return;
           var zm = soforHarita.getZoom();
           if (isNaN(zm) || Date.now() - sonZoomZamani > 2500) { bosSaya = 0; return; }
           var tuval = soforHarita.getCanvas();
           if (!tuval) return;
-          var gl = tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
+          var gl = tuval.getContext('webgl2') || tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
           if (!gl) return;
           var px = new Uint8Array(4);
           gl.readPixels(Math.floor(tuval.width / 2), Math.floor(tuval.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
@@ -1706,15 +1710,35 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
             bosSaya++;
             if (bosSaya >= 3) {
               bosSaya = 0;
-              try { soforHarita.setPitch(0); } catch (e) { }
-              setTimeout(function () { try { soforHarita.triggerRepaint(); } catch (e) { } }, 30);
+              sofor2DGec('3D görüntü yakınlaşınca durdu — 2D haritaya geçildi.');
             } else {
               try { soforHarita.triggerRepaint(); } catch (e) { }
             }
           } else { bosSaya = 0; }
         } catch (e) { }
-      }, 800);
+      }, 700);
     } catch (e) { }
+  }
+
+  function sofor2DGec(mesaj) {
+    if (soforHaritaMotoru === 'leaflet') return;
+    try { if (soforHarita && soforHarita.remove) soforHarita.remove(); } catch (e) { }
+    soforHarita = null;
+    soforHaritaMotoru = 'leaflet';
+    soforLeaffallback();
+    var k2 = document.getElementById('sofor-harita');
+    if (mesaj && k2 && !document.getElementById('sofor-harita-2d-notu')) {
+      var notu2 = document.createElement('div');
+      notu2.id = 'sofor-harita-2d-notu';
+      notu2.className = 'harita-2d-notu';
+      notu2.textContent = mesaj;
+      k2.appendChild(notu2);
+    } else if (mesaj) {
+      setTimeout(function () {
+        var n3 = document.getElementById('sofor-harita-2d-notu');
+        if (n3) n3.textContent = mesaj;
+      }, 150);
+    }
   }
 
   function soforHaritaTemaDegis() {
