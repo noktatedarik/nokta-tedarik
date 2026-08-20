@@ -88,6 +88,8 @@
   .magaza .ad { font-weight:700; font-size:.92rem; }
   .magaza .saat { font-size:.75rem; color:var(--muted); margin-top:3px; }
   .magaza .not { font-size:.7rem; color:#b35c00; background:var(--turuncu-acik); border:1px solid #f7d9a8; padding:3px 8px; border-radius:6px; margin-top:5px; display:inline-block; max-width:100%; }
+  .magaza .not-cevap { font-size:.7rem; color:#1d6fa5; background:#e3f2fd; border:1px solid #b3d7f2; padding:3px 8px; border-radius:6px; margin-top:5px; display:inline-block; max-width:100%; }
+  body[data-tema="koyu"] .magaza .not-cevap { color:#93c5fd; background:rgba(29,111,165,.18); border-color:rgba(99,179,237,.35); }
   .chip { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.4px; padding:3px 9px; border-radius:999px; margin-right:6px; vertical-align:middle; }
   .chip.ok { background:var(--yesil); color:#fff; }
   .chip.red { background:var(--kirmizi); color:#fff; }
@@ -760,9 +762,12 @@
         var kayitBtn = tamVar
           ? '<span class="rozet sok" style="font-size:.6rem;">✓ KONUM</span>'
           : '<button class="btn nav kaydet" data-kaydet="' + m.k + '" title="Mağazanın tam konumunu GPS ile kaydet" style="text-decoration:none; padding:11px 12px;">📌</button>';
-        var not = magazaNotlar[m.k] ? magazaNotlar[m.k] : null;
-        var notBtn = '<button class="btn not-btn' + (not ? ' dolu' : '') + '" data-not="' + m.k + '" title="' + (not ? 'Notu düzenle' : 'Mağazaya not ekle') + '" style="padding:11px 12px;">📝</button>';
-        var notYazi = not ? '<div class="not">📝 ' + not + '</div>' : '';
+        var notObj = magazaNotlar[m.k] ? magazaNotlar[m.k] : null;
+        var notMetinS = notObj ? (typeof notObj === 'string' ? notObj : (notObj.not || '')) : '';
+        var notCevapS = notObj && typeof notObj === 'object' && notObj.cevap ? notObj.cevap : '';
+        var notCevapZaman = notObj && typeof notObj === 'object' && notObj.cevapSaat ? ' · ' + notObj.cevapSaat : '';
+        var notBtn = '<button class="btn not-btn' + (notMetinS ? ' dolu' : '') + '" data-not="' + m.k + '" title="' + (notMetinS ? 'Notu düzenle' : 'Mağazaya not ekle') + '" style="padding:11px 12px;">📝</button>';
+        var notYazi = notMetinS ? '<div class="not">📝 ' + notMetinS + '</div>' + (notCevapS ? '<div class="not-cevap">✅ Yönetici: ' + notCevapS + notCevapZaman + '</div>' : '') : '';
         html += '<div class="magaza' + (d ? (d.red ? ' red' : ' teslim-edildi') : '') + '">' +
           '<div><div class="ad">' + m.m + rozet + '</div>' +
           '<div class="saat">' + chip + saatMetin + '</div>' + tekrarYazi + notYazi + '</div>' +
@@ -866,7 +871,7 @@
     if (!bul) return;
     beklemeNotKod = kod;
     document.getElementById('not-magaza').textContent = bul.il + ' · ' + bul.magaza.m + ' · ' + bul.magaza.i;
-    notMetin.value = magazaNotlar[kod] || '';
+    notMetin.value = magazaNotlar[kod] ? (typeof magazaNotlar[kod] === 'string' ? magazaNotlar[kod] : (magazaNotlar[kod].not || '')) : '';
     notModal.style.display = 'flex';
     notMetin.focus();
   }
@@ -1126,7 +1131,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       var yeni = {};
       if (d) {
         for (var nk in d) {
-          if (d[nk] && d[nk].not) yeni[nk] = d[nk].not;
+          if (d[nk] && d[nk].not) yeni[nk] = d[nk];
         }
       }
       magazaNotlar = yeni;

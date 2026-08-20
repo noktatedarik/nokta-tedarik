@@ -624,14 +624,43 @@
   .bil-satir.bil-ok { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.35); }
   .bil-zaman { flex:none; font-size:.6rem; color:var(--soluk); font-weight:800; background:var(--bg); border:1px solid var(--cizgi); border-radius:5px; padding:2px 5px; }
   .bil-metin { flex:1; color:var(--metin); font-weight:600; min-width:0; }
+  /* PRO v8: cevap + görev listesi + marka ayarları */
+  .n-cevap { display:block; font-size:.72rem; color:#1d6fa5; background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.3); border-radius:8px; padding:6px 9px; margin-top:6px; }
+  body[data-tema="koyu"] .n-cevap { color:#93c5fd; background:rgba(59,130,246,.12); }
+  .n-cevap-form { display:flex; gap:6px; margin-top:8px; }
+  .n-cevap-form input { flex:1; min-width:0; background:var(--bg); border:1px solid var(--cizgi); border-radius:8px; padding:8px 10px; font-size:.76rem; color:var(--metin); outline:none; }
+  .n-cevap-form input:focus { border-color:#3b82f6; }
+  .n-cevap-form button { flex:none; background:linear-gradient(135deg,#2563eb,#3b82f6); border:none; color:#fff; font-weight:800; padding:0 14px; border-radius:8px; cursor:pointer; font-size:.78rem; }
+  .gorev-il { display:flex; align-items:center; justify-content:space-between; margin:10px 0 6px; }
+  .gorev-il b { font-size:.68rem; letter-spacing:1px; color:#b45309; text-transform:uppercase; }
+  body[data-tema="koyu"] .gorev-il b { color:#fbbf24; }
+  .gorev-satir { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--cizgi); border-radius:10px; padding:9px 11px; margin-bottom:7px; }
+  .gorev-satir.doldu { background:rgba(239,68,68,.07); border-color:rgba(239,68,68,.4); }
+  .gorev-ad { flex:1; min-width:0; font-family:'Sora',sans-serif; font-weight:700; font-size:.8rem; color:var(--metin); }
+  .gorev-ilce { font-size:.64rem; color:var(--soluk); font-weight:600; }
+  .gorev-kalan { flex:none; font-size:.66rem; font-weight:800; color:#b45309; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; padding:3px 7px; }
+  .gorev-satir.doldu .gorev-kalan { color:#dc2626; background:#fee2e2; border-color:#fecaca; }
+  body[data-tema="koyu"] .gorev-kalan { color:#fde68a; background:rgba(146,64,14,.18); border-color:rgba(251,191,36,.3); }
+  body[data-tema="koyu"] .gorev-satir.doldu .gorev-kalan { color:#fca5a5; background:rgba(220,38,38,.18); border-color:rgba(248,113,113,.35); }
+  .gorev-son { flex:none; font-size:.62rem; color:var(--soluk); font-weight:700; }
+  .gorev-nav { flex:none; text-decoration:none; font-size:.85rem; padding:7px 9px; border-radius:8px; background:rgba(245,158,11,.12); }
+  .ay-baslik { font-size:.62rem; letter-spacing:1px; text-transform:uppercase; color:var(--soluk); font-weight:800; margin:12px 0 6px; }
+  .ay-satir { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .ay-satir label { flex:none; width:110px; font-size:.72rem; font-weight:800; color:var(--metin); }
+  .ay-satir input { flex:1; min-width:0; background:var(--bg); border:1px solid var(--cizgi); border-radius:8px; padding:9px 10px; font-size:.8rem; color:var(--metin); outline:none; }
+  .ay-satir input:focus { border-color:#0891b2; }
+  .ay-btns { display:flex; gap:8px; margin-top:12px; }
+  .ay-btns button { flex:none; border:none; border-radius:8px; padding:10px 16px; font-weight:800; font-size:.76rem; cursor:pointer; color:#fff; }
+  #marka-kaydet { background:linear-gradient(135deg,#0891b2,#06b6d4); }
+  #marka-sifirla { background:var(--cizgi2); color:var(--soluk); }
 </style>
 </head>
 <body>
 
 <div class="ust">
   <div class="ust-orta">
-    <div class="ust-logo"><img src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><h1>NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon">YÖNETİCİ PANELİ</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -662,12 +691,13 @@
 </div>
 
 <nav class="kenar" id="kenar">
-  <div class="kenar-grup">GENEL BAKIŞ</div>
+  <div class="kenar-grup" id="kenar-grup-baslik">GENEL BAKIŞ</div>
   <button class="altnav-sek sekme-aktif" data-hedef="panel"><span class="sekme-ikon">🏠</span><span class="sekme-ad">Ana Sayfa</span></button>
   <button class="altnav-sek" data-hedef="baslik-canli"><span class="sekme-ikon">🚚</span><span class="sekme-ad">Teslimatlar</span></button>
   <button class="altnav-sek" data-hedef="baslik-liste"><span class="sekme-ikon">🏬</span><span class="sekme-ad">Mağazalar</span></button>
   <button class="altnav-sek" data-hedef="baslik-notlar"><span class="sekme-ikon">📝</span><span class="sekme-ad">Şoför Notları</span></button>
   <button class="altnav-sek" data-hedef="baslik-bildirim"><span class="sekme-ikon">🔔</span><span class="sekme-ad">Anlık Bildirimler</span></button>
+  <button class="altnav-sek" data-hedef="baslik-gorev"><span class="sekme-ikon">📅</span><span class="sekme-ad">Bu Hafta Girilecekler</span></button>
   <button class="altnav-sek" data-hedef="baslik-red"><span class="sekme-ikon">🚫</span><span class="sekme-ad">Red Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-ciro"><span class="sekme-ikon">💰</span><span class="sekme-ad">Ciro Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-grafik"><span class="sekme-ikon">📈</span><span class="sekme-ad">Grafikler</span></button>
@@ -756,6 +786,19 @@
 
   <div class="bolum" id="baslik-bildirim" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🔔</span>ANLIK BİLDİRİMLER<span class="bil-sayac" id="bildirim-sayac">0</span></span><span class="ok">▾</span></div>
   <div class="icerik" id="bildirim-panel" style="display:none;"></div>
+
+  <div class="bolum" id="baslik-gorev" style="--bolum:#f59e0b;--bolum2:#fbbf24;"><span class="ad"><span class="ikon">📅</span>BU HAFTA GİRİLECEKLER<span class="bil-sayac" id="gorev-sayac">0</span></span><span class="ok">▾</span></div>
+  <div class="icerik" id="gorev-panel" style="display:none;"></div>
+
+  <div class="bolum" id="baslik-ayarlar" style="--bolum:#0891b2;--bolum2:#22d3ee;"><span class="ad"><span class="ikon">⚙️</span>MARKA &amp; AYARLAR</span><span class="ok">▾</span></div>
+  <div class="icerik" id="ayarlar-panel" style="display:none;">
+    <div class="ay-baslik">PANEL MARKASI</div>
+    <div class="ay-satir"><label>Logo (emoji)</label><input id="marka-logo" placeholder="örn: 🏢" maxlength="4"></div>
+    <div class="ay-satir"><label>Panel başlığı</label><input id="marka-baslik" placeholder="örn: NOKTA TEDARİK"></div>
+    <div class="ay-satir"><label>Firma adı</label><input id="marka-firma" placeholder="örn: NOKTATEDARİK LTD."></div>
+    <div class="ay-btns"><button id="marka-kaydet">KAYDET</button><button id="marka-sifirla">SIFIRLA</button></div>
+    <div class="acik" style="margin-top:10px;font-size:.7rem;color:var(--soluk);">Ayarlar bu tarayıcıda kaydedilir; üst bardaki başlık, logo emojisi ve kenar menü başlığı da buna göre değişir.</div>
+  </div>
 
   <div class="bolum" id="baslik-red" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🚫</span>RED RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="red-panel" style="display:none;"></div>
@@ -944,6 +987,14 @@
   }
   document.getElementById('tema-btn').addEventListener('click', temaAc);
   temaUygula();
+  applyMarka();
+  markaFormDoldur();
+  document.getElementById('marka-kaydet').addEventListener('click', markaKaydet);
+  document.getElementById('marka-sifirla').addEventListener('click', markaSifirla);
+  document.addEventListener('click', function (e) {
+    var cb = e.target.closest('[data-cevap]');
+    if (cb) cevapKaydet(cb.getAttribute('data-cevap'));
+  });
 
   var girisKap = document.getElementById('giris-kap');
   var panel = document.getElementById('panel');
@@ -2376,7 +2427,7 @@ function haritaKur() {
         var kalanYuz = Math.max(0, Math.min(100, Math.round((gz / 60) * 100)));
         var tRenk = kalanGun <= 0 ? 't-sure' : (kalanGun <= 7 ? 't-acil' : 't-iyi');
         tekrarBar = '<div class="tekrar-bar" title="60 günlük sürenin %' + kalanYuz + ' i geçti"><i style="width:' + kalanYuz + '%" class="' + tRenk + '"></i></div>';
-        if (kalanGun <= 7) tekrarAcilList.push({ ad: ad, ilce: alt, kod: anahtar, kalan: kalanGun });
+        if (kalanGun <= 7) tekrarAcilList.push({ ad: ad, ilce: alt, kod: anahtar, mkk: m.k, kalan: kalanGun, il: magazalar[i].sehir, son: sonKayit });
       }
       var son3Yazi = '';
       var gec = ziyaretGecmisi ? ziyaretGecmisi[anahtar] : null;
@@ -2537,6 +2588,7 @@ function haritaKur() {
     grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar);
     surePanel(canliKayitlar, gunDurum);
     notlarPanel();
+    gorevPanel(tekrarAcilList);
     gecmisButonlar();
     exportVeri = {
       tarih: secilenTarih,
@@ -3061,9 +3113,109 @@ function haritaKur() {
       }).catch(function () { bildirimPanel(); });
   }
 
+  function markaOku() {
+    try { return JSON.parse(localStorage.getItem('yon-marka') || 'null') || {}; } catch (e) { return {}; }
+  }
+
+  function applyMarka() {
+    var m = markaOku();
+    var bas = document.getElementById('ust-baslik');
+    var img = document.getElementById('ust-logo-img');
+    var emoji = document.getElementById('ust-logo-emoji');
+    var alt = document.getElementById('ust-alt-yon');
+    var grup = document.getElementById('kenar-grup-baslik');
+    if (bas && m.baslik) bas.textContent = m.baslik;
+    if (alt && m.alt) alt.textContent = m.alt;
+    if (grup && m.firma) grup.textContent = m.firma;
+    if (img && emoji) {
+      if (m.logo) { emoji.style.display = ''; emoji.textContent = m.logo; img.style.display = 'none'; }
+      else { emoji.style.display = 'none'; img.style.display = ''; }
+    }
+    var t = ((m.firma ? m.firma + ' — ' : '') + (m.baslik ? m.baslik : '')).trim();
+    if (t) document.title = t;
+  }
+
+  function markaFormDoldur() {
+    var m = markaOku();
+    var l = document.getElementById('marka-logo'); if (l) l.value = m.logo || '';
+    var b = document.getElementById('marka-baslik'); if (b) b.value = m.baslik || '';
+    var f = document.getElementById('marka-firma'); if (f) f.value = m.firma || '';
+  }
+
+  function markaKaydet() {
+    var l = document.getElementById('marka-logo');
+    var b = document.getElementById('marka-baslik');
+    var f = document.getElementById('marka-firma');
+    localStorage.setItem('yon-marka', JSON.stringify({ logo: (l ? l.value : '').trim(), baslik: (b ? b.value : '').trim(), firma: (f ? f.value : '').trim() }));
+    applyMarka();
+    toast('Marka ayarları kaydedildi', 'ok');
+  }
+
+  function markaSifirla() {
+    localStorage.removeItem('yon-marka');
+    applyMarka();
+    markaFormDoldur();
+    toast('Varsayılan marka geri yüklendi', 'ok');
+  }
+
+  function cevapKaydet(kod) {
+    var inp = document.getElementById('cevap-' + kod);
+    if (!inp) return;
+    var metin = inp.value.trim();
+    if (!metin) { toast('Önce cevabınızı yazın', 'hata'); return; }
+    var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    fetch(FIREBASE_URL + '/magazanot/' + kod + '.json', { method: 'PATCH', body: JSON.stringify({ cevap: metin, cevapSaat: saat }) })
+      .then(function () {
+        var mevcut = magazaNotlar[kod];
+        if (!mevcut || typeof mevcut !== 'object') mevcut = { not: typeof mevcut === 'string' ? mevcut : '' };
+        mevcut.cevap = metin;
+        mevcut.cevapSaat = saat;
+        magazaNotlar[kod] = mevcut;
+        notlarPanel();
+        toast('Cevap şoföre gönderildi', 'ok');
+      }).catch(function () { toast('Cevap gönderilemedi — interneti kontrol edin', 'hata'); });
+  }
+
+  function gorevPanel(liste) {
+    var k = document.getElementById('gorev-panel');
+    var say = document.getElementById('gorev-sayac');
+    if (!k) return;
+    if (say) say.textContent = liste.length > 99 ? '99+' : String(liste.length);
+    if (!liste.length) {
+      setHtml(k, '<div class="bos-kap"><div class="ikon">✅</div>Şu an acil ziyaret gereken mağaza yok<div class="acik">60 günlük tekrar süresinin son 7 gününe giren mağazalar otomatik burada listelenir</div></div>');
+      return;
+    }
+    liste = liste.slice().sort(function (a, b) { return a.kalan - b.kalan; });
+    var gruplar = {};
+    for (var i = 0; i < liste.length; i++) {
+      var u = liste[i];
+      if (!gruplar[u.il]) gruplar[u.il] = [];
+      gruplar[u.il].push(u);
+    }
+    var h = '';
+    var ilSort = Object.keys(gruplar).sort();
+    for (var g2 = 0; g2 < ilSort.length; g2++) {
+      var ilAd = ilSort[g2];
+      var grupS = gruplar[ilAd];
+      h += '<div class="gorev-il"><b>📍 ' + ilAd + '</b><span class="gorev-ilce">' + grupS.length + ' mağaza</span></div>';
+      for (var t2 = 0; t2 < grupS.length; t2++) {
+        var v = grupS[t2];
+        var sonTar = v.son ? String(v.son).split(' ')[0].split('-').reverse().join('.') : '—';
+        var gkalan = v.kalan <= 0 ? '⚠ SÜRE DOLDU' : '⏳ ' + v.kalan + ' gün';
+        var koord = v.mkk ? magazaKoordinat(v.il, v.ilce, v.mkk) : null;
+        var nav = koord ? '<a class="gorev-nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + koord[0] + ',' + koord[1] + '" title="Navigasyonu aç">📍</a>' : '';
+        h += '<div class="gorev-satir' + (v.kalan <= 0 ? ' doldu' : '') + '"><span class="gorev-ad">' + escapeHtml(v.ad) + ' <span class="gorev-ilce">' + escapeHtml(v.ilce) + '</span></span><span class="gorev-son">Son: ' + sonTar + '</span><span class="gorev-kalan">' + gkalan + '</span>' + nav + '</div>';
+      }
+    }
+    setHtml(k, h);
+  }
+
   function notlarPanel() {
     var k = document.getElementById('notlar-panel');
     if (!k) return;
+    var onceki = {};
+    var eskiInput = k.querySelectorAll('.n-cevap-form input');
+    for (var e0 = 0; e0 < eskiInput.length; e0++) onceki[eskiInput[e0].id] = eskiInput[e0].value;
     var satirlar = [];
     for (var i = 0; i < MAGAZALAR.length; i++) {
       var il = MAGAZALAR[i];
@@ -3071,14 +3223,15 @@ function haritaKur() {
         var m = il.magazalar[j];
         var nota = magazaNotlar && magazaNotlar[m.k];
         if (!nota) continue;
-        var notMetn = typeof nota === 'string' ? nota : (nota && nota.not);
+        var notaObj = typeof nota === 'string' ? { not: nota } : (nota || {});
+        var notMetn = notaObj.not;
         if (!notMetn) continue;
         var mTipn = m.t || 'S';
         var markaRozetn = '<span class="marka-' + (mTipn === 'T' ? 'baget' : 'tamkoy') + '">' + (mTipn === 'T' ? 'BAĞETTA' : 'TAMKÖY') + '</span>';
-        var notSaati = (typeof nota === 'string') ? '' : ((nota && nota.saat) || '');
-        var notTarih = (typeof nota === 'string') ? '' : ((nota && nota.tarih) || '');
+        var notSaati = notaObj.saat || '';
+        var notTarih = notaObj.tarih || '';
         var zam = (notTarih || notSaati) ? '<span class="n-saat">' + (notTarih ? '📅 ' + notTarih + (notSaati ? ' · ' : '') : '') + (notSaati ? '🕓 ' + notSaati : '') + '</span>' : '';
-        satirlar.push({ il: il.sehir, ad: m.m || 'Mağaza ' + (j + 1), ilce: m.i || '', markaRozet: markaRozetn, not: notMetn, zam: zam });
+        satirlar.push({ il: il.sehir, ad: m.m || 'Mağaza ' + (j + 1), ilce: m.i || '', markaRozet: markaRozetn, not: notMetn, zam: zam, kod: m.k, cevap: notaObj.cevap || '', cevapSaat: notaObj.cevapSaat || '' });
       }
     }
     if (!satirlar.length) {
@@ -3091,9 +3244,16 @@ function haritaKur() {
     for (var s = 0; s < satirlar.length; s++) {
       var st = satirlar[s];
       if (st.il !== ilSirasi) { ilSirasi = st.il; h += '<div class="n-grup">📍 ' + st.il + '</div>'; }
-      h += '<div class="n-satir"><div class="n-bilgi"><span class="n-ad">' + escapeHtml(st.ad) + st.markaRozet + '</span><span class="n-ilce">' + escapeHtml(st.ilce) + '</span></div><span class="n-metin">📝 ' + escapeHtml(st.not) + '</span>' + st.zam + '</div>';
+      h += '<div class="n-satir"><div class="n-bilgi"><span class="n-ad">' + escapeHtml(st.ad) + st.markaRozet + '</span><span class="n-ilce">' + escapeHtml(st.ilce) + '</span></div><span class="n-metin">📝 ' + escapeHtml(st.not) + '</span>' + st.zam + (st.cevap ? '<span class="n-cevap">✅ Yönetici: ' + escapeHtml(st.cevap) + (st.cevapSaat ? ' · ' + st.cevapSaat : '') + '</span>' : '') + '<div class="n-cevap-form"><input id="cevap-' + st.kod + '" placeholder="Şoföre cevap yaz..." autocomplete="off" value="' + (st.cevap ? escapeHtml(st.cevap) : '') + '"><button data-cevap="' + st.kod + '" title="Cevabı gönder">➤</button></div></div>';
     }
     setHtml(k, h);
+    var aktifId = document.activeElement ? document.activeElement.id : null;
+    if (aktifId && onceki[aktifId] !== undefined) {
+      var hedefEl = document.getElementById(aktifId);
+      if (hedefEl) { hedefEl.value = onceki[aktifId]; hedefEl.focus(); try { hedefEl.setSelectionRange(hedefEl.value.length, hedefEl.value.length); } catch (e9) { } }
+    } else {
+      for (var okey in onceki) { var oel = document.getElementById(okey); if (oel) oel.value = onceki[okey]; }
+    }
   }
 
   function surePanel(canliKayitlar, gunDurum) {
@@ -3304,6 +3464,8 @@ function haritaKur() {
   document.getElementById('baslik-liste').addEventListener('click', function () { bolumAc('baslik-liste', 'liste'); });
   document.getElementById('baslik-notlar').addEventListener('click', function () { bolumAc('baslik-notlar', 'notlar-panel'); });
   document.getElementById('baslik-bildirim').addEventListener('click', function () { bolumAc('baslik-bildirim', 'bildirim-panel'); });
+  document.getElementById('baslik-gorev').addEventListener('click', function () { bolumAc('baslik-gorev', 'gorev-panel'); });
+  document.getElementById('baslik-ayarlar').addEventListener('click', function () { bolumAc('baslik-ayarlar', 'ayarlar-panel'); });
   document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
   document.getElementById('baslik-grafik').addEventListener('click', function () { bolumAc('baslik-grafik', 'grafik-panel'); });
   document.getElementById('baslik-sure').addEventListener('click', function () { bolumAc('baslik-sure', 'sure-panel'); });
