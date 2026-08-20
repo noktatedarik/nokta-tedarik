@@ -652,6 +652,7 @@
       return fetch(ziyaretAdres, { method: 'PUT', body: JSON.stringify({ tarih: bugun, saat: saat }) });
     }).then(function () {
       sonZiyaretler[beklemeKod] = { tarih: bugun, saat: saat };
+      bildirimGonder('teslim', { kod: beklemeKod, il: bul.il, magaza: magazaAd });
       urunModal.style.display = 'none';
       beklemeKod = null;
       listeCiz();
@@ -804,6 +805,7 @@
     var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + bul.il + '/' + bul.sira + '.json';
     fetch(adres, { method: 'DELETE' }).then(function () {
       delete durumlar[kod];
+      bildirimGonder('gerial', { kod: kod, il: bul.il, magaza: bul.magaza.m });
       if (sonraCiz) sonraCiz();
     }).catch(function () {
       baglanti.textContent = 'Bağlantı hatası';
@@ -833,6 +835,7 @@
         body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), red: neden.trim(), k: kod3 })
       }).then(function () {
         durumlar[kod3] = { red: neden.trim(), k: kod3 };
+        bildirimGonder('red', { kod: kod3, il: bul3.il, magaza: bul3.magaza.m, neden: neden.trim() });
         listeCiz();
       }).catch(function () {
         baglanti.textContent = 'Bağlantı hatası';
@@ -875,6 +878,8 @@
       if (!magazaNotlar[kod4]) { notModal.style.display = 'none'; beklemeNotKod = null; return; }
       fetch(FIREBASE_URL + '/magazanot/' + kod4 + '.json', { method: 'DELETE' }).then(function () {
         delete magazaNotlar[kod4];
+        var bulX = magazaBul(kod4);
+        bildirimGonder('notsil', { kod: kod4, il: bulX ? bulX.il : '', magaza: bulX ? bulX.magaza.m : '' });
         notModal.style.display = 'none';
         beklemeNotKod = null;
         baglanti.textContent = 'Not silindi';
@@ -891,6 +896,8 @@
       body: JSON.stringify({ not: metin })
     }).then(function () {
       magazaNotlar[kod4] = metin;
+      var bulN = magazaBul(kod4);
+      bildirimGonder('not', { kod: kod4, il: bulN ? bulN.il : '', magaza: bulN ? bulN.magaza.m : '', neden: metin });
       notModal.style.display = 'none';
       beklemeNotKod = null;
       baglanti.textContent = '✓ Not kaydedildi';
@@ -907,6 +914,8 @@
     if (!magazaNotlar[kod5] || confirm('Bu mağazanın notu silinsin mi?')) {
       fetch(FIREBASE_URL + '/magazanot/' + kod5 + '.json', { method: 'DELETE' }).then(function () {
         delete magazaNotlar[kod5];
+        var bulT = magazaBul(kod5);
+        bildirimGonder('notsil', { kod: kod5, il: bulT ? bulT.il : '', magaza: bulT ? bulT.magaza.m : '' });
         notModal.style.display = 'none';
         beklemeNotKod = null;
         baglanti.textContent = 'Not silindi';
@@ -942,6 +951,8 @@
         body: JSON.stringify(kayit)
       }).then(function () {
         tamKonumlar[kod] = kayit;
+        var bulL = magazaBul(kod);
+        bildirimGonder('konum', { kod: kod, il: bulL ? bulL.il : '', magaza: bulL ? bulL.magaza.m : '' });
         baglanti.textContent = '✓ Konum kaydedildi (' + kod + ')';
         toast('✓ Konum kaydedildi', 'ok');
         listeCiz();
@@ -953,6 +964,21 @@
       baglanti.textContent = 'Konum alınamadı — GPS açık ve izin verilmiş olmalı';
       toast('GPS açık ve izin verilmiş olmalı', 'hata');
     }, { enableHighAccuracy: true, timeout: 15000 });
+  }
+
+  function bildirimGonder(tip, detay) {
+    var k = Date.now() + '-' + Math.floor(Math.random() * 90000 + 10000);
+    var v = {
+      id: k,
+      tip: tip,
+      kod: detay.kod || '',
+      il: detay.il || '',
+      magaza: detay.magaza || '',
+      neden: detay.neden || '',
+      saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+      tarih: tarihYaz(new Date())
+    };
+    fetch(FIREBASE_URL + '/bildirim/' + k + '.json', { method: 'PUT', body: JSON.stringify(v) }).catch(function () { });
   }
 
   var yuklemeBtn = document.getElementById('yukleme-btn');
@@ -1005,7 +1031,7 @@
       gunDurum.asama = 'baslama';
     }
     fetch(adres, { method: 'PATCH', body: JSON.stringify(veri) })
-      .then(function () { durumButonYansit(); baglanti.textContent = 'Gün durumu kaydedildi — ' + saat; toast('Gün durumu kaydedildi · ' + saat, 'ok'); })
+      .then(function () { durumButonYansit(); bildirimGonder(yuklemeMi ? 'yukleme' : 'isebasla', { neden: saat }); baglanti.textContent = 'Gün durumu kaydedildi — ' + saat; toast('Gün durumu kaydedildi · ' + saat, 'ok'); })
       .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
     durumButonYansit();
   }
@@ -1015,7 +1041,7 @@
     gunDurum.tamamlandi = saat;
     gunDurum.asama = 'tamamlandi';
     fetch(adres, { method: 'PATCH', body: JSON.stringify({ tamamlandi: saat, asama: 'tamamlandi' }) })
-      .then(function () { durumButonYansit(); baglanti.textContent = 'Sevkiyat tamamlandı — ' + saat; toast('Sevkiyat tamamlandı · ' + saat, 'ok'); })
+      .then(function () { durumButonYansit(); bildirimGonder('tamam', { neden: saat }); baglanti.textContent = 'Sevkiyat tamamlandı — ' + saat; toast('Sevkiyat tamamlandı · ' + saat, 'ok'); })
       .catch(function () { baglanti.textContent = 'Bağlantı hatası — kaydedilemedi'; toast('Kaydedilemedi — interneti kontrol edin', 'hata'); });
     durumButonYansit();
   }
@@ -1044,11 +1070,12 @@
       method: 'PUT',
       body: JSON.stringify({ il: seciliIl, ilce: seciliIlceler, baslangic: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), varisTahmini: hesap.saat, ts: Date.now() })
     }).catch(function () {});
-    fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
-      method: 'PATCH',
-      body: JSON.stringify({ asama: 'donus' })
-    }).catch(function () {});
-  });
+fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
+        method: 'PATCH',
+        body: JSON.stringify({ asama: 'donus' })
+      }).catch(function () {});
+      bildirimGonder('donus', { neden: hesap.saat });
+    });
 
   function yukle() {
     var gunlukAdres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + (seciliIl ? '/' + seciliIl : '') + '.json';

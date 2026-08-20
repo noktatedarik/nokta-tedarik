@@ -617,6 +617,13 @@
   .n-metin { display:block; font-size:.78rem; color:#92400e; background:#fef3c7; border:1px solid #fde68a; border-radius:8px; padding:6px 9px; margin-top:6px; }
   body[data-tema="koyu"] .n-metin { color:#fcd34d; background:rgba(146,64,14,.14); border-color:rgba(251,191,36,.28); }
   .n-saat { display:inline-block; font-size:.62rem; color:var(--soluk); margin-top:6px; font-weight:700; }
+  .bil-sayac { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; margin-left:8px; border-radius:9px; background:var(--turuncu-koyu); color:#fff; font-size:.6rem; font-weight:800; vertical-align:middle; }
+  .bil-satir { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:.74rem; border:1px solid var(--cizgi); background:var(--bg); }
+  .bil-satir:hover { border-color:#fca5a5; box-shadow:var(--golge); }
+  .bil-satir.bil-red { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.35); }
+  .bil-satir.bil-ok { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.35); }
+  .bil-zaman { flex:none; font-size:.6rem; color:var(--soluk); font-weight:800; background:var(--bg); border:1px solid var(--cizgi); border-radius:5px; padding:2px 5px; }
+  .bil-metin { flex:1; color:var(--metin); font-weight:600; min-width:0; }
 </style>
 </head>
 <body>
@@ -660,6 +667,7 @@
   <button class="altnav-sek" data-hedef="baslik-canli"><span class="sekme-ikon">🚚</span><span class="sekme-ad">Teslimatlar</span></button>
   <button class="altnav-sek" data-hedef="baslik-liste"><span class="sekme-ikon">🏬</span><span class="sekme-ad">Mağazalar</span></button>
   <button class="altnav-sek" data-hedef="baslik-notlar"><span class="sekme-ikon">📝</span><span class="sekme-ad">Şoför Notları</span></button>
+  <button class="altnav-sek" data-hedef="baslik-bildirim"><span class="sekme-ikon">🔔</span><span class="sekme-ad">Anlık Bildirimler</span></button>
   <button class="altnav-sek" data-hedef="baslik-red"><span class="sekme-ikon">🚫</span><span class="sekme-ad">Red Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-ciro"><span class="sekme-ikon">💰</span><span class="sekme-ad">Ciro Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-grafik"><span class="sekme-ikon">📈</span><span class="sekme-ad">Grafikler</span></button>
@@ -745,6 +753,9 @@
 
   <div class="bolum" id="baslik-notlar" style="--bolum:#7c3aed;--bolum2:#a78bfa;"><span class="ad"><span class="ikon">📝</span>ŞOFÖR NOTLARI</span><span class="ok">▾</span></div>
   <div class="icerik" id="notlar-panel" style="display:none;"><div class="bos">Notlar yükleniyor...</div></div>
+
+  <div class="bolum" id="baslik-bildirim" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🔔</span>ANLIK BİLDİRİMLER<span class="bil-sayac" id="bildirim-sayac">0</span></span><span class="ok">▾</span></div>
+  <div class="icerik" id="bildirim-panel" style="display:none;"></div>
 
   <div class="bolum" id="baslik-red" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🚫</span>RED RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="red-panel" style="display:none;"></div>
@@ -1161,6 +1172,9 @@
   var magazaMarkers = [];
   var sonImza = '';
   var magazaNotlar = {};
+  var bildirimler = [];
+  var bildirimSonId = parseInt(localStorage.getItem('yon-bil-son') || '0', 10) || 0;
+  var bildirimHazir = localStorage.getItem('yon-bil-hazir') === '1';
   var gunDurum = {};
   var sonScrollZamani = 0;
 
@@ -2954,6 +2968,99 @@ function haritaKur() {
     }).catch(function () {});
   }
 
+  function bildirimMetinKisa(b) {
+    var bas = (b.il ? b.il + ' · ' : '') + (b.magaza || 'Mağaza');
+    if (b.tip === 'red') return '✗ ' + bas + ' — ' + (b.neden || 'Red');
+    if (b.tip === 'not') return '📝 ' + bas + ' — ' + (b.neden || '');
+    if (b.tip === 'notsil') return '🗑 ' + bas + ' notu silindi';
+    if (b.tip === 'gerial') return '↩ ' + bas + ' işareti geri alındı';
+    if (b.tip === 'konum') return '📌 ' + bas + ' konumu kaydedildi';
+    if (b.tip === 'yukleme') return '📦 Depo yükleme başladı';
+    if (b.tip === 'isebasla') return '🚚 Şoför işe başladı';
+    if (b.tip === 'tamam') return '🏁 Sevkiyat tamamlandı';
+    if (b.tip === 'donus') return '🔄 Şoför dönüşte';
+    return '✅ ' + bas + ' teslim';
+  }
+
+  function bildirimMetin(b) {
+    var yer = (b.il ? b.il + ' · ' : '') + (b.magaza || 'Mağaza');
+    var saat = b.saat ? ' · ' + b.saat : '';
+    if (b.tip === 'teslim') return '✅ TESLİM: ' + yer + saat;
+    if (b.tip === 'red') return '✗ RED: ' + yer + ' — ' + (b.neden || 'Teslim edilemedi') + saat;
+    if (b.tip === 'not') return '📝 NOT: ' + yer + ' — ' + (b.neden || '') + saat;
+    if (b.tip === 'notsil') return '🗑 NOT SİLİNDİ: ' + yer + saat;
+    if (b.tip === 'gerial') return '↩ İPTAL: ' + yer + ' işareti geri alındı' + saat;
+    if (b.tip === 'konum') return '📌 KONUM: ' + yer + ' konumu kaydedildi' + saat;
+    if (b.tip === 'yukleme') return '📦 DEPO YÜKLEME başladı' + saat;
+    if (b.tip === 'isebasla') return '🚚 ŞOFÖR İŞE BAŞLADI' + saat;
+    if (b.tip === 'tamam') return '🏁 SEVKİYAT TAMAMLANDI' + saat;
+    if (b.tip === 'donus') return '🔄 ŞOFÖR DÖNÜŞTE — tahmini varış ' + (b.neden || '') + saat;
+    return '🔔 ' + yer + saat;
+  }
+
+  var BILDIRIM_SES_TESLIM = [{ f: 784, basla: 0, sure: .15 }, { f: 1046, basla: .18, sure: .22 }];
+  var BILDIRIM_SES_RED = [{ f: 330, tip: 'square', basla: 0, sure: .25 }, { f: 247, tip: 'square', basla: .3, sure: .3 }];
+  var BILDIRIM_SES_NOT = [{ f: 659, basla: 0, sure: .18 }];
+  var BILDIRIM_SES_DURUM = [{ f: 587, basla: 0, sure: .15 }, { f: 880, basla: .2, sure: .25 }];
+
+  function bildirimSes(tip) {
+    if (tip === 'red') sesCal(BILDIRIM_SES_RED);
+    else if (tip === 'teslim') sesCal(BILDIRIM_SES_TESLIM);
+    else if (tip === 'not' || tip === 'notsil' || tip === 'konum') sesCal(BILDIRIM_SES_NOT);
+    else sesCal(BILDIRIM_SES_DURUM);
+  }
+
+  function bildirimGeldi(b) {
+    toast(bildirimMetin(b), b.tip === 'red' ? 'hata' : (b.tip === 'teslim' ? 'ok' : ''));
+    bildirimSes(b.tip);
+  }
+
+  function bildirimPanel() {
+    var k = document.getElementById('bildirim-panel');
+    var rozet2 = document.getElementById('bildirim-sayac');
+    if (!k) return;
+    if (rozet2) rozet2.textContent = bildirimler.length > 99 ? '99+' : String(bildirimler.length);
+    if (!bildirimler.length) {
+      setHtml(k, '<div class="bos-kap"><div class="ikon">🔔</div>Henüz anlık bildirim yok<div class="acik">Şoför panelden butonlara bastıkça bildirimler burada belirir ve ses çalar</div></div>');
+      return;
+    }
+    var h = '';
+    for (var i = bildirimler.length - 1; i >= 0; i--) {
+      var b = bildirimler[i];
+      h += '<div class="bil-satir bil-' + (b.tip === 'red' ? 'red' : b.tip === 'teslim' ? 'ok' : 'bilgi') + '"><span class="bil-zaman">' + (b.saat || '') + '</span><span class="bil-metin">' + bildirimMetinKisa(b) + '</span></div>';
+    }
+    setHtml(k, h);
+  }
+
+  function bildirimYukle() {
+    fetch(FIREBASE_URL + '/bildirim.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var yeni = [];
+        for (var id in (d || {})) {
+          if (d[id] && d[id].id) yeni.push(d[id]);
+        }
+        yeni.sort(function (a, b) { return (parseFloat(a.id) - parseFloat(b.id)); });
+        bildirimler = yeni.slice(-30);
+        if (!yeni.length) { bildirimPanel(); return; }
+        var son = parseFloat(yeni[yeni.length - 1].id);
+        if (!bildirimHazir) {
+          bildirimHazir = true;
+          localStorage.setItem('yon-bil-hazir', '1');
+          localStorage.setItem('yon-bil-son', String(son));
+          bildirimSonId = son;
+        } else if (son > bildirimSonId) {
+          for (var i = 0; i < yeni.length; i++) {
+            var b = yeni[i];
+            if (parseFloat(b.id) > bildirimSonId) bildirimGeldi(b);
+          }
+          bildirimSonId = son;
+          localStorage.setItem('yon-bil-son', String(son));
+        }
+        bildirimPanel();
+      }).catch(function () { bildirimPanel(); });
+  }
+
   function notlarPanel() {
     var k = document.getElementById('notlar-panel');
     if (!k) return;
@@ -3149,6 +3256,8 @@ function haritaKur() {
     setInterval(mesajlariYukle, 3000);
     sosKontrol();
     setInterval(sosKontrol, 3000);
+    bildirimYukle();
+    setInterval(bildirimYukle, 5000);
   }
 
   function kullanislikKur() {
@@ -3194,6 +3303,7 @@ function haritaKur() {
   document.getElementById('baslik-canli').addEventListener('click', function () { bolumAc('baslik-canli', 'canli-panel'); });
   document.getElementById('baslik-liste').addEventListener('click', function () { bolumAc('baslik-liste', 'liste'); });
   document.getElementById('baslik-notlar').addEventListener('click', function () { bolumAc('baslik-notlar', 'notlar-panel'); });
+  document.getElementById('baslik-bildirim').addEventListener('click', function () { bolumAc('baslik-bildirim', 'bildirim-panel'); });
   document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
   document.getElementById('baslik-grafik').addEventListener('click', function () { bolumAc('baslik-grafik', 'grafik-panel'); });
   document.getElementById('baslik-sure').addEventListener('click', function () { bolumAc('baslik-sure', 'sure-panel'); });
