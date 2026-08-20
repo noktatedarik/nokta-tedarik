@@ -1284,7 +1284,7 @@ function haritaKur() {
         harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         harita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         tamEkranKontrol();
-        harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3DBina(); });
+        harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3D(); });
         harita.on('error', function (hby) {
           if (maplibreYuklendi) return;
           var msg = hby && hby.error && hby.error.message ? hby.error.message : '';
@@ -1394,6 +1394,76 @@ function haritaKur() {
     } catch (e) { }
   }
 
+  function harita3D() {
+    if (!harita || haritaMotoru !== 'maplibre' || !harita.getSource) return;
+    harita3DBina();
+    harita3DTerrain();
+    haritaMahalleEtiketleri();
+  }
+
+  function harita3DTerrain() {
+    if (!harita || haritaMotoru !== 'maplibre' || !harita.addSource) return;
+    try {
+      if (!harita.getSource('harita-dem')) {
+        harita.addSource('harita-dem', {
+          type: 'raster-dem',
+          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+          encoding: 'terrarium',
+          tileSize: 256,
+          maxzoom: 15
+        });
+      }
+      harita.setTerrain({ source: 'harita-dem', exaggeration: 1.2 });
+    } catch (e) { }
+  }
+
+  function haritaEskiMahalleKapat() {
+    if (!harita || !harita.getStyle) return;
+    try {
+      var katmanlar = harita.getStyle().layers || [];
+      for (var i = 0; i < katmanlar.length; i++) {
+        var mu = katmanlar[i];
+        if (!mu || mu.type !== 'symbol' || mu['source-layer'] !== 'place') continue;
+        var f = JSON.stringify(mu.filter || []);
+        if (f.indexOf('suburb') !== -1 || f.indexOf('neighbourhood') !== -1 || f.indexOf('quarter') !== -1 || f.indexOf('hamlet') !== -1) {
+          try { if (harita.getLayer(mu.id)) harita.setLayoutProperty(mu.id, 'visibility', 'none'); } catch (e2) { }
+        }
+      }
+    } catch (e) { }
+  }
+
+  function haritaMahalleEtiketleri() {
+    if (!harita || haritaMotoru !== 'maplibre' || !harita.getLayer || !harita.getSource || !harita.getSource('openmaptiles')) return;
+    haritaEskiMahalleKapat();
+    try {
+      if (!harita.getLayer('mahalle-etiket')) {
+        var koyu2 = haritaStilKoyu();
+        harita.addLayer({
+          id: 'mahalle-etiket',
+          type: 'symbol',
+          source: 'openmaptiles',
+          'source-layer': 'place',
+          filter: ['match', ['get', 'class'], ['suburb', 'neighbourhood', 'quarter', 'hamlet'], true, false],
+          layout: {
+            'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 14],
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.06,
+            'text-max-width': 9,
+            'text-allow-overlap': false
+          },
+          paint: {
+            'text-color': koyu2 ? '#fbbf24' : '#7c2d12',
+            'text-halo-color': koyu2 ? 'rgba(18,27,46,.95)' : 'rgba(255,255,255,.92)',
+            'text-halo-width': 1.5,
+            'text-opacity': 0.92
+          },
+          minzoom: 12
+        });
+      }
+    } catch (e) { }
+  }
+
   function tamEkranKontrol() {
     if (haritaMotoru !== 'maplibre' || !harita) return;
     var kapsam = document.getElementById('harita');
@@ -1429,7 +1499,7 @@ function haritaKur() {
       }
       harita.setStyle(haritaStilUrl());
       harita.once('styledata', function () {
-        harita3DBina();
+        harita3D();
         if (sonRotaPuanlar && sonRotaPuanlar.length) cizgiGuncelle('rota-katmani', 'rota-cizgi', sonRotaPuanlar, '#f77f00', 4, 0.7, null);
         if (sonTeslimPuanlar && sonTeslimPuanlar.length) cizgiGuncelle('teslim-rota-katmani', 'teslim-rota-cizgi', sonTeslimPuanlar, '#1faa4c', 3, 0.8, [6, 6]);
         if (harita.getSource && harita.getSource('magazalar')) {
