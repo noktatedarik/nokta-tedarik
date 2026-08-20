@@ -248,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v13</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v14</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1481,17 +1481,18 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           style: soforStilUrl(),
           center: [35.0, 39.5],
           zoom: 6,
-          pitch: 40,
+          pitch: 28,
           bearing: 0,
-          maxPitch: 75,
-          maxZoom: 20,
-          antialias: true,
+          maxPitch: 50,
+          maxZoom: 16.5,
+          antialias: false,
           attributionControl: { compact: true },
           interactive: true
         });
         soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         soforHarita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         soforMercekKontrolleri();
+        soforZoomGuvenlik();
         soforHarita.on('load', function () {
           soforYuklendi = true; clearTimeout(soforWatchdog);
           soforHarita3D();
@@ -1552,6 +1553,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           source: 'openmaptiles',
           'source-layer': 'building',
           minzoom: 12,
+          maxzoom: 16,
           paint: {
             'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
             'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
@@ -1665,12 +1667,53 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
     btn3.addEventListener('click', function () {
       var egrilik = soforHarita.getPitch ? soforHarita.getPitch() : 0;
       if (egrilik > 10) soforHarita.easeTo({ pitch: 0, duration: 500 });
-      else soforHarita.easeTo({ pitch: 55, duration: 500 });
+      else soforHarita.easeTo({ pitch: 45, duration: 500 });
     });
     soforHarita.addControl({
       onAdd: function () { var k2 = document.createElement('div'); k2.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k2.appendChild(btn3); return k2; },
       onRemove: function () { btn3.remove(); }
     }, 'bottom-left');
+  }
+
+  function soforZoomGuvenlik() {
+    if (soforHaritaMotoru !== 'maplibre' || !soforHarita) return;
+    try {
+      var bosSaya = 0;
+      var sonZoomZamani = Date.now();
+      soforHarita.on('zoom', function () { sonZoomZamani = Date.now(); });
+      soforHarita.on('zoomend', function () {
+        try {
+          var z = soforHarita.getZoom();
+          var hedef = 28;
+          if (!isNaN(z) && z > 14.5) hedef = Math.max(6, 28 - Math.round((z - 14.5) * 7));
+          var simdiki = soforHarita.getPitch();
+          if (Math.abs(simdiki - hedef) > 2) soforHarita.easeTo({ pitch: hedef, duration: 260 });
+        } catch (e) { }
+      });
+      setInterval(function () {
+        try {
+          var zm = soforHarita.getZoom();
+          if (isNaN(zm) || Date.now() - sonZoomZamani > 2500) { bosSaya = 0; return; }
+          var tuval = soforHarita.getCanvas();
+          if (!tuval) return;
+          var gl = tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
+          if (!gl) return;
+          var px = new Uint8Array(4);
+          gl.readPixels(Math.floor(tuval.width / 2), Math.floor(tuval.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+          var bos = px[3] === 0 || (px[0] === 0 && px[1] === 0 && px[2] === 0);
+          if (bos) {
+            bosSaya++;
+            if (bosSaya >= 3) {
+              bosSaya = 0;
+              try { soforHarita.setPitch(0); } catch (e) { }
+              setTimeout(function () { try { soforHarita.triggerRepaint(); } catch (e) { } }, 30);
+            } else {
+              try { soforHarita.triggerRepaint(); } catch (e) { }
+            }
+          } else { bosSaya = 0; }
+        } catch (e) { }
+      }, 800);
+    } catch (e) { }
   }
 
   function soforHaritaTemaDegis() {

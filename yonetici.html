@@ -666,7 +666,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v13</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v14</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1281,11 +1281,11 @@ function haritaKur() {
           style: haritaStilUrl(),
           center: [36.5, 40.5],
           zoom: 7,
-          pitch: 40,
+          pitch: 28,
           bearing: 0,
-          maxPitch: 75,
-          maxZoom: 20,
-          antialias: true,
+          maxPitch: 50,
+          maxZoom: 16.5,
+          antialias: false,
           failIfMajorPerformanceCaveat: false,
           attributionControl: { compact: true }
         });
@@ -1293,6 +1293,7 @@ function haritaKur() {
         harita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         tamEkranKontrol();
         harita3DButon();
+        haritaZoomGuvenlik();
         harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3D(); });
         harita.on('error', function (hby) {
           if (maplibreYuklendi) return;
@@ -1351,6 +1352,7 @@ function haritaKur() {
           source: 'openmaptiles',
           'source-layer': 'building',
           minzoom: 13,
+          maxzoom: 16,
           paint: {
             'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
             'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
@@ -1508,7 +1510,7 @@ function haritaKur() {
     btn.addEventListener('click', function () {
       var egrilik = harita.getPitch ? harita.getPitch() : 0;
       if (egrilik > 10) harita.easeTo({ pitch: 0, duration: 500 });
-      else harita.easeTo({ pitch: 55, duration: 500 });
+      else harita.easeTo({ pitch: 45, duration: 500 });
     });
     harita.addControl({
       onAdd: function () { var d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group'; d.appendChild(btn); return d; },
@@ -1533,6 +1535,47 @@ function haritaKur() {
       onAdd: function () { var d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group'; d.appendChild(btn); return d; },
       onRemove: function () { btn.remove(); }
     }, 'top-right');
+  }
+
+  function haritaZoomGuvenlik() {
+    if (haritaMotoru !== 'maplibre' || !harita) return;
+    try {
+      var bosSaya = 0;
+      var sonZoomZamani = Date.now();
+      harita.on('zoom', function () { sonZoomZamani = Date.now(); });
+      harita.on('zoomend', function () {
+        try {
+          var z = harita.getZoom();
+          var hedef = 28;
+          if (!isNaN(z) && z > 14.5) hedef = Math.max(6, 28 - Math.round((z - 14.5) * 7));
+          var simdiki = harita.getPitch();
+          if (Math.abs(simdiki - hedef) > 2) harita.easeTo({ pitch: hedef, duration: 260 });
+        } catch (e) { }
+      });
+      setInterval(function () {
+        try {
+          var zm = harita.getZoom();
+          if (isNaN(zm) || Date.now() - sonZoomZamani > 2500) { bosSaya = 0; return; }
+          var tuval = harita.getCanvas();
+          if (!tuval) return;
+          var gl = tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
+          if (!gl) return;
+          var px = new Uint8Array(4);
+          gl.readPixels(Math.floor(tuval.width / 2), Math.floor(tuval.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+          var bos = px[3] === 0 || (px[0] === 0 && px[1] === 0 && px[2] === 0);
+          if (bos) {
+            bosSaya++;
+            if (bosSaya >= 3) {
+              bosSaya = 0;
+              try { harita.setPitch(0); } catch (e) { }
+              setTimeout(function () { try { harita.triggerRepaint(); } catch (e) { } }, 30);
+            } else {
+              try { harita.triggerRepaint(); } catch (e) { }
+            }
+          } else { bosSaya = 0; }
+        } catch (e) { }
+      }, 800);
+    } catch (e) { }
   }
 
   function haritaTemaDegis() {
