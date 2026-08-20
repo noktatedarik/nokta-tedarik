@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Yönetici Paneli">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -65,7 +65,6 @@
   ::-webkit-scrollbar-thumb { background:var(--cizgi); border-radius:999px; }
   ::-webkit-scrollbar-thumb:hover { background:var(--soluk); }
   .ust { background:linear-gradient(120deg,#0a1730,#16294d,#0a1730,#1b3a6b,#0d1b33); background-size:300% 100%; color:#fff; padding:12px 14px; text-align:center; position:sticky; top:0; z-index:7; box-shadow:0 6px 24px rgba(10,23,48,.35); border-bottom:1px solid rgba(255,255,255,.08); animation:ustakis 14s ease infinite; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .ust { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
   @keyframes ustakis { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
   .ust::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg,transparent,var(--turuncu),var(--turuncu-acik),var(--yesil),transparent); opacity:.9; animation:ustparla 3s ease infinite; background-size:200% 100%; }
   @keyframes ustparla { 0% { background-position:0% 0; opacity:.5; } 50% { background-position:100% 0; opacity:1; } 100% { background-position:0% 0; opacity:.5; } }
@@ -112,7 +111,6 @@
   .giris .btn { width:100%; }
   .hata { color:var(--kirmizi); font-size:.8rem; height:20px; font-weight:600; }
   .filtre { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); position:sticky; top:76px; z-index:5; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
-  .filtre { top: calc(76px + env(safe-area-inset-top)); }
   .filtre label { font-size:.68rem; color:var(--soluk); font-weight:700; letter-spacing:.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
   .filtre select, .filtre input { padding:8px 12px; border:2px solid var(--cizgi); border-radius:10px; font-size:.85rem; font-weight:700; color:var(--metin); outline:none; background:var(--kart); transition:border-color .2s, box-shadow .2s; }
   .filtre select:focus, .filtre input:focus { border-color:var(--turuncu); box-shadow:0 0 0 3px rgba(245,158,11,.12); }
@@ -513,7 +511,6 @@
   .bolum .ad .ikon { width:28px; height:28px; border-radius:9px; font-size:.84rem; }
   @media (prefers-reduced-motion: reduce) { * { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
   .kenar { display:none; position:fixed; left:0; top:65px; bottom:0; width:224px; z-index:6; background:rgba(255,255,255,.78); border-right:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); flex-direction:column; padding:14px 12px; overflow-y:auto; box-shadow:2px 0 20px rgba(15,23,42,.07); }
-  .kenar { top: calc(65px + env(safe-area-inset-top)); }
   body[data-tema="koyu"] .kenar { background:rgba(13,22,40,.86); border-color:rgba(34,48,74,.9); }
   .kenar-grup { font-size:.58rem; letter-spacing:1.5px; font-weight:800; text-transform:uppercase; color:var(--soluk); padding:10px 12px 6px; }
   .kenar .altnav-sek { flex:0 0 auto; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border-radius:12px; color:var(--soluk); font-size:.76rem; font-weight:700; letter-spacing:.3px; }
@@ -536,7 +533,6 @@
   body { background:#e9edf3; }
   body[data-tema="koyu"] { background:#0c1522; }
   .ust { min-height:60px; padding:10px 16px; background:#0b1f3a; background-image:none; box-shadow:0 1px 0 rgba(255,255,255,.06), 0 2px 14px rgba(15,23,42,.22); }
-  .ust { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
   .ust::after { height:3px; background:linear-gradient(90deg,transparent,#3b82f6 40%,#2563eb 60%,transparent); animation:none; opacity:1; }
   .ust-logo img { border-radius:8px; border:1px solid rgba(255,255,255,.25); }
   .ust-logo h1 { font-size:.84rem; letter-spacing:2.5px; }
@@ -592,7 +588,6 @@
   /* ============ PRO v6: Kullanılabilirlik ============ */
   @media (min-width:960px) { .liste { grid-template-columns:1fr 1fr; gap:10px; } }
   .ozet-mini { position:fixed; top:61px; left:224px; right:0; z-index:9; display:none; align-items:center; gap:12px; padding:7px 16px; background:rgba(255,255,255,.94); border-bottom:1px solid var(--cizgi); box-shadow:0 4px 14px rgba(15,23,42,.08); font-size:.66rem; font-weight:800; color:var(--metin); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
-  .ozet-mini { top: calc(61px + env(safe-area-inset-top)); }
   body[data-tema="koyu"] .ozet-mini { background:rgba(17,28,49,.96); }
   .ozet-mini.goster { display:flex; animation:girKart .18s ease; }
   .ozet-mini .om-item { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
@@ -672,7 +667,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v19</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v16</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1230,7 +1225,6 @@
   var harita = null;
   var haritaMotoru = null;
   var aracMarker = null;
-  var aracMarkerMotoru = null;
   var rotaCizgi = null;
   var sonKonum = null;
   var magazaMarkers = [];
@@ -1248,8 +1242,6 @@
   var HARITA_TILE_KOYU = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
   function haritaStilKoyu() { return document.body.getAttribute('data-tema') === 'koyu'; }
   function haritaStilUrl() { return haritaStilKoyu() ? HARITA_STIL_KOYU : HARITA_STIL_ACIK; }
-  var dokunmatikMi = ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad|Tablet/i.test(navigator.userAgent || '');
-  function harita3DPuan() { try { return window.__yon3d === true; } catch (e) { return false; } }
   var sonMagazaFeatureler = [];
   var sonRotaPuanlar = null;
   var sonTeslimPuanlar = [];
@@ -1273,7 +1265,7 @@
 
 function haritaKur() {
     if (harita) { try { if (haritaMotoru === 'leaflet') harita.invalidateSize(); else harita.resize(); } catch (e) { } return; }
-    if (typeof maplibregl !== 'undefined' && webglVarMi() && (!dokunmatikMi || harita3DPuan())) {
+    if (typeof maplibregl !== 'undefined' && webglVarMi()) {
       haritaMotoru = 'maplibre';
       try {
         var haritaKapsam = document.getElementById('harita');
@@ -1281,7 +1273,8 @@ function haritaKur() {
         var maplibreYuklendi = false;
         var watchdog = setTimeout(function () {
           if (!maplibreYuklendi && harita && haritaMotoru === 'maplibre') {
-            harita2DGec('3D harita 8 sn içinde yüklenemedi — otomatik 2D haritaya geçildi.');
+            try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
+            leaffallback();
           }
         }, 8000);
         harita = new maplibregl.Map({
@@ -1309,7 +1302,8 @@ function haritaKur() {
           var kritik = msg.indexOf('WebGL') !== -1 || msg.indexOf('style') !== -1 || msg.indexOf('Style') !== -1 || msg.indexOf('Failed to fetch') !== -1;
           if (!kritik) return;
           clearTimeout(watchdog);
-          harita2DGec('3D harita hatası (' + (msg || 'WebGL') + ') — 2D haritaya geçildi.');
+          try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
+          leaffallback();
         });
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
@@ -1332,7 +1326,7 @@ function haritaKur() {
         var notu = document.createElement('div');
         notu.id = 'harita-2d-notu';
         notu.className = 'harita-2d-notu';
-        notu.textContent = dokunmatikMi ? '2D görünüm — telefonlarda hızlı ve güvenilir. 🏔 ile 3D dene' : (webglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor');
+        notu.textContent = webglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor';
         kapsam2.appendChild(notu);
       }
       harita = L.map('harita', { zoomControl: true, preferCanvas: false }).setView([40.5, 36.5], 7);
@@ -1344,30 +1338,6 @@ function haritaKur() {
         updateWhenIdle: false
       }).addTo(harita);
       L.control.scale({ imperial: false }).addTo(harita);
-      if (typeof maplibregl !== 'undefined' && dokunmatikMi) {
-        try {
-          var btn3d = L.Control.extend({
-            options: { position: 'bottomleft' },
-            onAdd: function () {
-              var bt = document.createElement('button');
-              bt.className = 'map3d-btn';
-              bt.innerHTML = '🏔';
-              bt.title = '3D görünümü dene';
-              bt.style.margin = '6px';
-              bt.addEventListener('click', function () {
-                try { if (harita && harita.remove) harita.remove(); } catch (e) { }
-                harita = null;
-                haritaMotoru = '';
-                window.__yon3d = true;
-                try { var eskiNotu = document.getElementById('harita-2d-notu'); if (eskiNotu) eskiNotu.remove(); } catch (e) { }
-                haritaKur();
-              });
-              return bt;
-            }
-          });
-          new btn3d().addTo(harita);
-        } catch (e) { }
-      }
       setTimeout(function () { try { harita.invalidateSize(); } catch (e) { } }, 400);
       setTimeout(function () { try { harita.invalidateSize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(haritaKur, 2000); }
@@ -1449,7 +1419,6 @@ function haritaKur() {
     harita3DBina();
     haritaMahalleEtiketleri();
     haritaDetayRaster();
-    haritaIsletmeEtiketleri();
   }
 
   function haritaDetayRaster() {
@@ -1528,37 +1497,6 @@ function haritaKur() {
             'text-opacity': 0.92
           },
           minzoom: 12
-        });
-      }
-    } catch (e) { }
-  }
-
-  function haritaIsletmeEtiketleri() {
-    if (!harita || haritaMotoru !== 'maplibre' || !harita.getLayer || !harita.getSource || !harita.getSource('openmaptiles')) return;
-    try {
-      if (!harita.getLayer('isletme-etiket')) {
-        var koyu3 = haritaStilKoyu();
-        harita.addLayer({
-          id: 'isletme-etiket',
-          type: 'symbol',
-          source: 'openmaptiles',
-          'source-layer': 'poi',
-          minzoom: 13,
-          filter: ['all', ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false], ['<', ['get', 'rank'], 20]],
-          layout: {
-            'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
-            'text-size': 11,
-            'text-max-width': 7,
-            'text-letter-spacing': 0.02,
-            'text-anchor': 'top',
-            'text-offset': [0, 0.4],
-            'text-allow-overlap': false
-          },
-          paint: {
-            'text-color': koyu3 ? '#e5e7eb' : '#374151',
-            'text-halo-color': koyu3 ? 'rgba(18,27,46,.95)' : 'rgba(255,255,255,.95)',
-            'text-halo-width': 1.2
-          }
         });
       }
     } catch (e) { }
@@ -1646,11 +1584,9 @@ function haritaKur() {
 
   function harita2DGec(mesaj) {
     if (haritaMotoru === 'leaflet') return;
-    try { window.__yon3d = false; } catch (e) { }
     try { if (harita && harita.remove) harita.remove(); } catch (e) { }
     harita = null;
     haritaMotoru = 'leaflet';
-    try { if (aracMarker) { try { if (aracMarker.remove) aracMarker.remove(); } catch (e) { } aracMarker = null; aracMarkerMotoru = null; } } catch (e) { }
     leaffallback();
     if (mesaj) {
       setTimeout(function () {
@@ -1658,7 +1594,6 @@ function haritaKur() {
         if (n2) n2.textContent = mesaj;
       }, 150);
     }
-    setTimeout(function () { try { if (typeof yukleGunDurumu === 'function') yukleGunDurumu(); } catch (e) { } }, 700);
   }
 
   function haritaTemaDegis() {
@@ -1767,12 +1702,6 @@ function haritaKur() {
           document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
         }
         if (harita) {
-          if (aracMarker && aracMarkerMotoru && aracMarkerMotoru !== haritaMotoru) {
-            try { if (aracMarker.remove) aracMarker.remove(); } catch (e2) { }
-            aracMarker = null;
-            aracMarkerMotoru = null;
-          }
-          aracMarkerMotoru = haritaMotoru;
           var popHtml = '<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
           if (haritaMotoru === 'leaflet') {
             var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });

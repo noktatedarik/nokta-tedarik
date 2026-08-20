@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Şoför Paneli">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
@@ -61,15 +61,12 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:var(--bg); color:var(--text); transition:background .25s,color .25s; }
   .ust { background:var(--header-grad); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:6; box-shadow:0 4px 18px rgba(14,27,44,.25); }
-  .ust { padding: calc(18px + env(safe-area-inset-top)) 16px; }
   .ust h1 { font-size:1.05rem; letter-spacing:2px; }
   .ust .alt { font-size:.78rem; opacity:.85; margin-top:4px; }
   .ust .sehir { color:#ffb347; font-weight:800; font-size:1.05rem; }
   .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
-  .cikis { top: calc(12px + env(safe-area-inset-top)); }
   .cikis.tema { left:12px; right:auto; font-size:.95rem; padding:4px 9px; }
   .ozet { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:76px; z-index:5; padding:10px 16px 12px; }
-  .ozet { top: calc(76px + env(safe-area-inset-top)); }
   .ilerleme-ust { display:flex; justify-content:space-between; align-items:center; font-size:.7rem; color:var(--muted); font-weight:800; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
   .ilerleme-ust b { color:var(--turuncu); font-size:.85rem; letter-spacing:0; }
   .bar { height:10px; background:var(--card-2); border:1px solid var(--border); border-radius:999px; overflow:hidden; }
@@ -252,7 +249,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v19</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v16</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1447,7 +1444,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   var soforHarita = null;
   var soforHaritaMotoru = null;
   var soforMarker = null;
-  var soforMarkerMotoru = null;
   var yoneticiMarker = null;
   var soforHedef = null;
   var yoneticiTimer = null;
@@ -1458,8 +1454,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   var SOFOR_TILE_KOYU = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
   function soforStilKoyu() { return document.body.getAttribute('data-tema') === 'koyu'; }
   function soforStilUrl() { return soforStilKoyu() ? SOFOR_STIL_KOYU : SOFOR_STIL_ACIK; }
-  var soforDokunmatikMi = ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad|Tablet/i.test(navigator.userAgent || '');
-  function sofor3DPuan() { try { return window.__sofor3d === true; } catch (e) { return false; } }
 
   function soforWebglVarMi() {
     try {
@@ -1471,7 +1465,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
 
   function soforHaritaKur() {
     if (soforHarita) { try { if (soforHaritaMotoru === 'leaflet') soforHarita.invalidateSize(); else soforHarita.resize(); } catch (e) { } return; }
-    if (typeof maplibregl !== 'undefined' && soforWebglVarMi() && (!soforDokunmatikMi || sofor3DPuan())) {
+    if (typeof maplibregl !== 'undefined' && soforWebglVarMi()) {
       soforHaritaMotoru = 'maplibre';
       try {
         var konteyner = document.getElementById('sofor-harita');
@@ -1479,7 +1473,8 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         var soforYuklendi = false;
         var soforWatchdog = setTimeout(function () {
           if (!soforYuklendi && soforHarita && soforHaritaMotoru === 'maplibre') {
-            sofor2DGec('3D harita 8 sn içinde yüklenemedi — otomatik 2D haritaya geçildi.');
+            try { try { soforHarita.remove(); } catch (e) { } soforHarita = null; } catch (e) { }
+            soforLeaffallback();
           }
         }, 8000);
         soforHarita = new maplibregl.Map({
@@ -1511,7 +1506,8 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           var kritik = msg.indexOf('WebGL') !== -1 || msg.indexOf('style') !== -1 || msg.indexOf('Style') !== -1 || msg.indexOf('Failed to fetch') !== -1;
           if (!kritik) return;
           clearTimeout(soforWatchdog);
-          sofor2DGec('3D harita hatası (' + (msg || 'WebGL') + ') — 2D haritaya geçildi.');
+          try { try { soforHarita.remove(); } catch (e) { } soforHarita = null; } catch (e) { }
+          soforLeaffallback();
         });
         setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 400);
         setTimeout(function () { try { soforHarita.resize(); } catch (e) { } }, 1200);
@@ -1531,7 +1527,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         var notu2 = document.createElement('div');
         notu2.id = 'sofor-harita-2d-notu';
         notu2.className = 'harita-2d-notu';
-        notu2.textContent = soforDokunmatikMi ? '2D görünüm — telefonlarda hızlı ve güvenilir. 🏔 ile 3D dene' : (soforWebglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor');
+        notu2.textContent = soforWebglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor';
         konteyner2.appendChild(notu2);
       }
       soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
@@ -1543,31 +1539,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         updateWhenIdle: false
       }).addTo(soforHarita);
       L.control.scale({ imperial: false }).addTo(soforHarita);
-      if (typeof maplibregl !== 'undefined' && soforDokunmatikMi) {
-        try {
-          var btn3d2 = L.Control.extend({
-            options: { position: 'bottomleft' },
-            onAdd: function () {
-              var bt = document.createElement('button');
-              bt.className = 'map3d-btn';
-              bt.innerHTML = '🏔';
-              bt.title = '3D görünümü dene';
-              bt.style.margin = '6px';
-              bt.addEventListener('click', function () {
-                try { if (soforHarita && soforHarita.remove) soforHarita.remove(); } catch (e) { }
-                soforHarita = null;
-                soforHaritaMotoru = '';
-                window.__sofor3d = true;
-                try { var eskiNotu = document.getElementById('sofor-harita-2d-notu'); if (eskiNotu) eskiNotu.remove(); } catch (e) { }
-                soforHaritaKur();
-                setTimeout(function () { try { if (soforHedef) soforKonumIsle(); } catch (e) { } }, 900);
-              });
-              return bt;
-            }
-          });
-          new btn3d2().addTo(soforHarita);
-        } catch (e) { }
-      }
       setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 300);
       setTimeout(function () { try { soforHarita.invalidateSize(); } catch (e) { } }, 1200);
     } catch (e) { setTimeout(soforHaritaKur, 2000); }
@@ -1622,38 +1593,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       }
     } catch (e) { }
     soforDetayRaster();
-    soforIsletmeEtiketleri();
-  }
-
-  function soforIsletmeEtiketleri() {
-    if (!soforHarita || soforHaritaMotoru !== 'maplibre' || !soforHarita.getLayer || !soforHarita.getSource || !soforHarita.getSource('openmaptiles')) return;
-    try {
-      if (!soforHarita.getLayer('sofor-isletme-etiket')) {
-        var sk2 = soforStilKoyu();
-        soforHarita.addLayer({
-          id: 'sofor-isletme-etiket',
-          type: 'symbol',
-          source: 'openmaptiles',
-          'source-layer': 'poi',
-          minzoom: 13,
-          filter: ['all', ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false], ['<', ['get', 'rank'], 20]],
-          layout: {
-            'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
-            'text-size': 11,
-            'text-max-width': 7,
-            'text-letter-spacing': 0.02,
-            'text-anchor': 'top',
-            'text-offset': [0, 0.4],
-            'text-allow-overlap': false
-          },
-          paint: {
-            'text-color': sk2 ? '#e5e7eb' : '#374151',
-            'text-halo-color': sk2 ? 'rgba(18,27,46,.95)' : 'rgba(255,255,255,.95)',
-            'text-halo-width': 1.2
-          }
-        });
-      }
-    } catch (e) { }
   }
 
   function soforDetayRaster() {
@@ -1783,12 +1722,9 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
 
   function sofor2DGec(mesaj) {
     if (soforHaritaMotoru === 'leaflet') return;
-    try { window.__sofor3d = false; } catch (e) { }
     try { if (soforHarita && soforHarita.remove) soforHarita.remove(); } catch (e) { }
     soforHarita = null;
     soforHaritaMotoru = 'leaflet';
-    try { if (soforMarker) { try { if (soforMarker.remove) soforMarker.remove(); } catch (e) { } soforMarker = null; soforMarkerMotoru = null; } } catch (e) { }
-    soforKonumMerkezlendi = false;
     soforLeaffallback();
     var k2 = document.getElementById('sofor-harita');
     if (mesaj && k2 && !document.getElementById('sofor-harita-2d-notu')) {
@@ -1803,7 +1739,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         if (n3) n3.textContent = mesaj;
       }, 150);
     }
-    setTimeout(function () { try { if (soforHedef) soforKonumIsle(); } catch (e) { } }, 600);
   }
 
   function soforHaritaTemaDegis() {
@@ -1872,29 +1807,19 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   function soforKonumIsle() {
     if (!soforHarita || !soforHedef) return;
     var lng = soforHedef.lng, lat = soforHedef.lat;
-    if (soforMarker && soforMarkerMotoru && soforMarkerMotoru !== soforHaritaMotoru) {
-      try { if (soforMarker.remove) soforMarker.remove(); } catch (e) { }
-      soforMarker = null;
-      soforMarkerMotoru = null;
-      soforKonumMerkezlendi = false;
-    }
-    soforMarkerMotoru = soforHaritaMotoru;
     var myPop = '<b>🚚 Sen buradasın</b><br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
     if (soforHaritaMotoru === 'leaflet') {
       try {
         if (!soforMarker) {
           var sIkon = L.divIcon({ className: '', html: '<div class="sofor-nokta"><div class="cekirdek"></div></div>', iconSize: [26, 26], iconAnchor: [13, 13] });
           soforMarker = L.marker([lat, lng], { icon: sIkon }).addTo(soforHarita).bindPopup(myPop);
-          soforAnimHedef = { lat: lat, lng: lng };
         } else {
+          soforMarker.setLatLng([lat, lng]);
           try { soforMarker.setPopupContent(myPop); } catch (e) { }
-          soforMarkerOynat(lat, lng);
         }
         if (!soforKonumMerkezlendi) {
-          soforHarita.flyTo([lat, lng], 15, { duration: 1.2 });
+          soforHarita.flyTo([lat, lng], 14, { duration: 1.2 });
           soforKonumMerkezlendi = true;
-        } else {
-          soforKonumTakip();
         }
       } catch (e) { }
       return;
@@ -1905,61 +1830,14 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           .setLngLat([lng, lat])
           .setPopup(new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(myPop))
           .addTo(soforHarita);
-        soforAnimHedef = { lat: lat, lng: lng };
       } catch (e) { }
     } else {
-      soforMarkerOynat(lat, lng);
+      soforMarker.setLngLat([lng, lat]);
     }
     if (!soforKonumMerkezlendi) {
-      soforHarita.flyTo({ center: [lng, lat], zoom: 15, pitch: 45, duration: 1200 });
+      soforHarita.flyTo({ center: [lng, lat], zoom: 14, pitch: 55, duration: 1200 });
       soforKonumMerkezlendi = true;
-    } else {
-      soforKonumTakip();
     }
-  }
-  var soforAnimBas = null;
-  var soforAnimHedef = null;
-  var soforAnimZaman = 0;
-  var soforAnimId = null;
-  function soforMarkerOynat(lat, lng) {
-    if (!soforMarker) return;
-    var bas = null;
-    try {
-      if (soforHaritaMotoru === 'leaflet' && soforMarker.getLatLng) {
-        var b = soforMarker.getLatLng();
-        bas = { lat: b.lat, lng: b.lng };
-      } else if (soforHaritaMotoru === 'maplibre' && soforMarker.getLngLat) {
-        var m = soforMarker.getLngLat();
-        bas = { lat: m.lat, lng: m.lng };
-      }
-    } catch (e) { }
-    if (!bas) bas = { lat: lat, lng: lng };
-    soforAnimBas = bas;
-    soforAnimHedef = { lat: lat, lng: lng };
-    soforAnimZaman = Date.now();
-    if (soforAnimId) cancelAnimationFrame(soforAnimId);
-    (function adim() {
-      var gecen = Date.now() - soforAnimZaman;
-      var t = Math.min(1, gecen / 1400);
-      t = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-      var la = soforAnimBas.lat + (soforAnimHedef.lat - soforAnimBas.lat) * t;
-      var ln = soforAnimBas.lng + (soforAnimHedef.lng - soforAnimBas.lng) * t;
-      try {
-        if (soforHaritaMotoru === 'leaflet') soforMarker.setLatLng([la, ln]);
-        else if (soforHaritaMotoru === 'maplibre') soforMarker.setLngLat([ln, la]);
-      } catch (e) { }
-      if (t < 1) soforAnimId = requestAnimationFrame(adim);
-      else { soforAnimId = null; soforKonumTakip(); }
-    })();
-  }
-  function soforKonumTakip() {
-    if (!soforHarita || !konumAktif || !soforMarker || !soforKonumMerkezlendi) return;
-    try {
-      var p = soforAnimHedef;
-      if (!p) return;
-      if (soforHaritaMotoru === 'leaflet') soforHarita.panTo([p.lat, p.lng], { animate: true, duration: 1.0 });
-      else if (soforHaritaMotoru === 'maplibre') soforHarita.easeTo({ center: [p.lng, p.lat], duration: 800 });
-    } catch (e) { }
   }
   var soforKonumMerkezlendi = false;
 
