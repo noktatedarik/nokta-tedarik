@@ -1226,6 +1226,9 @@
   var bildirimler = [];
   var bildirimSonId = parseInt(localStorage.getItem('yon-bil-son') || '0', 10) || 0;
   var bildirimHazir = localStorage.getItem('yon-bil-hazir') === '1';
+  var soforBildirimEs = false;
+  var bildirimYukleniyor = false;
+  var bildirimIzinIstendi = false;
   var gunDurum = {};
   var sonScrollZamani = 0;
 
@@ -3031,6 +3034,8 @@ function haritaKur() {
     if (b.tip === 'isebasla') return '🚚 Şoför işe başladı';
     if (b.tip === 'tamam') return '🏁 Sevkiyat tamamlandı';
     if (b.tip === 'donus') return '🔄 Şoför dönüşte';
+    if (b.tip === 'sos') return '🆘 Acil durum';
+    if (b.tip === 'test') return '🧪 Test';
     return '✅ ' + bas + ' teslim';
   }
 
@@ -3047,6 +3052,8 @@ function haritaKur() {
     if (b.tip === 'isebasla') return '🚚 ŞOFÖR İŞE BAŞLADI' + saat;
     if (b.tip === 'tamam') return '🏁 SEVKİYAT TAMAMLANDI' + saat;
     if (b.tip === 'donus') return '🔄 ŞOFÖR DÖNÜŞTE — tahmini varış ' + (b.neden || '') + saat;
+    if (b.tip === 'sos') return '🆘 ACİL DURUM — şoför acil durum gönderdi' + saat;
+    if (b.tip === 'test') return '🧪 TEST: Şoförden anlık test bildirimi' + saat;
     return '🔔 ' + yer + saat;
   }
 
@@ -3054,9 +3061,11 @@ function haritaKur() {
   var BILDIRIM_SES_RED = [{ f: 330, tip: 'square', basla: 0, sure: .25 }, { f: 247, tip: 'square', basla: .3, sure: .3 }];
   var BILDIRIM_SES_NOT = [{ f: 659, basla: 0, sure: .18 }];
   var BILDIRIM_SES_DURUM = [{ f: 587, basla: 0, sure: .15 }, { f: 880, basla: .2, sure: .25 }];
+  var BILDIRIM_SES_SOS = [{ f: 980, tip: 'square', basla: 0, sure: 0.4 }, { f: 980, tip: 'square', basla: 0.5, sure: 0.4 }, { f: 740, tip: 'square', basla: 1.0, sure: 0.4 }];
 
   function bildirimSes(tip) {
-    if (tip === 'red') sesCal(BILDIRIM_SES_RED);
+    if (tip === 'sos') sesCal(BILDIRIM_SES_SOS);
+    else if (tip === 'red') sesCal(BILDIRIM_SES_RED);
     else if (tip === 'teslim') sesCal(BILDIRIM_SES_TESLIM);
     else if (tip === 'not' || tip === 'notsil' || tip === 'konum') sesCal(BILDIRIM_SES_NOT);
     else sesCal(BILDIRIM_SES_DURUM);
@@ -3065,6 +3074,12 @@ function haritaKur() {
   function bildirimGeldi(b) {
     toast(bildirimMetin(b), b.tip === 'red' ? 'hata' : (b.tip === 'teslim' ? 'ok' : ''));
     bildirimSes(b.tip);
+    if ('Notification' in window && Notification.permission === 'granted' && b.saat) {
+      try {
+        var n = new Notification('NOKTA TEDARİK YÖNETİCİ', { body: bildirimMetinKisa(b) + ' · ' + (b.saat || ''), icon: 'NoktaTedarik-Logo.jpg', badge: 'NoktaTedarik-Logo.jpg', tag: 'bildirim-' + b.id, silent: false });
+        setTimeout(function () { try { n.close(); } catch (e) { } }, 8000);
+      } catch (e) { }
+    }
   }
 
   function bildirimPanel() {
@@ -3084,7 +3099,46 @@ function haritaKur() {
     setHtml(k, h);
   }
 
+  function bildirimPutIsle(b) {
+    if (!b || !b.id) return;
+    var sid = parseFloat(b.id);
+    if (isNaN(sid)) return;
+    if (!bildirimHazir) return;
+    if (sid <= bildirimSonId) return;
+    for (var i = 0; i < bildirimler.length; i++) if (String(bildirimler[i].id) === String(b.id)) return;
+    bildirimGeldi(b);
+    bildirimler.push(b);
+    bildirimler = bildirimler.slice(-30);
+    bildirimSonId = sid;
+    localStorage.setItem('yon-bil-son', String(sid));
+    bildirimPanel();
+  }
+
+  function bildirimCanliAc() {
+    if (!bildirimHazir) return;
+    if (!('EventSource' in window)) return;
+    if (soforBildirimEs) return;
+    soforBildirimEs = true;
+    var kaynak = null;
+    try {
+      kaynak = new EventSource(FIREBASE_URL + '/bildirim.json');
+      kaynak.addEventListener('put', function (e) { try { bildirimPutIsle(JSON.parse(e.data)); } catch (x) { } });
+      kaynak.addEventListener('patch', function (e) { try { var d = JSON.parse(e.data); for (var k in d) bildirimPutIsle(d[k]); } catch (x) { } });
+      kaynak.onerror = function () { try { kaynak.close(); } catch (x) { } soforBildirimEs = false; };
+    } catch (e) { soforBildirimEs = false; }
+  }
+
+  function bildirimIzinIste() {
+    if (bildirimIzinIstendi || !('Notification' in window)) return;
+    if (Notification.permission === 'granted' || Notification.permission === 'denied') { bildirimIzinIstendi = true; return; }
+    try {
+      Notification.requestPermission().then(function (p) { bildirimIzinIstendi = true; }).catch(function () { bildirimIzinIstendi = true; });
+    } catch (e) { bildirimIzinIstendi = true; }
+  }
+
   function bildirimYukle() {
+    if (bildirimYukleniyor) return;
+    bildirimYukleniyor = true;
     fetch(FIREBASE_URL + '/bildirim.json')
       .then(function (r) { return r.json(); })
       .then(function (d) {
@@ -3094,7 +3148,7 @@ function haritaKur() {
         }
         yeni.sort(function (a, b) { return (parseFloat(a.id) - parseFloat(b.id)); });
         bildirimler = yeni.slice(-30);
-        if (!yeni.length) { bildirimPanel(); return; }
+        if (!yeni.length) { bildirimPanel(); bildirimYukleniyor = false; return; }
         var son = parseFloat(yeni[yeni.length - 1].id);
         if (!bildirimHazir) {
           bildirimHazir = true;
@@ -3110,7 +3164,10 @@ function haritaKur() {
           localStorage.setItem('yon-bil-son', String(son));
         }
         bildirimPanel();
-      }).catch(function () { bildirimPanel(); });
+        bildirimCanliAc();
+      })
+      .catch(function () { bildirimPanel(); })
+      .then(function () { bildirimYukleniyor = false; });
   }
 
   function markaOku() {
@@ -3417,7 +3474,9 @@ function haritaKur() {
     sosKontrol();
     setInterval(sosKontrol, 3000);
     bildirimYukle();
-    setInterval(bildirimYukle, 5000);
+    setInterval(bildirimYukle, 2000);
+    var izinBir = function () { bildirimIzinIste(); document.removeEventListener('click', izinBir, true); };
+    document.addEventListener('click', izinBir, true);
   }
 
   function kullanislikKur() {

@@ -515,11 +515,12 @@
     if (!('Notification' in window)) { baglanti.textContent = 'Bu tarayıcı bildirim desteklemiyor'; return; }
     if (Notification.permission !== 'granted') {
       Notification.requestPermission().then(function (p) {
-        if (p === 'granted') { bildirimGonder('Bildirimler çalışıyor!'); baglanti.textContent = 'Bildirim gönderildi — izin verildi'; }
+        if (p === 'granted') { yerelBildirim('Bildirimler çalışıyor!'); bildirimGonder('test', { neden: 'TEST' }); baglanti.textContent = 'Bildirim gönderildi — izin verildi'; }
         else baglanti.textContent = 'İzin verilmedi';
       });
     } else {
-      bildirimGonder('Bildirimler çalışıyor!');
+      yerelBildirim('Bildirimler çalışıyor!');
+      bildirimGonder('test', { neden: 'TEST' });
       baglanti.textContent = 'Bildirim gönderildi';
     }
   });
@@ -1306,6 +1307,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         sosAktif = aktif;
         sosDurumYansit();
         if (aktif) sesCal(SOS_SESI);
+        if (aktif) bildirimGonder('sos', { neden: '🆘 ACİL DURUM' });
         toast(aktif ? '🆘 SOS yöneticiye gönderildi' : 'SOS kapatıldı', aktif ? 'hata' : 'ok');
       })
       .catch(function () { toast('SOS gönderilemedi — bağlantı hatası', 'hata'); });
@@ -1404,7 +1406,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       if (p === 'granted') baglanti.textContent = 'Çevrimiçi — bildirimler açık';
     });
   }
-  function bildirimGonder(metin) {
+  function yerelBildirim(metin) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
       navigator.serviceWorker.ready.then(function (reg) {
@@ -1425,7 +1427,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
     for (var k in durumlar) teslimSayi++;
     if (saat >= 11) {
       if (teslimSayi < 400) {
-        bildirimGonder((400 - teslimSayi) + ' mağaza henüz işaretlenmedi! Bugünkü teslimatı kontrol et.');
+        yerelBildirim((400 - teslimSayi) + ' mağaza henüz işaretlenmedi! Bugünkü teslimatı kontrol et.');
         localStorage.setItem('hatir-saat', gun + '-' + saat);
       }
     }
