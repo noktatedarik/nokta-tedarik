@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Şoför Paneli">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
@@ -61,12 +61,15 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:var(--bg); color:var(--text); transition:background .25s,color .25s; }
   .ust { background:var(--header-grad); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:6; box-shadow:0 4px 18px rgba(14,27,44,.25); }
+  .ust { padding: calc(18px + env(safe-area-inset-top)) 16px; }
   .ust h1 { font-size:1.05rem; letter-spacing:2px; }
   .ust .alt { font-size:.78rem; opacity:.85; margin-top:4px; }
   .ust .sehir { color:#ffb347; font-weight:800; font-size:1.05rem; }
   .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
+  .cikis { top: calc(12px + env(safe-area-inset-top)); }
   .cikis.tema { left:12px; right:auto; font-size:.95rem; padding:4px 9px; }
   .ozet { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:76px; z-index:5; padding:10px 16px 12px; }
+  .ozet { top: calc(76px + env(safe-area-inset-top)); }
   .ilerleme-ust { display:flex; justify-content:space-between; align-items:center; font-size:.7rem; color:var(--muted); font-weight:800; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
   .ilerleme-ust b { color:var(--turuncu); font-size:.85rem; letter-spacing:0; }
   .bar { height:10px; background:var(--card-2); border:1px solid var(--border); border-radius:999px; overflow:hidden; }
@@ -249,7 +252,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v17</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v18</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 

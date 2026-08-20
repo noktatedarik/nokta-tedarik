@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Yönetici Paneli">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -65,6 +65,7 @@
   ::-webkit-scrollbar-thumb { background:var(--cizgi); border-radius:999px; }
   ::-webkit-scrollbar-thumb:hover { background:var(--soluk); }
   .ust { background:linear-gradient(120deg,#0a1730,#16294d,#0a1730,#1b3a6b,#0d1b33); background-size:300% 100%; color:#fff; padding:12px 14px; text-align:center; position:sticky; top:0; z-index:7; box-shadow:0 6px 24px rgba(10,23,48,.35); border-bottom:1px solid rgba(255,255,255,.08); animation:ustakis 14s ease infinite; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ust { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
   @keyframes ustakis { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
   .ust::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg,transparent,var(--turuncu),var(--turuncu-acik),var(--yesil),transparent); opacity:.9; animation:ustparla 3s ease infinite; background-size:200% 100%; }
   @keyframes ustparla { 0% { background-position:0% 0; opacity:.5; } 50% { background-position:100% 0; opacity:1; } 100% { background-position:0% 0; opacity:.5; } }
@@ -111,6 +112,7 @@
   .giris .btn { width:100%; }
   .hata { color:var(--kirmizi); font-size:.8rem; height:20px; font-weight:600; }
   .filtre { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--kart); border-bottom:1px solid var(--cizgi); position:sticky; top:76px; z-index:5; backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
+  .filtre { top: calc(76px + env(safe-area-inset-top)); }
   .filtre label { font-size:.68rem; color:var(--soluk); font-weight:700; letter-spacing:.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
   .filtre select, .filtre input { padding:8px 12px; border:2px solid var(--cizgi); border-radius:10px; font-size:.85rem; font-weight:700; color:var(--metin); outline:none; background:var(--kart); transition:border-color .2s, box-shadow .2s; }
   .filtre select:focus, .filtre input:focus { border-color:var(--turuncu); box-shadow:0 0 0 3px rgba(245,158,11,.12); }
@@ -511,6 +513,7 @@
   .bolum .ad .ikon { width:28px; height:28px; border-radius:9px; font-size:.84rem; }
   @media (prefers-reduced-motion: reduce) { * { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
   .kenar { display:none; position:fixed; left:0; top:65px; bottom:0; width:224px; z-index:6; background:rgba(255,255,255,.78); border-right:1px solid var(--cizgi); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); flex-direction:column; padding:14px 12px; overflow-y:auto; box-shadow:2px 0 20px rgba(15,23,42,.07); }
+  .kenar { top: calc(65px + env(safe-area-inset-top)); }
   body[data-tema="koyu"] .kenar { background:rgba(13,22,40,.86); border-color:rgba(34,48,74,.9); }
   .kenar-grup { font-size:.58rem; letter-spacing:1.5px; font-weight:800; text-transform:uppercase; color:var(--soluk); padding:10px 12px 6px; }
   .kenar .altnav-sek { flex:0 0 auto; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border-radius:12px; color:var(--soluk); font-size:.76rem; font-weight:700; letter-spacing:.3px; }
@@ -533,6 +536,7 @@
   body { background:#e9edf3; }
   body[data-tema="koyu"] { background:#0c1522; }
   .ust { min-height:60px; padding:10px 16px; background:#0b1f3a; background-image:none; box-shadow:0 1px 0 rgba(255,255,255,.06), 0 2px 14px rgba(15,23,42,.22); }
+  .ust { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
   .ust::after { height:3px; background:linear-gradient(90deg,transparent,#3b82f6 40%,#2563eb 60%,transparent); animation:none; opacity:1; }
   .ust-logo img { border-radius:8px; border:1px solid rgba(255,255,255,.25); }
   .ust-logo h1 { font-size:.84rem; letter-spacing:2.5px; }
@@ -588,6 +592,7 @@
   /* ============ PRO v6: Kullanılabilirlik ============ */
   @media (min-width:960px) { .liste { grid-template-columns:1fr 1fr; gap:10px; } }
   .ozet-mini { position:fixed; top:61px; left:224px; right:0; z-index:9; display:none; align-items:center; gap:12px; padding:7px 16px; background:rgba(255,255,255,.94); border-bottom:1px solid var(--cizgi); box-shadow:0 4px 14px rgba(15,23,42,.08); font-size:.66rem; font-weight:800; color:var(--metin); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+  .ozet-mini { top: calc(61px + env(safe-area-inset-top)); }
   body[data-tema="koyu"] .ozet-mini { background:rgba(17,28,49,.96); }
   .ozet-mini.goster { display:flex; animation:girKart .18s ease; }
   .ozet-mini .om-item { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
@@ -667,7 +672,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v17</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v18</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
