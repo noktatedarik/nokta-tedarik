@@ -604,6 +604,19 @@
   @media (min-width:960px) { .yukari-btn { right:18px; bottom:20px; } }
   @keyframes icerikGir { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   .icerik.acilim, .liste.acilim, .grafik-kap.acilim { animation:icerikGir .22s ease; }
+
+  /* ============ PRO v7: Şoför notları sayfası + kalıcı teslim ============ */
+  .n-tepe { font-size:.62rem; letter-spacing:1px; text-transform:uppercase; color:var(--soluk); font-weight:800; margin-bottom:8px; }
+  .n-tepe b { color:var(--turuncu-koyu); }
+  .n-grup { font-size:.66rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#2563eb; margin:10px 0 6px; }
+  body[data-tema="koyu"] .n-grup { color:#60a5fa; }
+  .n-satir { background:var(--bg); border:1px solid var(--cizgi); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+  .n-satir:hover { border-color:#a5b4fc; box-shadow:var(--golge); }
+  .n-ad { font-family:'Sora',sans-serif; font-weight:700; font-size:.82rem; color:var(--metin); }
+  .n-ilce { font-size:.66rem; color:var(--soluk); margin-left:8px; font-weight:600; }
+  .n-metin { display:block; font-size:.78rem; color:#92400e; background:#fef3c7; border:1px solid #fde68a; border-radius:8px; padding:6px 9px; margin-top:6px; }
+  body[data-tema="koyu"] .n-metin { color:#fcd34d; background:rgba(146,64,14,.14); border-color:rgba(251,191,36,.28); }
+  .n-saat { display:inline-block; font-size:.62rem; color:var(--soluk); margin-top:6px; font-weight:700; }
 </style>
 </head>
 <body>
@@ -646,6 +659,7 @@
   <button class="altnav-sek sekme-aktif" data-hedef="panel"><span class="sekme-ikon">🏠</span><span class="sekme-ad">Ana Sayfa</span></button>
   <button class="altnav-sek" data-hedef="baslik-canli"><span class="sekme-ikon">🚚</span><span class="sekme-ad">Teslimatlar</span></button>
   <button class="altnav-sek" data-hedef="baslik-liste"><span class="sekme-ikon">🏬</span><span class="sekme-ad">Mağazalar</span></button>
+  <button class="altnav-sek" data-hedef="baslik-notlar"><span class="sekme-ikon">📝</span><span class="sekme-ad">Şoför Notları</span></button>
   <button class="altnav-sek" data-hedef="baslik-red"><span class="sekme-ikon">🚫</span><span class="sekme-ad">Red Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-ciro"><span class="sekme-ikon">💰</span><span class="sekme-ad">Ciro Raporu</span></button>
   <button class="altnav-sek" data-hedef="baslik-grafik"><span class="sekme-ikon">📈</span><span class="sekme-ad">Grafikler</span></button>
@@ -728,6 +742,9 @@
 
   <div class="bolum" id="baslik-liste" style="--bolum:#2563eb;--bolum2:#60a5fa;"><span class="ad"><span class="ikon">🏬</span>MAĞAZALAR</span><span class="ok">▾</span></div>
   <div class="liste" id="liste" style="display:none;"></div>
+
+  <div class="bolum" id="baslik-notlar" style="--bolum:#7c3aed;--bolum2:#a78bfa;"><span class="ad"><span class="ikon">📝</span>ŞOFÖR NOTLARI</span><span class="ok">▾</span></div>
+  <div class="icerik" id="notlar-panel" style="display:none;"><div class="bos">Notlar yükleniyor...</div></div>
 
   <div class="bolum" id="baslik-red" style="--bolum:#ef4444;--bolum2:#f87171;"><span class="ad"><span class="ikon">🚫</span>RED RAPORU</span><span class="ok">▾</span></div>
   <div class="icerik" id="red-panel" style="display:none;"></div>
@@ -2360,8 +2377,26 @@ function haritaKur() {
         son3Yazi = '<div class="son3">SON 3: ' + parcalar.join(' · ') + '</div>';
       }
       var notYazi = notBilgi ? '<div class="magaza-not" title="Şoför notu">📝 ' + notBilgi + '</div>' : '';
-      var mIkon = durumTipi === 'teslim' ? '✅' : (durumTipi === 'red' ? '⛔' : '🏬');
-      var mRenkK = durumTipi === 'teslim' ? 'yesil' : (durumTipi === 'red' ? 'kirmizi' : 'bekliyor');
+      var gecSon2 = gec && gec.length ? gec[gec.length - 1] : null;
+      var persTip = sonKayit ? (gz >= 53 ? 'bekle' : 'teslim') : 'bekle';
+      if (durumTipi === 'red') persTip = 'red';
+      else if (durumTipi === 'teslim') persTip = 'teslim';
+      else if (persTip !== 'teslim' && gecSon2 && gecSon2.red) persTip = 'red';
+      var mIkon, mRenkK;
+      if (persTip === 'teslim') {
+        rozet = '<span class="rozet teslim">✓ Teslim edildi</span>';
+        mIkon = '✅';
+        mRenkK = 'yesil';
+      } else if (persTip === 'red') {
+        var redNeden = d && d.red ? d.red : (gecSon2 && gecSon2.red ? gecSon2.red : 'Red');
+        rozet = '<span class="rozet red">✗ ' + redNeden + '</span>';
+        mIkon = '⛔';
+        mRenkK = 'kirmizi';
+      } else {
+        rozet = '<span class="rozet bekliyor">' + (sonKayit ? '⏳ Bekliyor' : 'İlk ziyaret bekleniyor') + '</span>';
+        mIkon = '🏬';
+        mRenkK = 'bekliyor';
+      }
       var kord = magazaKoordinat(magazalar[i].sehir, m.i, m.k);
       var yolBtn = kord ? '<a class="m-yol" target="_blank" rel="noopener" title="Yol tarifi" href="https://www.google.com/maps/dir/?api=1&destination=' + kord[0] + ',' + kord[1] + '&travelmode=driving">🧭</a>' : '';
       html += '<div class="magaza m-' + mRenkK + '" data-gecmis="' + anahtar + '">' +
@@ -2380,9 +2415,14 @@ function haritaKur() {
           renk = (60 - gz0) <= 7 ? '#e74c3c' : '#1faa4c';
         }
         var yaricap = mTip === 'T' ? 8 : 6;
-        var popDurum = durumTipi === 'teslim'
-          ? '<span class="pp-durum yesil">✓ Bugün teslim ' + (d ? (d.saat || '') : '') + '</span>'
-          : (durumTipi === 'red' ? '<span class="pp-durum kirmizi">✗ ' + d.red + '</span>' : '<span class="pp-durum gri">Bugün bekleniyor</span>');
+        var popDurum;
+        if (persTip === 'teslim') {
+          popDurum = '<span class="pp-durum yesil">✓ Teslim edildi' + (d && d.saat ? ' · bugün ' + d.saat : '') + '</span>';
+        } else if (persTip === 'red') {
+          popDurum = '<span class="pp-durum kirmizi">✗ ' + redNeden + '</span>';
+        } else {
+          popDurum = '<span class="pp-durum gri">' + (sonKayit ? '⏳ Tekrar ziyaret bekleniyor' : 'Bugün bekleniyor') + '</span>';
+        }
         var popSon = sonKayit
           ? '<div class="pp-satir">📅 Son ziyaret: <b>' + sonKayit.split(' ')[0].split('-').reverse().join('.') + ' ' + (sonKayit.split(' ')[1] || '') + '</b></div>'
           : '<div class="pp-satir">HİÇ ZİYARET YOK</div>';
@@ -2482,6 +2522,7 @@ function haritaKur() {
     depoStokSnapGonder();
     grafikPanel(bagetToplam, tamkoyToplam, ilTeslim, canliKayitlar);
     surePanel(canliKayitlar, gunDurum);
+    notlarPanel();
     gecmisButonlar();
     exportVeri = {
       tarih: secilenTarih,
@@ -2913,6 +2954,41 @@ function haritaKur() {
     }).catch(function () {});
   }
 
+  function notlarPanel() {
+    var k = document.getElementById('notlar-panel');
+    if (!k) return;
+    var satirlar = [];
+    for (var i = 0; i < MAGAZALAR.length; i++) {
+      var il = MAGAZALAR[i];
+      for (var j = 0; j < il.magazalar.length; j++) {
+        var m = il.magazalar[j];
+        var nota = magazaNotlar && magazaNotlar[m.k];
+        if (!nota) continue;
+        var notMetn = typeof nota === 'string' ? nota : (nota && nota.not);
+        if (!notMetn) continue;
+        var mTipn = m.t || 'S';
+        var markaRozetn = '<span class="marka-' + (mTipn === 'T' ? 'baget' : 'tamkoy') + '">' + (mTipn === 'T' ? 'BAĞETTA' : 'TAMKÖY') + '</span>';
+        var notSaati = (typeof nota === 'string') ? '' : ((nota && nota.saat) || '');
+        var notTarih = (typeof nota === 'string') ? '' : ((nota && nota.tarih) || '');
+        var zam = (notTarih || notSaati) ? '<span class="n-saat">' + (notTarih ? '📅 ' + notTarih + (notSaati ? ' · ' : '') : '') + (notSaati ? '🕓 ' + notSaati : '') + '</span>' : '';
+        satirlar.push({ il: il.sehir, ad: m.m || 'Mağaza ' + (j + 1), ilce: m.i || '', markaRozet: markaRozetn, not: notMetn, zam: zam });
+      }
+    }
+    if (!satirlar.length) {
+      setHtml(k, '<div class="bos-kap"><div class="ikon">📝</div>Henüz şoför notu yok<div class="acik">Şoför paneli mağazalara not yazdıkça notlar burada toplu görünür</div></div>');
+      return;
+    }
+    satirlar.sort(function (a, b) { return a.il.localeCompare(b.il) || a.ad.localeCompare(b.ad); });
+    var h = '<div class="n-tepe">📝 Toplam <b>' + satirlar.length + '</b> şoför notu</div>';
+    var ilSirasi = null;
+    for (var s = 0; s < satirlar.length; s++) {
+      var st = satirlar[s];
+      if (st.il !== ilSirasi) { ilSirasi = st.il; h += '<div class="n-grup">📍 ' + st.il + '</div>'; }
+      h += '<div class="n-satir"><div class="n-bilgi"><span class="n-ad">' + escapeHtml(st.ad) + st.markaRozet + '</span><span class="n-ilce">' + escapeHtml(st.ilce) + '</span></div><span class="n-metin">📝 ' + escapeHtml(st.not) + '</span>' + st.zam + '</div>';
+    }
+    setHtml(k, h);
+  }
+
   function surePanel(canliKayitlar, gunDurum) {
     var k = document.getElementById('sure-panel');
     var saatler = canliKayitlar.map(function (x) { return x.saat; }).filter(Boolean).sort();
@@ -3117,6 +3193,7 @@ function haritaKur() {
   document.getElementById('baslik-depo').addEventListener('click', function () { bolumAc('baslik-depo', 'depo-panel'); });
   document.getElementById('baslik-canli').addEventListener('click', function () { bolumAc('baslik-canli', 'canli-panel'); });
   document.getElementById('baslik-liste').addEventListener('click', function () { bolumAc('baslik-liste', 'liste'); });
+  document.getElementById('baslik-notlar').addEventListener('click', function () { bolumAc('baslik-notlar', 'notlar-panel'); });
   document.getElementById('baslik-ciro').addEventListener('click', function () { bolumAc('baslik-ciro', 'ciro-panel'); });
   document.getElementById('baslik-grafik').addEventListener('click', function () { bolumAc('baslik-grafik', 'grafik-panel'); });
   document.getElementById('baslik-sure').addEventListener('click', function () { bolumAc('baslik-sure', 'sure-panel'); });
