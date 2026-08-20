@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Şoför Paneli">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <title>NOKTA TEDARİK — Şoför Paneli</title>
@@ -248,7 +248,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v9</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v10</span></h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1457,7 +1457,8 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   function soforWebglVarMi() {
     try {
       var c = document.createElement('canvas');
-      return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
+      if (window.WebGL2RenderingContext && c.getContext('webgl2')) return true;
+      return !!(c.getContext('webgl') || c.getContext('experimental-webgl'));
     } catch (e) { return false; }
   }
 
@@ -1523,7 +1524,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
         var notu2 = document.createElement('div');
         notu2.id = 'sofor-harita-2d-notu';
         notu2.className = 'harita-2d-notu';
-        notu2.textContent = '2D görünüm — tarayıcınız 3D desteklemiyor';
+        notu2.textContent = soforWebglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor';
         konteyner2.appendChild(notu2);
       }
       soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
