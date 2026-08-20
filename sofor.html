@@ -2,8 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<style>#sofor-harita{ touch-action:none; -webkit-user-select:none; user-select:none; }</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,8 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Şoför Paneli">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css">
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <title>NOKTA TEDARİK — Şoför Paneli</title>
@@ -157,12 +156,6 @@
   .maplibregl-ctrl button, .leaflet-bar a { width:34px; height:34px; font-size:15px; }
   .sofor-mercek-btn { width:34px; height:34px; border:none; background:var(--card); color:var(--turuncu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .sofor-mercek-btn { background:#16212e !important; color:#fbbf24 !important; }
-  .map3d-btn { width:38px; height:38px; border:none; background:var(--card); color:var(--turuncu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  body[data-tema="koyu"] .map3d-btn { background:#16212e !important; color:#fbbf24 !important; }
-  @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
-  .surum { display:inline-block; font-size:.55rem; font-weight:800; letter-spacing:1px; color:#b45309; background:rgba(0,0,0,.18); border:1px solid rgba(0,0,0,.22); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
-  body[data-tema="koyu"] .surum { color:#fbbf24; }
-  .harita-2d-notu { position:absolute; z-index:500; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(15,23,42,.85); color:#fca5a5; font-size:.68rem; font-weight:700; padding:6px 12px; border-radius:999px; pointer-events:none; box-shadow:0 4px 14px rgba(0,0,0,.3); }
   .maplibregl-scale-control { background:rgba(248,250,252,.85); border-radius:4px; padding:2px 6px; font-size:10px; color:#334155; box-shadow:0 1px 4px rgba(0,0,0,.15); }
   body[data-tema="koyu"] .maplibregl-scale-control { background:rgba(18,27,46,.8); color:#cbd5e1; }
   body[data-tema="koyu"] .maplibregl-ctrl button { background:#16212e; color:#e2e8f0; border-color:#26364a; }
@@ -249,7 +242,7 @@
 <div class="ust" id="baslik-kap">
   <button class="cikis tema" id="tema-btn" title="Açık / Koyu tema">🌙</button>
   <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
-  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ <span class="surum" id="surum-rozeti" title="Aktif sürüm">v16</span></h1>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ</h1>
   <div class="alt" id="baslik-alt">Gidilecek il: <span class="sehir" id="sehir-ad">İl seçin</span></div>
 </div>
 
@@ -1458,8 +1451,7 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
   function soforWebglVarMi() {
     try {
       var c = document.createElement('canvas');
-      if (window.WebGL2RenderingContext && c.getContext('webgl2')) return true;
-      return !!(c.getContext('webgl') || c.getContext('experimental-webgl'));
+      return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
     } catch (e) { return false; }
   }
 
@@ -1482,18 +1474,16 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           style: soforStilUrl(),
           center: [35.0, 39.5],
           zoom: 6,
-          pitch: 28,
+          pitch: 40,
           bearing: 0,
-          maxPitch: 50,
-          maxZoom: 16.5,
-          antialias: false,
+          maxPitch: 75,
+          antialias: true,
           attributionControl: { compact: true },
           interactive: true
         });
         soforHarita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         soforHarita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         soforMercekKontrolleri();
-        soforZoomGuvenlik();
         soforHarita.on('load', function () {
           soforYuklendi = true; clearTimeout(soforWatchdog);
           soforHarita3D();
@@ -1522,14 +1512,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
     if (soforHarita && soforHaritaMotoru === 'maplibre') return;
     soforHaritaMotoru = 'leaflet';
     try {
-      var konteyner2 = document.getElementById('sofor-harita');
-      if (konteyner2 && !document.getElementById('sofor-harita-2d-notu')) {
-        var notu2 = document.createElement('div');
-        notu2.id = 'sofor-harita-2d-notu';
-        notu2.className = 'harita-2d-notu';
-        notu2.textContent = soforWebglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor';
-        konteyner2.appendChild(notu2);
-      }
       soforHarita = L.map('sofor-harita', { zoomControl: true, preferCanvas: false }).setView([39.5, 35.0], 6);
       soforHarita.tileKatman = L.tileLayer(soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -1553,93 +1535,14 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
           type: 'fill-extrusion',
           source: 'openmaptiles',
           'source-layer': 'building',
-          minzoom: 12,
-          maxzoom: 16,
+          minzoom: 13,
           paint: {
             'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
             'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
             'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-            'fill-extrusion-opacity': 0.9
+            'fill-extrusion-opacity': 0.85
           }
         });
-      }
-    } catch (e) { }
-    soforEskiMahalleKapat();
-    try {
-      if (soforHarita && soforHaritaMotoru === 'maplibre' && !soforHarita.getLayer('sofor-mahalle-etiket')) {
-        var sk = soforStilKoyu();
-        soforHarita.addLayer({
-          id: 'sofor-mahalle-etiket',
-          type: 'symbol',
-          source: 'openmaptiles',
-          'source-layer': 'place',
-          filter: ['match', ['get', 'class'], ['suburb', 'neighbourhood', 'quarter', 'hamlet'], true, false],
-          layout: {
-            'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 14],
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.06,
-            'text-max-width': 9,
-            'text-allow-overlap': false
-          },
-          paint: {
-            'text-color': sk ? '#fbbf24' : '#7c2d12',
-            'text-halo-color': sk ? 'rgba(18,27,46,.95)' : 'rgba(255,255,255,.92)',
-            'text-halo-width': 1.5,
-            'text-opacity': 0.92
-          },
-          minzoom: 12
-        });
-      }
-    } catch (e) { }
-    soforDetayRaster();
-  }
-
-  function soforDetayRaster() {
-    if (!soforHarita || soforHaritaMotoru !== 'maplibre' || !soforHarita.getSource) return;
-    try {
-      var sSt1 = soforHarita.getStyle();
-      var sKt1 = sSt1 && sSt1.layers ? sSt1.layers : [];
-      for (var k1 = 0; k1 < sKt1.length; k1++) {
-        if (sKt1[k1] && sKt1[k1].type === 'background') {
-          try { soforHarita.setPaintProperty(sKt1[k1].id, 'background-opacity', 0); } catch (e) { }
-          break;
-        }
-      }
-      try { if (soforHarita.getLayer('sofor-taban-raster')) soforHarita.removeLayer('sofor-taban-raster'); } catch (e) { }
-      try { if (soforHarita.getSource('sofor-taban-raster-kaynak')) soforHarita.removeSource('sofor-taban-raster-kaynak'); } catch (e) { }
-      soforHarita.addSource('sofor-taban-raster-kaynak', {
-        type: 'raster',
-        tiles: [soforStilKoyu() ? SOFOR_TILE_KOYU : SOFOR_TILE_ACIK],
-        tileSize: 256,
-        maxzoom: 20
-      });
-      var sUst1 = undefined;
-      for (var k2 = 0; k2 < sKt1.length; k2++) {
-        if (sKt1[k2] && sKt1[k2].type !== 'background' && sKt1[k2].id !== 'sofor-taban-raster') { sUst1 = sKt1[k2].id; break; }
-      }
-      soforHarita.addLayer({
-        id: 'sofor-taban-raster',
-        type: 'raster',
-        source: 'sofor-taban-raster-kaynak',
-        minzoom: 0,
-        maxzoom: 22,
-        paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 }
-      }, sUst1);
-    } catch (e) { }
-  }
-
-  function soforEskiMahalleKapat() {
-    if (!soforHarita || !soforHarita.getStyle) return;
-    try {
-      var sKat = soforHarita.getStyle().layers || [];
-      for (var i = 0; i < sKat.length; i++) {
-        var mu2 = sKat[i];
-        if (!mu2 || mu2.type !== 'symbol' || mu2['source-layer'] !== 'place') continue;
-        var f2 = JSON.stringify(mu2.filter || []);
-        if (f2.indexOf('suburb') !== -1 || f2.indexOf('neighbourhood') !== -1 || f2.indexOf('quarter') !== -1 || f2.indexOf('hamlet') !== -1) {
-          try { if (soforHarita.getLayer(mu2.id)) soforHarita.setLayoutProperty(mu2.id, 'visibility', 'none'); } catch (e2) { }
-        }
       }
     } catch (e) { }
   }
@@ -1661,84 +1564,6 @@ fetch(FIREBASE_URL + '/durum/' + tarihYaz(new Date()) + '.json', {
       onAdd: function () { var k = document.createElement('div'); k.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k.appendChild(btn); return k; },
       onRemove: function () { btn.remove(); }
     }, 'top-right');
-    var btn3 = document.createElement('button');
-    btn3.className = 'map3d-btn';
-    btn3.innerHTML = '🏔';
-    btn3.title = '3D görünüm';
-    btn3.addEventListener('click', function () {
-      var egrilik = soforHarita.getPitch ? soforHarita.getPitch() : 0;
-      if (egrilik > 10) soforHarita.easeTo({ pitch: 0, duration: 500 });
-      else soforHarita.easeTo({ pitch: 45, duration: 500 });
-    });
-    soforHarita.addControl({
-      onAdd: function () { var k2 = document.createElement('div'); k2.className = 'maplibregl-ctrl maplibregl-ctrl-group'; k2.appendChild(btn3); return k2; },
-      onRemove: function () { btn3.remove(); }
-    }, 'bottom-left');
-  }
-
-  function soforZoomGuvenlik() {
-    if (soforHaritaMotoru !== 'maplibre' || !soforHarita) return;
-    try {
-      var bosSaya = 0;
-      var sonZoomZamani = Date.now();
-      soforHarita.on('zoom', function () { sonZoomZamani = Date.now(); });
-      soforHarita.on('zoomend', function () {
-        try {
-          var z = soforHarita.getZoom();
-          var hedef = 28;
-          if (!isNaN(z) && z > 14.5) hedef = Math.max(6, 28 - Math.round((z - 14.5) * 7));
-          var simdiki = soforHarita.getPitch();
-          if (Math.abs(simdiki - hedef) > 2) soforHarita.easeTo({ pitch: hedef, duration: 260 });
-        } catch (e) { }
-      });
-      soforHarita.on('webglcontextlost', function () {
-        try { sofor2DGec('3D grafik motoru cihazınızda kilitlendi — 2D haritaya geçildi.'); } catch (e) { }
-      });
-      setInterval(function () {
-        try {
-          if (soforHaritaMotoru !== 'maplibre' || !soforHarita) return;
-          var zm = soforHarita.getZoom();
-          if (isNaN(zm) || Date.now() - sonZoomZamani > 2500) { bosSaya = 0; return; }
-          var tuval = soforHarita.getCanvas();
-          if (!tuval) return;
-          var gl = tuval.getContext('webgl2') || tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
-          if (!gl) return;
-          var px = new Uint8Array(4);
-          gl.readPixels(Math.floor(tuval.width / 2), Math.floor(tuval.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
-          var bos = px[3] === 0 || (px[0] === 0 && px[1] === 0 && px[2] === 0);
-          if (bos) {
-            bosSaya++;
-            if (bosSaya >= 3) {
-              bosSaya = 0;
-              sofor2DGec('3D görüntü yakınlaşınca durdu — 2D haritaya geçildi.');
-            } else {
-              try { soforHarita.triggerRepaint(); } catch (e) { }
-            }
-          } else { bosSaya = 0; }
-        } catch (e) { }
-      }, 700);
-    } catch (e) { }
-  }
-
-  function sofor2DGec(mesaj) {
-    if (soforHaritaMotoru === 'leaflet') return;
-    try { if (soforHarita && soforHarita.remove) soforHarita.remove(); } catch (e) { }
-    soforHarita = null;
-    soforHaritaMotoru = 'leaflet';
-    soforLeaffallback();
-    var k2 = document.getElementById('sofor-harita');
-    if (mesaj && k2 && !document.getElementById('sofor-harita-2d-notu')) {
-      var notu2 = document.createElement('div');
-      notu2.id = 'sofor-harita-2d-notu';
-      notu2.className = 'harita-2d-notu';
-      notu2.textContent = mesaj;
-      k2.appendChild(notu2);
-    } else if (mesaj) {
-      setTimeout(function () {
-        var n3 = document.getElementById('sofor-harita-2d-notu');
-        if (n3) n3.textContent = mesaj;
-      }, 150);
-    }
   }
 
   function soforHaritaTemaDegis() {

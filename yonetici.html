@@ -2,8 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<style>#harita,#harita-tam{ touch-action:none; -webkit-user-select:none; user-select:none; }</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0e1b2c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,8 +13,8 @@
 <meta http-equiv="Expires" content="0">
 <title>NOKTA TEDARİK — Yönetici Paneli</title>
 <link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css">
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.3.0/dist/maplibre-gl.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@6.3.0/dist/maplibre-gl.js';document.head.appendChild(s);"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" id="leaflet-css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -170,12 +169,6 @@
   .leaflet-popup-content { margin:14px 16px !important; }
   .tam-ekran-btn { width:34px; height:34px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   body[data-tema="koyu"] .tam-ekran-btn { background:#121b2e !important; color:#fbbf24 !important; }
-  .map3d-btn { width:38px; height:38px; border:none; background:var(--kart); color:var(--turuncu-koyu); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  body[data-tema="koyu"] .map3d-btn { background:#121b2e !important; color:#fbbf24 !important; }
-  @media (max-width:640px) { .map3d-btn { width:46px; height:46px; font-size:23px; } }
-  .surum { display:inline-block; font-size:.55rem; font-weight:800; letter-spacing:1px; color:#b45309; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
-  body[data-tema="koyu"] .surum { color:#fbbf24; }
-  .harita-2d-notu { position:absolute; z-index:500; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(15,23,42,.85); color:#fca5a5; font-size:.68rem; font-weight:700; padding:6px 12px; border-radius:999px; pointer-events:none; box-shadow:0 4px 14px rgba(0,0,0,.3); }
   .harita-tam { position:fixed !important; inset:10px; z-index:70; height:auto !important; width:auto !important; box-shadow:0 20px 60px rgba(15,23,42,.5) !important; border-radius:18px !important; }
   .harita-baslik { position:absolute; top:10px; left:10px; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 13px; border-radius:999px; background:rgba(15,23,42,.74); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; font-size:.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,.28); }
   .harita-baslik .hb-live { display:flex; align-items:center; gap:6px; color:#22c55e; }
@@ -667,7 +660,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v16</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1258,8 +1251,7 @@
   function webglVarMi() {
     try {
       var c = document.createElement('canvas');
-      if (window.WebGL2RenderingContext && c.getContext('webgl2')) return true;
-      return !!(c.getContext('webgl') || c.getContext('experimental-webgl'));
+      return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
     } catch (e) { return false; }
   }
 
@@ -1282,20 +1274,17 @@ function haritaKur() {
           style: haritaStilUrl(),
           center: [36.5, 40.5],
           zoom: 7,
-          pitch: 28,
+          pitch: 40,
           bearing: 0,
-          maxPitch: 50,
-          maxZoom: 16.5,
-          antialias: false,
+          maxPitch: 75,
+          antialias: true,
           failIfMajorPerformanceCaveat: false,
           attributionControl: { compact: true }
         });
         harita.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
         harita.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
         tamEkranKontrol();
-        harita3DButon();
-        haritaZoomGuvenlik();
-        harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3D(); });
+        harita.on('load', function () { maplibreYuklendi = true; clearTimeout(watchdog); harita3DBina(); });
         harita.on('error', function (hby) {
           if (maplibreYuklendi) return;
           var msg = hby && hby.error && hby.error.message ? hby.error.message : '';
@@ -1321,14 +1310,6 @@ function haritaKur() {
     if (harita && (typeof L === 'undefined' || haritaMotoru === 'maplibre')) return;
     haritaMotoru = 'leaflet';
     try {
-      var kapsam2 = document.getElementById('harita');
-      if (kapsam2 && !document.getElementById('harita-2d-notu')) {
-        var notu = document.createElement('div');
-        notu.id = 'harita-2d-notu';
-        notu.className = 'harita-2d-notu';
-        notu.textContent = webglVarMi() ? '3D servise bağlanılamadı — 2D gösteriliyor' : '2D görünüm — tarayıcınız 3D desteklemiyor';
-        kapsam2.appendChild(notu);
-      }
       harita = L.map('harita', { zoomControl: true, preferCanvas: false }).setView([40.5, 36.5], 7);
       harita.tileKatman = L.tileLayer(haritaStilKoyu() ? HARITA_TILE_KOYU : HARITA_TILE_ACIK, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -1353,7 +1334,6 @@ function haritaKur() {
           source: 'openmaptiles',
           'source-layer': 'building',
           minzoom: 13,
-          maxzoom: 16,
           paint: {
             'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'render_height'], 0, '#e8e2d8', 30, '#d6cdbd', 80, '#c0b5a4', 180, '#a49a8c'],
             'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
@@ -1414,111 +1394,6 @@ function haritaKur() {
     } catch (e) { }
   }
 
-  function harita3D() {
-    if (!harita || haritaMotoru !== 'maplibre' || !harita.getSource) return;
-    harita3DBina();
-    haritaMahalleEtiketleri();
-    haritaDetayRaster();
-  }
-
-  function haritaDetayRaster() {
-    if (!harita || haritaMotoru !== 'maplibre' || !harita.getSource) return;
-    try {
-      var st1 = harita.getStyle();
-      var kat1 = st1 && st1.layers ? st1.layers : [];
-      for (var i1 = 0; i1 < kat1.length; i1++) {
-        if (kat1[i1] && kat1[i1].type === 'background') {
-          try { harita.setPaintProperty(kat1[i1].id, 'background-opacity', 0); } catch (e) { }
-          break;
-        }
-      }
-      try { if (harita.getLayer('taban-raster')) harita.removeLayer('taban-raster'); } catch (e) { }
-      try { if (harita.getSource('taban-raster-kaynak')) harita.removeSource('taban-raster-kaynak'); } catch (e) { }
-      harita.addSource('taban-raster-kaynak', {
-        type: 'raster',
-        tiles: [haritaStilKoyu() ? HARITA_TILE_KOYU : HARITA_TILE_ACIK],
-        tileSize: 256,
-        maxzoom: 20
-      });
-      var ustId1 = undefined;
-      for (var j1 = 0; j1 < kat1.length; j1++) {
-        if (kat1[j1] && kat1[j1].type !== 'background' && kat1[j1].id !== 'taban-raster') { ustId1 = kat1[j1].id; break; }
-      }
-      harita.addLayer({
-        id: 'taban-raster',
-        type: 'raster',
-        source: 'taban-raster-kaynak',
-        minzoom: 0,
-        maxzoom: 22,
-        paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 }
-      }, ustId1);
-    } catch (e) { }
-  }
-
-  function haritaEskiMahalleKapat() {
-    if (!harita || !harita.getStyle) return;
-    try {
-      var katmanlar = harita.getStyle().layers || [];
-      for (var i = 0; i < katmanlar.length; i++) {
-        var mu = katmanlar[i];
-        if (!mu || mu.type !== 'symbol' || mu['source-layer'] !== 'place') continue;
-        var f = JSON.stringify(mu.filter || []);
-        if (f.indexOf('suburb') !== -1 || f.indexOf('neighbourhood') !== -1 || f.indexOf('quarter') !== -1 || f.indexOf('hamlet') !== -1) {
-          try { if (harita.getLayer(mu.id)) harita.setLayoutProperty(mu.id, 'visibility', 'none'); } catch (e2) { }
-        }
-      }
-    } catch (e) { }
-  }
-
-  function haritaMahalleEtiketleri() {
-    if (!harita || haritaMotoru !== 'maplibre' || !harita.getLayer || !harita.getSource || !harita.getSource('openmaptiles')) return;
-    haritaEskiMahalleKapat();
-    try {
-      if (!harita.getLayer('mahalle-etiket')) {
-        var koyu2 = haritaStilKoyu();
-        harita.addLayer({
-          id: 'mahalle-etiket',
-          type: 'symbol',
-          source: 'openmaptiles',
-          'source-layer': 'place',
-          filter: ['match', ['get', 'class'], ['suburb', 'neighbourhood', 'quarter', 'hamlet'], true, false],
-          layout: {
-            'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 14],
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.06,
-            'text-max-width': 9,
-            'text-allow-overlap': false
-          },
-          paint: {
-            'text-color': koyu2 ? '#fbbf24' : '#7c2d12',
-            'text-halo-color': koyu2 ? 'rgba(18,27,46,.95)' : 'rgba(255,255,255,.92)',
-            'text-halo-width': 1.5,
-            'text-opacity': 0.92
-          },
-          minzoom: 12
-        });
-      }
-    } catch (e) { }
-  }
-
-  function harita3DButon() {
-    if (haritaMotoru !== 'maplibre' || !harita) return;
-    var btn = document.createElement('button');
-    btn.className = 'map3d-btn';
-    btn.innerHTML = '🏔';
-    btn.title = '3D görünüm';
-    btn.addEventListener('click', function () {
-      var egrilik = harita.getPitch ? harita.getPitch() : 0;
-      if (egrilik > 10) harita.easeTo({ pitch: 0, duration: 500 });
-      else harita.easeTo({ pitch: 45, duration: 500 });
-    });
-    harita.addControl({
-      onAdd: function () { var d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group'; d.appendChild(btn); return d; },
-      onRemove: function () { btn.remove(); }
-    }, 'bottom-left');
-  }
-
   function tamEkranKontrol() {
     if (haritaMotoru !== 'maplibre' || !harita) return;
     var kapsam = document.getElementById('harita');
@@ -1538,64 +1413,6 @@ function haritaKur() {
     }, 'top-right');
   }
 
-  function haritaZoomGuvenlik() {
-    if (haritaMotoru !== 'maplibre' || !harita) return;
-    try {
-      var bosSaya = 0;
-      var sonZoomZamani = Date.now();
-      harita.on('zoom', function () { sonZoomZamani = Date.now(); });
-      harita.on('zoomend', function () {
-        try {
-          var z = harita.getZoom();
-          var hedef = 28;
-          if (!isNaN(z) && z > 14.5) hedef = Math.max(6, 28 - Math.round((z - 14.5) * 7));
-          var simdiki = harita.getPitch();
-          if (Math.abs(simdiki - hedef) > 2) harita.easeTo({ pitch: hedef, duration: 260 });
-        } catch (e) { }
-      });
-      harita.on('webglcontextlost', function () {
-        try { harita2DGec('3D grafik motoru cihazınızda kilitlendi — 2D haritaya geçildi.'); } catch (e) { }
-      });
-      setInterval(function () {
-        try {
-          if (haritaMotoru !== 'maplibre' || !harita) return;
-          var zm = harita.getZoom();
-          if (isNaN(zm) || Date.now() - sonZoomZamani > 2500) { bosSaya = 0; return; }
-          var tuval = harita.getCanvas();
-          if (!tuval) return;
-          var gl = tuval.getContext('webgl2') || tuval.getContext('webgl') || tuval.getContext('experimental-webgl');
-          if (!gl) return;
-          var px = new Uint8Array(4);
-          gl.readPixels(Math.floor(tuval.width / 2), Math.floor(tuval.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
-          var bos = px[3] === 0 || (px[0] === 0 && px[1] === 0 && px[2] === 0);
-          if (bos) {
-            bosSaya++;
-            if (bosSaya >= 3) {
-              bosSaya = 0;
-              harita2DGec('3D görüntü yakınlaşınca durdu — 2D haritaya geçildi.');
-            } else {
-              try { harita.triggerRepaint(); } catch (e) { }
-            }
-          } else { bosSaya = 0; }
-        } catch (e) { }
-      }, 700);
-    } catch (e) { }
-  }
-
-  function harita2DGec(mesaj) {
-    if (haritaMotoru === 'leaflet') return;
-    try { if (harita && harita.remove) harita.remove(); } catch (e) { }
-    harita = null;
-    haritaMotoru = 'leaflet';
-    leaffallback();
-    if (mesaj) {
-      setTimeout(function () {
-        var n2 = document.getElementById('harita-2d-notu');
-        if (n2) n2.textContent = mesaj;
-      }, 150);
-    }
-  }
-
   function haritaTemaDegis() {
     if (!harita) return;
     try {
@@ -1612,7 +1429,7 @@ function haritaKur() {
       }
       harita.setStyle(haritaStilUrl());
       harita.once('styledata', function () {
-        harita3D();
+        harita3DBina();
         if (sonRotaPuanlar && sonRotaPuanlar.length) cizgiGuncelle('rota-katmani', 'rota-cizgi', sonRotaPuanlar, '#f77f00', 4, 0.7, null);
         if (sonTeslimPuanlar && sonTeslimPuanlar.length) cizgiGuncelle('teslim-rota-katmani', 'teslim-rota-cizgi', sonTeslimPuanlar, '#1faa4c', 3, 0.8, [6, 6]);
         if (harita.getSource && harita.getSource('magazalar')) {
