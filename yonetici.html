@@ -672,7 +672,7 @@
 <div class="ust">
   <div class="ust-orta">
     <div class="ust-logo"><img id="ust-logo-img" src="NoktaTedarik-Logo.jpg" alt="NOKTA TEDARİK" onerror="this.style.display='none';"><span id="ust-logo-emoji" style="display:none;font-size:1.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));">🏢</span><h1 id="ust-baslik">NOKTA TEDARİK</h1></div>
-    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v18</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
+    <div class="alt"><span class="alt-yon" id="ust-alt-yon">YÖNETİCİ PANELİ</span> <span class="surum" id="surum-rozeti" title="Aktif sürüm">v19</span> · <span class="sehir" id="sehir-ad">—</span> · <span class="sehir" id="tarih-ad">—</span> · <span class="sehir saat" id="canli-saat">--:--:--</span></div>
   </div>
   <div class="ust-sag">
     <span class="baglanti" id="baglanti-durum" title="Bağlantı durumu"><span class="baglanti-nokta"></span><span id="baglanti-yazi">CANLI</span></span>
@@ -1230,6 +1230,7 @@
   var harita = null;
   var haritaMotoru = null;
   var aracMarker = null;
+  var aracMarkerMotoru = null;
   var rotaCizgi = null;
   var sonKonum = null;
   var magazaMarkers = [];
@@ -1280,8 +1281,7 @@ function haritaKur() {
         var maplibreYuklendi = false;
         var watchdog = setTimeout(function () {
           if (!maplibreYuklendi && harita && haritaMotoru === 'maplibre') {
-            try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
-            leaffallback();
+            harita2DGec('3D harita 8 sn içinde yüklenemedi — otomatik 2D haritaya geçildi.');
           }
         }, 8000);
         harita = new maplibregl.Map({
@@ -1309,8 +1309,7 @@ function haritaKur() {
           var kritik = msg.indexOf('WebGL') !== -1 || msg.indexOf('style') !== -1 || msg.indexOf('Style') !== -1 || msg.indexOf('Failed to fetch') !== -1;
           if (!kritik) return;
           clearTimeout(watchdog);
-          try { try { harita.remove(); } catch (e) { } harita = null; } catch (e) { }
-          leaffallback();
+          harita2DGec('3D harita hatası (' + (msg || 'WebGL') + ') — 2D haritaya geçildi.');
         });
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 400);
         setTimeout(function () { try { harita.resize(); } catch (e) { } }, 1200);
@@ -1360,6 +1359,7 @@ function haritaKur() {
                 harita = null;
                 haritaMotoru = '';
                 window.__yon3d = true;
+                try { var eskiNotu = document.getElementById('harita-2d-notu'); if (eskiNotu) eskiNotu.remove(); } catch (e) { }
                 haritaKur();
               });
               return bt;
@@ -1543,7 +1543,7 @@ function haritaKur() {
           type: 'symbol',
           source: 'openmaptiles',
           'source-layer': 'poi',
-          minzoom: 15,
+          minzoom: 13,
           filter: ['all', ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false], ['<', ['get', 'rank'], 20]],
           layout: {
             'text-field': ['coalesce', ['get', 'name:tr'], ['get', 'name']],
@@ -1646,9 +1646,11 @@ function haritaKur() {
 
   function harita2DGec(mesaj) {
     if (haritaMotoru === 'leaflet') return;
+    try { window.__yon3d = false; } catch (e) { }
     try { if (harita && harita.remove) harita.remove(); } catch (e) { }
     harita = null;
     haritaMotoru = 'leaflet';
+    try { if (aracMarker) { try { if (aracMarker.remove) aracMarker.remove(); } catch (e) { } aracMarker = null; aracMarkerMotoru = null; } } catch (e) { }
     leaffallback();
     if (mesaj) {
       setTimeout(function () {
@@ -1656,6 +1658,7 @@ function haritaKur() {
         if (n2) n2.textContent = mesaj;
       }, 150);
     }
+    setTimeout(function () { try { if (typeof yukleGunDurumu === 'function') yukleGunDurumu(); } catch (e) { } }, 700);
   }
 
   function haritaTemaDegis() {
@@ -1764,6 +1767,12 @@ function haritaKur() {
           document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
         }
         if (harita) {
+          if (aracMarker && aracMarkerMotoru && aracMarkerMotoru !== haritaMotoru) {
+            try { if (aracMarker.remove) aracMarker.remove(); } catch (e2) { }
+            aracMarker = null;
+            aracMarkerMotoru = null;
+          }
+          aracMarkerMotoru = haritaMotoru;
           var popHtml = '<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—') + '<br><a class="nav-link" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + d.lat + ',' + d.lng + '&travelmode=driving">🧭 Navigasyonu Aç</a>';
           if (haritaMotoru === 'leaflet') {
             var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
