@@ -1442,22 +1442,6 @@ function haritaKur() {
     } catch (e) { }
   }
 
-  function harita3DTerrain() {
-    if (!harita || haritaMotoru !== 'maplibre' || !harita.addSource) return;
-    try {
-      if (!harita.getSource('harita-dem')) {
-        harita.addSource('harita-dem', {
-          type: 'raster-dem',
-          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-          encoding: 'terrarium',
-          tileSize: 256,
-          maxzoom: 15
-        });
-      }
-      harita.setTerrain({ source: 'harita-dem', exaggeration: 1.2 });
-    } catch (e) { }
-  }
-
   function haritaEskiMahalleKapat() {
     if (!harita || !harita.getStyle) return;
     try {
